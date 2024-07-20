@@ -1,0 +1,60 @@
+server:
+  port: 8253
+
+# database setting
+spring:
+  mvc:
+    view:
+      prefix: /WEB-INF/views/
+      suffix: .jsp
+
+
+  # mail setting
+  mail:
+    host: smtp.naver.com
+    port: 465
+    username: tkdgnsdldkdlel
+    password: kk0022812123!
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+          starttls:
+            enable: true
+    default-encoding: UTF-8
+    debug: true
+
+
+  datasource:
+    url: jdbc:mariadb://localhost:3306/jpastudy
+    username: root
+    password: mariadb
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    # DBMS dialect setting
+    database-platform: org.hibernate.dialect.MariaDB106Dialect
+    hibernate:
+      # ddl ??? ??? ????...
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true # SQL ?? ??? ??? ??
+    database: mysql
+
+# log level setting
+logging:
+  level:
+    root: info
+    com.study.event.api: debug
+    org:
+      hibernate:
+        SQL: debug
+
+study:
+  mail:
+    host: tkdgnsdldkdlel@naver.com
+
+#jwt:
+#  secret : Lsj7HjuwNv4clJC6Mu78nWkQOjn7AiAAlWJDb/rSDGA68n/k8K9tKaCwvXLqosqI5XvZOJ/FDCjjselFkSdagg=
