@@ -4,7 +4,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Web Study</title>
+    <title>hello!</title>
 </head>
 <body>
 </body>
