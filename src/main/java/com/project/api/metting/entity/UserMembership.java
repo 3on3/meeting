@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @Table(name = "mt_user_membership")
-public class UserMemberShip {
+public class UserMembership {
     @Id
     @GenericGenerator(strategy = "uuid2", name = "uuid-generator")
     @GeneratedValue(generator = "uuid-generator")
@@ -35,8 +35,8 @@ public class UserMemberShip {
     private LocalDateTime registeredAt = LocalDateTime.now();
 
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mt_user_id",  nullable = false)
+    @OneToOne
+    @JoinColumn(name = "mt_user_id",  nullable = false, unique = true)
     private User user;
 
 

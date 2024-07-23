@@ -38,9 +38,13 @@ public class GroupMatchingHistories {
     private String requestGroup;
 
 
-    @ManyToOne
-    @JoinColumn(name = "mt_group_id",  nullable = false)
-    @Column(name = "mt_group_matching_history_response_group")
+
+
+
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mt_group_matching_history_response_group",  nullable = false, referencedColumnName = "mt_group_id")
     private Group responseGroup;
 
 

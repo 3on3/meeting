@@ -30,7 +30,8 @@ public class UserVerification {
     @Column(name = "mt_user_verification_expiry_date",nullable = false)
     private LocalDateTime expiryDate; // 인증 만료시간
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mt_user_id",  nullable = false)
+    @OneToOne
+    @JoinColumn(name = "verification_user_id", referencedColumnName = "mt_user_id", nullable = false, unique = true)
     private User user;
+
 }
