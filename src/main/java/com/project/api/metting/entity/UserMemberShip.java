@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  * UserMembership
  * : 유저 멤버십 엔터티
  * user (FK)
- * : 유저 아이디(1 : 1)
+ * : 유저 아이디 (1 : 1)
  */
 @Getter
 @ToString(exclude = "user")

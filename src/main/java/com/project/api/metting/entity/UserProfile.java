@@ -10,7 +10,7 @@ import javax.persistence.*;
  * UserProfile
  * : 유저 프로필 엔터티
  * user
- * : 유저 아이디(1 : 1)
+ * : 유저 아이디 (1 : 1)
  */
 
 @Getter

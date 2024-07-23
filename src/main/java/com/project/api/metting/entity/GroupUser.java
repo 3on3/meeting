@@ -11,9 +11,9 @@ import java.time.LocalDateTime;
  * GroupUsers
  * : 그룹에 속한 모든 유저 컬럼
  * user (FK)
- * : 컬럼의 유저 아이디(M : 1 - User)
+ * : 컬럼의 유저 아이디 (M : 1 - User)
  * group (FK)
- * : 컬럼의 그룹 아이디(M : 1 - Group)
+ * : 컬럼의 그룹 아이디 (M : 1 - Group)
  */
 @Getter
 @ToString()
@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @Table(name = "mt_group_users")
-public class GroupUsers {
+public class GroupUser {
 
 
     @Id

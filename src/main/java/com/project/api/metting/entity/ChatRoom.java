@@ -12,9 +12,9 @@ import java.util.List;
  * ChatRooms
  * : 그룹 대 그룹으로 매칭된 후 생성되는 채팅방 엔터티
  * groupMatchingHistories (FK)
- * : 그룹 대 그룹으로 매칭된 후 생성되는 매칭 내역(1 : 1)
- * chatMessages (FK) (excludes)
- * : 채팅방에서 생성되는 모든 메세지(1 : M - ChatMessages)
+ * : 그룹 대 그룹으로 매칭된 후 생성되는 매칭 내역 (1 : 1)
+ * chatMessages (excludes)
+ * : 채팅방에서 생성되는 모든 메세지 (1 : M - ChatMessages)
  */
 
 @Getter
@@ -52,7 +52,7 @@ public class ChatRoom {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mt_group_matching_history_id",  nullable = false)
-    private GroupMatchingHistory groupMatchingHistories;
+    private GroupMatchingHistory groupMatchingHistory;
 
     @OneToMany(mappedBy = "chatRooms", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ChatMessage> chatMessages;
