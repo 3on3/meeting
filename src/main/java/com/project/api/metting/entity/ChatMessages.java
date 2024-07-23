@@ -29,8 +29,8 @@ public class ChatMessages {
 
 
 
-    @Column(name = "mt_chat_message_context")
-    private String messageContext;
+    @Column(name = "mt_chat_message_content")
+    private String messageContent;
 
     @ManyToOne
     @JoinColumn(name = "mt_chat_room_id",  nullable = false)

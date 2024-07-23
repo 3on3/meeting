@@ -83,15 +83,6 @@ public class User {
     private Boolean isVerification = false;
 
 
-//    @OneToOne(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    private UserMembership userMemberShip;
-//
-//
-//    @OneToOne(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    private UserVerification userVerification;
-//
-//    @OneToOne(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    private UserProfile userProfile;
 
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<GroupUsers> groupUsers;
