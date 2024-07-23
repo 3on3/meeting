@@ -7,6 +7,14 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * ChatMessages
+ * : 모든 채팅방의 메세지 엔터티
+ * chatRooms (FK)
+ * : 메세지가 생성된 채팅방(M : 1 - ChatRooms)
+ * user (FK)
+ * : 메세지를 작성한 유저(M : 1 - User)
+ */
 @Getter
 @ToString()
 @EqualsAndHashCode(of ="id")
@@ -15,7 +23,7 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @Table(name = "mt_chat_messages")
-public class ChatMessages {
+public class ChatMessage {
     @Id
     @GenericGenerator(strategy = "uuid2", name = "uuid-generator")
     @GeneratedValue(generator = "uuid-generator")
@@ -34,7 +42,7 @@ public class ChatMessages {
 
     @ManyToOne
     @JoinColumn(name = "mt_chat_room_id",  nullable = false)
-    private ChatRooms chatRooms;
+    private ChatRoom chatRooms;
 
 
     @ManyToOne
