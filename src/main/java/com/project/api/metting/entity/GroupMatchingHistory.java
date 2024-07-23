@@ -5,8 +5,15 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
 
+/**
+ * GroupMatchingHistories
+ * : 그룹 매칭 신청/거정/성공 내역이 쌓이는 엔터티
+ * requestGroup
+ * : 신청자 그룹 엔터티의 고유아이디, setter로 기입
+ * responseGroup (FK)
+ * : 주최자 그룹 엔터티의 고유아이디 (M : 1 - Group)
+ */
 @Getter
 @ToString()
 @EqualsAndHashCode(of ="id")
@@ -15,7 +22,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "mt_group_matching_histories")
-public class GroupMatchingHistories {
+public class GroupMatchingHistory {
     @Id
     @GenericGenerator(strategy = "uuid2", name = "uuid-generator")
     @GeneratedValue(generator = "uuid-generator")
@@ -38,14 +45,18 @@ public class GroupMatchingHistories {
     private String requestGroup;
 
 
-    @ManyToOne
-    @JoinColumn(name = "mt_group_id",  nullable = false)
-    @Column(name = "mt_group_matching_history_response_group")
+
+
+
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mt_group_matching_history_response_group",  nullable = false, referencedColumnName = "mt_group_id")
     private Group responseGroup;
 
 
     @OneToOne(mappedBy = "groupMatchingHistories", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private ChatRooms chatRooms;
+    private ChatRoom chatRooms;
 
 
 }
