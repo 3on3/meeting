@@ -9,8 +9,16 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * User
+ * : 유저 정보를 담은 유저 엔터티
+ * userMemberShip, userVerification, userProfile (excludes)
+ * : 해당 유저 멤버십, 이메일 인증 정보, 프로필 정보 (1 : 1)
+ * groupUser, chatMessages (excludes)
+ * : 해당 유저의 그룹 정보, 메세지 정보 (1 : M - GroupUser, ChatMessages)
+ */
 @Getter
-@ToString(exclude = "userMemberShip")
+@ToString()
 @EqualsAndHashCode(of ="id")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -83,22 +91,13 @@ public class User {
     private Boolean isVerification = false;
 
 
-    @OneToOne(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private UserMemberShip userMemberShip;
-
-
-    @OneToOne(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private UserVerification userVerification;
-
-    @OneToOne(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private UserProfile userProfile;
 
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<GroupUsers> groupUsers;
+    private List<GroupUser> groupUsers;
 
 
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ChatMessages> chatMessages;
+    private List<ChatMessage> chatMessages;
 
 
 }
