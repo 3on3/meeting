@@ -8,7 +8,7 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Getter
-@ToString()
+@ToString(exclude = "user")
 @EqualsAndHashCode(of ="id")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -33,6 +33,11 @@ public class UserMemberShip {
     @Column(name = "mt_user_membership_registered_at")
     @Builder.Default // 가입시간 기본으로 생성
     private LocalDateTime registeredAt = LocalDateTime.now();
+
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mt_user_id",  nullable = false)
+    private User user;
 
 
 }
