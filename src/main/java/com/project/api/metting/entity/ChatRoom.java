@@ -54,6 +54,6 @@ public class ChatRoom {
     @JoinColumn(name = "mt_group_matching_history_id",  nullable = false)
     private GroupMatchingHistory groupMatchingHistory;
 
-    @OneToMany(mappedBy = "chatRooms", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "chatRoom", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ChatMessage> chatMessages;
 }

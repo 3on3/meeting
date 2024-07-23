@@ -42,7 +42,7 @@ public class ChatMessage {
 
     @ManyToOne
     @JoinColumn(name = "mt_chat_room_id",  nullable = false)
-    private ChatRoom chatRooms;
+    private ChatRoom chatRoom;
 
 
     @ManyToOne
