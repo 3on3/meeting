@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 
 @Getter
-@ToString()
+@ToString(exclude = "userMemberShip")
 @EqualsAndHashCode(of ="id")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -80,6 +80,10 @@ public class User {
     @Column(name = "mt_user_email_is_verificationed")
     @Builder.Default
     private Boolean isVerification = false;
+
+
+    @OneToOne(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private UserMemberShip userMemberShip;
 
 
 }
