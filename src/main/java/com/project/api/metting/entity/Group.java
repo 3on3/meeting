@@ -8,6 +8,15 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Group
+ * : 그룹 엔터티
+ * groupUsers (excludes)
+ * : 그룹에 속한 유저 리스트 (1 : M - GroupUsers)
+ * groupMatchingHistories (excludes)
+ * : 그룹에 대해 생성된 매칭 신청/거절/성공 내역 (1 : M - GroupMatchingHistories)
+ */
+
 @Getter
 @ToString()
 @EqualsAndHashCode(of ="id")
@@ -51,13 +60,10 @@ public class Group {
     private Boolean isDeleted = false; // 매칭 여부
 
     @OneToMany(mappedBy = "group", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<GroupUsers> groupUsers;
-
-
-
+    private List<GroupUser> groupUsers;
 
     @OneToMany(mappedBy = "responseGroup", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<GroupMatchingHistories> groupMatchingHistoriesResponse;
+    private List<GroupMatchingHistory> groupMatchingHistories;
 
 
 }

@@ -7,6 +7,12 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * UserMembership
+ * : 유저 멤버십 엔터티
+ * user (FK)
+ * : 유저 아이디 (1 : 1)
+ */
 @Getter
 @ToString(exclude = "user")
 @EqualsAndHashCode(of ="id")
@@ -15,7 +21,7 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @Table(name = "mt_user_membership")
-public class UserMemberShip {
+public class UserMembership {
     @Id
     @GenericGenerator(strategy = "uuid2", name = "uuid-generator")
     @GeneratedValue(generator = "uuid-generator")
@@ -35,8 +41,8 @@ public class UserMemberShip {
     private LocalDateTime registeredAt = LocalDateTime.now();
 
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mt_user_id",  nullable = false)
+    @OneToOne
+    @JoinColumn(name = "mt_user_id",  nullable = false, unique = true)
     private User user;
 
 
