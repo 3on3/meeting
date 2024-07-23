@@ -38,4 +38,15 @@ public class GroupUsers {
     @Builder.Default // 그룹 생성 시간
     private GroupStatus status = GroupStatus.INVITING;
 
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mt_user_id",  nullable = false)
+    private User user;
+
+
+    @ManyToOne
+    @JoinColumn(name = "mt_group_id",  nullable = false)
+    private Group group;
+
+
 }

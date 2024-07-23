@@ -32,4 +32,14 @@ public class ChatMessages {
     @Column(name = "mt_chat_message_context")
     private String messageContext;
 
+    @ManyToOne
+    @JoinColumn(name = "mt_chat_room_id",  nullable = false)
+    private ChatRooms chatRooms;
+
+
+    @ManyToOne
+    @JoinColumn(name = "mt_user_id",  nullable = false)
+    private User user;
+
+
 }
