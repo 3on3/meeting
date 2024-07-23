@@ -93,11 +93,11 @@ public class User {
 
 
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<GroupUser> groupUser;
+    private List<GroupUser> groupUsers;
 
 
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ChatMessage> chatMessage;
+    private List<ChatMessage> chatMessages;
 
 
 }

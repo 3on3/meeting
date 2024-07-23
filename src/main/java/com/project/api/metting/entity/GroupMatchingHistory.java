@@ -55,8 +55,8 @@ public class GroupMatchingHistory {
     private Group responseGroup;
 
 
-    @OneToOne(mappedBy = "groupMatchingHistories", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private ChatRoom chatRooms;
+    @OneToOne(mappedBy = "groupMatchingHistory", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private ChatRoom chatRoom;
 
 
 }

@@ -62,9 +62,6 @@ public class Group {
     @OneToMany(mappedBy = "group", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<GroupUser> groupUsers;
 
-
-
-
     @OneToMany(mappedBy = "responseGroup", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<GroupMatchingHistory> groupMatchingHistories;
 
