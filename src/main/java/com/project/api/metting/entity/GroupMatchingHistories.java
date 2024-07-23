@@ -5,6 +5,7 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @ToString()
@@ -30,5 +31,21 @@ public class GroupMatchingHistories {
     @Column(name = "mt_group_matching_history_requested_at")
     @Builder.Default
     private LocalDateTime requestedAt = LocalDateTime.now();
+
+
+    @Setter
+    @Column(name = "mt_group_matching_history_request_group")
+    private String requestGroup;
+
+
+    @ManyToOne
+    @JoinColumn(name = "mt_group_id",  nullable = false)
+    @Column(name = "mt_group_matching_history_response_group")
+    private Group responseGroup;
+
+
+    @OneToOne(mappedBy = "groupMatchingHistories", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private ChatRooms chatRooms;
+
 
 }

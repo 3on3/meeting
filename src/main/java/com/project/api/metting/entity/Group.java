@@ -6,6 +6,7 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @ToString()
@@ -48,4 +49,15 @@ public class Group {
     @Column(name = "mt_group_is_deleted")
     @Builder.Default
     private Boolean isDeleted = false; // 매칭 여부
+
+    @OneToMany(mappedBy = "group", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<GroupUsers> groupUsers;
+
+
+
+
+    @OneToMany(mappedBy = "responseGroup", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<GroupMatchingHistories> groupMatchingHistoriesResponse;
+
+
 }

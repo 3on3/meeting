@@ -6,6 +6,7 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @ToString()
@@ -39,4 +40,11 @@ public class ChatRooms {
     @Column(name = "mt_chat_room_is_deleted")
     @Builder.Default
     private Boolean isDeleted = false;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mt_group_matching_history_id",  nullable = false)
+    private GroupMatchingHistories groupMatchingHistories;
+
+    @OneToMany(mappedBy = "chatRooms", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ChatMessages> chatMessages;
 }
