@@ -10,9 +10,9 @@ import java.time.LocalDateTime;
  * GroupMatchingHistories
  * : 그룹 매칭 신청/거정/성공 내역이 쌓이는 엔터티
  * requestGroup
- * : 신청자 그룹 엔터티 아이디, setter로 추가
+ * : 신청자 그룹 엔터티의 고유아이디, setter로 기입
  * responseGroup (FK)
- * : 주최자 그룹 엔터티 아이티(M : 1 - Group)
+ * : 주최자 그룹 엔터티의 고유아이디 (M : 1 - Group)
  */
 @Getter
 @ToString()

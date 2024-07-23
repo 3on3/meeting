@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
  * UserVerification
  * : 유저 이메일 인증 코드 엔터티
  * user (FK)
- * : 유저 아이디(1 : 1)
+ * : 유저 아이디 (1 : 1)
  */
 
 @Getter
