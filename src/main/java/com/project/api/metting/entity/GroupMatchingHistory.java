@@ -40,13 +40,9 @@ public class GroupMatchingHistory {
     private LocalDateTime requestedAt = LocalDateTime.now();
 
 
-    @Setter
-    @Column(name = "mt_group_matching_history_request_group")
-    private String requestGroup;
-
-
-
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mt_group_matching_history_request_group",  nullable = false, referencedColumnName = "mt_group_id")
+    private Group requestGroup;
 
 
 
