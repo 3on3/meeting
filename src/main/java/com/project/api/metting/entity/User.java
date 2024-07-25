@@ -24,6 +24,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
+
 @Table(name = "mt_users")
 public class User {
     @Id
@@ -88,6 +89,7 @@ public class User {
 
     @Column(name = "mt_user_email_is_verificationed")
     @Builder.Default
+    @Setter
     private Boolean isVerification = false;
 
 
@@ -99,5 +101,20 @@ public class User {
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ChatMessage> chatMessages;
 
+//
+    public void confirm(String password, String name, Date Birth, String phone, String univ, String major, Gender gender, String nickname) {
+        this.password = password;
+        this.name = name;
+        this.birthDate = Birth;
+        this.phoneNumber = phone;
+        this.univ = univ;
+        this.major = major;
+        this.gender = gender;
+        this.nickname = nickname;
+        this.registeredAt = LocalDateTime.now();
+    }
 
+    public void changePass(String password) {
+        this.password = password;
+    }
 }
