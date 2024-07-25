@@ -63,7 +63,10 @@ public class Group {
     private List<GroupUser> groupUsers;
 
     @OneToMany(mappedBy = "responseGroup", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<GroupMatchingHistory> groupMatchingHistories;
+    private List<GroupMatchingHistory> groupMatchingHistoriesResponse;
 
+
+    @OneToMany(mappedBy = "responseGroup", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<GroupMatchingHistory> groupMatchingHistoriesRequest;
 
 }
