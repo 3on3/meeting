@@ -27,6 +27,34 @@ public class TokenProvider {
     @Value("${jwt.secret}")
     private String SECRET_KEY;
 
+    // 리프레쉬 토큰의 유효기간 설정
+    @Getter
+    @Value("${jwt.refresh-token-expiration-days}")
+    private int refreshTokenExpirationDays;
+
+    // 리프레쉬 토큰 생성
+    public String createRefreshToken() {
+        return Jwts.builder()
+                .setIssuedAt(new Date())
+                .setExpiration(Date.from(Instant.now().plus(refreshTokenExpirationDays, ChronoUnit.DAYS)))
+                .signWith(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()), SignatureAlgorithm.HS512)
+                .compact();
+    }
+
+    // 리프레쉬 토큰 유효성 검사
+    public boolean validateRefreshToken(String refreshToken) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()))
+                    .build()
+                    .parseClaimsJws(refreshToken);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+
     /**
      * JWT를 생성하는 메서드
      * @param user - 토큰에 포함될 로그인한 유저의 정보
@@ -99,7 +127,6 @@ public class TokenProvider {
                 .auth(Auth.valueOf(claims.get("auth", String.class)))
                 .build();
     }
-
 
     @Getter
     @ToString
