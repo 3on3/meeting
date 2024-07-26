@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -92,6 +93,13 @@ public class User {
     @Setter
     private Boolean isVerification = false;
 
+    @Setter
+    @Column(name = "mt_user_refresh_token", nullable = true, unique = true)
+    private String refreshToken; // 리프레쉬 토큰
+
+    @Setter
+    @Column(name = "mt_user_refresh_token_expiry_date", nullable = true)
+    private Instant refreshTokenExpiryDate; // 리프레쉬 토큰 유통기한
 
 
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -101,7 +109,6 @@ public class User {
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ChatMessage> chatMessages;
 
-//
     public void confirm(String password, String name, Date Birth, String phone, String univ, String major, Gender gender, String nickname) {
         this.password = password;
         this.name = name;
@@ -116,5 +123,11 @@ public class User {
 
     public void changePass(String password) {
         this.password = password;
+    }
+
+    // 리프레시 토큰과 만료 시간을 업데이트하는 메서드
+    public void updateRefreshToken(String refreshToken, Instant expiryDate) {
+        this.refreshToken = refreshToken;
+        this.refreshTokenExpiryDate = expiryDate;
     }
 }
