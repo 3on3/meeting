@@ -34,17 +34,20 @@ public class Group {
     private String id; //  고유 아이디
 
 
-    @Column(name = "mt_group_name")
+    @Column(name = "mt_group_name", nullable = false)
     private String groupName; // 그룹 이름
 
-    @Column(name = "mt_group_place")
+    @Column(name = "mt_group_place", nullable = false)
     private Place groupPlace; // 만남지역
 
     @Column(name = "mt_group_inviting_code", unique = true)
     private String code; // 참여 코드
 
-    @Column(name = "mt_group_max_number")
+    @Column(name = "mt_group_max_number", nullable = false)
     private Integer maxNum; // 최대 인원 수
+
+    @Column(name = "mt_group_gender", nullable = false)
+    private Gender groupGender; // 그룹의 성별
 
     @Column(name = "mt_group_created_at")
     @Builder.Default // 그룹 생성 시간
@@ -69,4 +72,10 @@ public class Group {
     @OneToMany(mappedBy = "requestGroup", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<GroupMatchingHistory> groupMatchingHistoriesRequest;
 
+    public void setGroupUsers(List<GroupUser> groupUsers) {
+        this.groupUsers = groupUsers;
+        for (GroupUser groupUser : groupUsers) {
+            groupUser.setGroup(this);
+        }
+    }
 }

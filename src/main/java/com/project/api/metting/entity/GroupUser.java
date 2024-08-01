@@ -53,6 +53,7 @@ public class GroupUser {
 
 
     @ManyToOne
+    @Setter
     @JoinColumn(name = "mt_group_id",  nullable = false)
     private Group group;
 
