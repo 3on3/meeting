@@ -37,6 +37,7 @@ public class Group {
     @Column(name = "mt_group_name", nullable = false)
     private String groupName; // 그룹 이름
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "mt_group_place", nullable = false)
     private Place groupPlace; // 만남지역
 
@@ -46,6 +47,8 @@ public class Group {
     @Column(name = "mt_group_max_number", nullable = false)
     private Integer maxNum; // 최대 인원 수
 
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "mt_group_gender", nullable = false)
     private Gender groupGender; // 그룹의 성별
 
