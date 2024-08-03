@@ -25,6 +25,7 @@ public class MainController {
     public ResponseEntity<?> getMeetingList() {
 
         List<Group> meetingList = mainService.getMeetingList();
+        log.info("meetingList: {}", meetingList);
 
         return ResponseEntity.ok().body(meetingList);
     }
