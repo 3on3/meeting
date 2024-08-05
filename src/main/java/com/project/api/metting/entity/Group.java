@@ -66,15 +66,24 @@ public class Group {
     @Builder.Default
     private Boolean isDeleted = false; // 매칭 여부
 
+
+    @JsonIgnore
+    @ToString.Exclude
     @OneToMany(mappedBy = "group", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<GroupUser> groupUsers;
 
+
+    @JsonIgnore
+    @ToString.Exclude
     @OneToMany(mappedBy = "responseGroup", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<GroupMatchingHistory> groupMatchingHistoriesResponse;
 
 
+
+    @JsonIgnore
+    @ToString.Exclude
     @OneToMany(mappedBy = "requestGroup", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<GroupMatchingHistory> groupMatchingHistoriesRequest;

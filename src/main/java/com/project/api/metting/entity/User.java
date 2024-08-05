@@ -1,6 +1,7 @@
 package com.project.api.metting.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -101,11 +102,13 @@ public class User {
     @Column(name = "mt_user_refresh_token_expiry_date", nullable = true)
     private Instant refreshTokenExpiryDate; // 리프레쉬 토큰 유통기한
 
-
+    @JsonIgnore
+    @ToString.Exclude
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<GroupUser> groupUsers;
 
-
+    @JsonIgnore
+    @ToString.Exclude
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ChatMessage> chatMessages;
 

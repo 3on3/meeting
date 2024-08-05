@@ -1,5 +1,6 @@
 package com.project.api.metting.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -36,6 +37,9 @@ public class UserVerification {
     @Column(name = "mt_user_verification_expiry_date",nullable = false)
     private LocalDateTime expiryDate; // 인증 만료시간
 
+
+    @JsonIgnore
+    @ToString.Exclude
     @OneToOne
     @JoinColumn(name = "verification_user_id", referencedColumnName = "mt_user_id", nullable = false, unique = true)
     private User user;
