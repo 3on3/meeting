@@ -33,6 +33,7 @@ public class GroupMatchingHistory {
 
     @Column(name = "mt_group_matching_history_process")
     @Builder.Default
+    @Setter
     private GroupProcess process = GroupProcess.INVITING;
 
 
