@@ -1,6 +1,7 @@
 package com.project.api.metting.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
  * : 유저 아이디 (1 : 1)
  */
 @Getter
-@ToString(exclude = "user")
+@ToString()
 @EqualsAndHashCode(of ="id")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -40,7 +41,8 @@ public class UserMembership {
     @Builder.Default // 가입시간 기본으로 생성
     private LocalDateTime registeredAt = LocalDateTime.now();
 
-
+    @JsonIgnore
+    @ToString.Exclude
     @OneToOne
     @JoinColumn(name = "mt_user_id",  nullable = false, unique = true)
     private User user;
