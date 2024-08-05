@@ -17,9 +17,13 @@ import java.util.List;
 public class MainService {
     public final GroupRepository groupRepository;
 
+//    Group 전체 조회
     public List<Group> getMeetingList() {
         List<Group> MeetingList = groupRepository.findAll();
         log.info("MeetingList: {}", MeetingList);
         return MeetingList;
     }
+
+//    나이 계산하기
+
 }
