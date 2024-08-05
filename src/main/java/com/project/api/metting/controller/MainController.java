@@ -1,5 +1,6 @@
 package com.project.api.metting.controller;
 
+import com.project.api.metting.dto.response.MainMeetingListResponseDto;
 import com.project.api.metting.entity.Group;
 import com.project.api.metting.service.MainService;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +25,10 @@ public class MainController {
     @GetMapping("/main")
     public ResponseEntity<?> getMeetingList() {
 
-        List<Group> meetingList = mainService.getMeetingList();
+//        List<Group> meetingList = mainService.getMeetingList();
 
-        log.info("meetingList: {}", meetingList);
+//        log.info("meetingList: {}", meetingList);
+        List<MainMeetingListResponseDto> meetingList = mainService.getMeetingList();
 
         return ResponseEntity.ok().body(meetingList);
     }

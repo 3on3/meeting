@@ -4,18 +4,14 @@ package com.project.api.metting.dto.response;
 import com.project.api.metting.entity.Gender;
 import com.project.api.metting.entity.Group;
 import com.project.api.metting.entity.Place;
-import com.project.api.metting.entity.User;
 import lombok.*;
-
-import java.util.Date;
-import java.util.List;
 
 @Getter @ToString
 @AllArgsConstructor
 @EqualsAndHashCode
 @NoArgsConstructor
 @Builder
-public class MainMeetingListDto {
+public class MainMeetingListResponseDto {
 
     private String id;
 
@@ -29,7 +25,7 @@ public class MainMeetingListDto {
     private Gender groupGender;
 
     //평균 나이
-    private Integer averageAge;
+    private double averageAge;
 
     //매칭여부
     private Boolean isMatched;
@@ -40,14 +36,19 @@ public class MainMeetingListDto {
     //학과
     private String Major;
 
-    public MainMeetingListDto(Group group, User user){
+
+//    ,int memberCount 보류
+    public MainMeetingListResponseDto(Group group, double averageAge,String hostMajor){
         this.id = group.getId();
         this.groupName = group.getGroupName();
         this.groupPlace = group.getGroupPlace();
         this.groupGender = group.getGroupGender();
         this.isMatched = group.getIsMatched();
         this.maxNum = group.getMaxNum();
-        this.Major = user.getMajor();
+        this.averageAge = averageAge;
+        this.Major = hostMajor;
+//        this.memberCount = memberCount;
+
 
     }
 
