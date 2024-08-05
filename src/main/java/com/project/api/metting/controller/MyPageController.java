@@ -26,9 +26,9 @@ public class MyPageController {
 
     private final GroupQueryService groupQueryService;
 
-    @GetMapping("/mygroup")
-    public ResponseEntity<List<GroupResponseDto>> getMyGroups(@AuthenticationPrincipal TokenUserInfo tokenInfo) {
-        List<GroupResponseDto> groups = groupQueryService.getGroupsByUserEmail(tokenInfo.getEmail());
-        return ResponseEntity.ok(groups);
-    }
+//    @GetMapping("/mygroup")
+//    public ResponseEntity<List<GroupResponseDto>> getMyGroups(@AuthenticationPrincipal TokenUserInfo tokenInfo) {
+//        List<GroupResponseDto> groups = groupQueryService.getGroupsByUserEmail(tokenInfo.getEmail());
+//        return ResponseEntity.ok(groups);
+//    }
 }

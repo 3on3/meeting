@@ -1,6 +1,7 @@
 package com.project.api.metting.service;
 
 
+import com.project.api.metting.dto.response.MainMeetingListResponseDto;
 import com.project.api.metting.entity.Group;
 import com.project.api.metting.repository.GroupRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +18,14 @@ import java.util.List;
 public class MainService {
     public final GroupRepository groupRepository;
 
+
 //    Group 전체 조회
-    public List<Group> getMeetingList() {
-        List<Group> MeetingList = groupRepository.findAll();
-        log.info("MeetingList: {}", MeetingList);
-        return MeetingList;
+    public List<MainMeetingListResponseDto> getMeetingList() {
+//        List<Group> MeetingList = groupRepository.findAll();
+//        log.info("MeetingList: {}", MeetingList);
+
+        List<MainMeetingListResponseDto> groupUsersByAllGroup = groupRepository.findGroupUsersByAllGroup();
+        return groupUsersByAllGroup;
     }
 
 //    나이 계산하기

@@ -19,7 +19,7 @@ import java.util.List;
  */
 
 @Getter
-@ToString(exclude = {"groupUsers", "groupMatchingHistoriesResponse", "groupMatchingHistoriesRequest"})
+@ToString()
 @EqualsAndHashCode(of ="id")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -62,28 +62,27 @@ public class Group {
     private Boolean isMatched = false; // 매칭 여부
 
 
-
     @Column(name = "mt_group_is_deleted")
     @Builder.Default
     private Boolean isDeleted = false; // 매칭 여부
 
 
+    @JsonIgnore
     @ToString.Exclude
     @OneToMany(mappedBy = "group", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
     private List<GroupUser> groupUsers;
 
 
+    @JsonIgnore
     @ToString.Exclude
     @OneToMany(mappedBy = "responseGroup", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
     private List<GroupMatchingHistory> groupMatchingHistoriesResponse;
 
 
 
+    @JsonIgnore
     @ToString.Exclude
     @OneToMany(mappedBy = "requestGroup", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
     private List<GroupMatchingHistory> groupMatchingHistoriesRequest;
 
     public void setGroupUsers(List<GroupUser> groupUsers) {
