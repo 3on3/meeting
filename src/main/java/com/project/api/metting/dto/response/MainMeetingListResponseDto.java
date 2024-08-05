@@ -25,7 +25,7 @@ public class MainMeetingListResponseDto {
     private Gender groupGender;
 
     //평균 나이
-    private double averageAge;
+    private int averageAge;
 
     //매칭여부
     private Boolean isMatched;
@@ -38,7 +38,7 @@ public class MainMeetingListResponseDto {
 
 
 //    ,int memberCount 보류
-    public MainMeetingListResponseDto(Group group, double averageAge,String hostMajor){
+    public MainMeetingListResponseDto(Group group, int averageAge,String hostMajor){
         this.id = group.getId();
         this.groupName = group.getGroupName();
         this.groupPlace = group.getGroupPlace();

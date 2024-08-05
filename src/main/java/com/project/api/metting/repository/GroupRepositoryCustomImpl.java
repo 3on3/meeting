@@ -1,5 +1,6 @@
 package com.project.api.metting.repository;
 
+import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.dto.response.MainMeetingListResponseDto;
 import com.project.api.metting.entity.*;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -20,21 +21,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GroupRepositoryCustomImpl implements  GroupRepositoryCustom {
     private final JPAQueryFactory factory;
-//상훈 코드
-//    @Override
-//    public List<GroupResponseDto> findGroupsByUserEmail(String email) {
-//        QGroup group = QGroup.group;
-//        QGroupUser groupUser = QGroupUser.groupUser;
-//
-//        List<Group> groups = factory.selectFrom(group)
-//                .join(group.groupUsers, groupUser)
-//                .where(groupUser.user.email.eq(email))
-//                .fetch();
-//
-//        return groups.stream().map(this::convertToGroupResponseDto).collect(Collectors.toList());
-//    }
 
-//    Group에 들어간 유저 이메일 찾기
+
+//    main meetingList DTO
     @Override
     public List<MainMeetingListResponseDto> findGroupUsersByAllGroup(){
 
@@ -50,28 +39,35 @@ public class GroupRepositoryCustomImpl implements  GroupRepositoryCustom {
 
     }
 
-//    private GroupResponseDto convertToGroupResponseDto(Group group) {
-//        int memberCount = group.getGroupUsers().size();
-//        double averageAge = group.getGroupUsers().stream()
-//                .mapToDouble(gu -> calculateAge(gu.getUser().getBirthDate()))
-//                .average().orElse(0);
-//
-//        return new GroupResponseDto(
-//                group.getId(),
-//                group.getGroupName(),
-//                group.getGroupPlace().toString(),
-//                memberCount,
-//                averageAge
-//        );
-//    }
+    // main meetingList DTO
+    public MainMeetingListResponseDto convertToMeetingListDto(Group group){
+        return new MainMeetingListResponseDto(group, calculateAverageAge(group),hostMajor(group));
+
+    }
 
 
-public MainMeetingListResponseDto convertToMeetingListDto(Group group){
-    return new MainMeetingListResponseDto(group, calculateAverageAge(group),hostMajor(group));
+    //GroupResponseDto - 마이페이지 내가 속한 그룹
+    @Override
+    public List<GroupResponseDto> findGroupsByUserEmail(String email) {
+        QGroup group = QGroup.group;
+        QGroupUser groupUser = QGroupUser.groupUser;
+
+        List<Group> groups = factory.selectFrom(group)
+                .join(group.groupUsers, groupUser)
+                .where(groupUser.user.email.eq(email))
+                .fetch();
+
+        return groups.stream().map(this::convertToGroupResponseDto).collect(Collectors.toList());
+    }
+
+//    GroupResponseDto
+    private GroupResponseDto convertToGroupResponseDto(Group group) {
+        int memberCount = group.getGroupUsers().size();
+
+        return new GroupResponseDto(group,memberCount,calculateAverageAge(group),hostMajor(group));
+    }
 
 
-
-}
 
 
 //  Date 생년월일을 나이로 변경
@@ -89,15 +85,6 @@ public MainMeetingListResponseDto convertToMeetingListDto(Group group){
                 .average().orElse(0));
     }
 
-////        String 생년월일을 나이로 변경
-//    private int calculateAge(String birthDate) {
-//        if (birthDate == null) return 0;
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMdd");
-//        LocalDate birthLocalDate = LocalDate.parse(birthDate, formatter);
-//        LocalDate now = LocalDate.now();
-//        return Period.between(birthLocalDate, now).getYears();
-//    }
-
 //    호스트 전공 추출
     private String hostMajor(Group group){
         return group.getGroupUsers().stream()
@@ -106,6 +93,15 @@ public MainMeetingListResponseDto convertToMeetingListDto(Group group){
                 .findFirst()
                 .orElse("Unknown");
     }
+
+    ////        String 생년월일을 나이로 변경
+//    private int calculateAge(String birthDate) {
+//        if (birthDate == null) return 0;
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMdd");
+//        LocalDate birthLocalDate = LocalDate.parse(birthDate, formatter);
+//        LocalDate now = LocalDate.now();
+//        return Period.between(birthLocalDate, now).getYears();
+//    }
 
 
 
