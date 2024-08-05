@@ -1,6 +1,7 @@
 package com.project.api.metting.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -18,7 +19,7 @@ import java.util.List;
  */
 
 @Getter
-@ToString()
+@ToString(exclude = {"groupUsers", "groupMatchingHistoriesResponse", "groupMatchingHistoriesRequest"})
 @EqualsAndHashCode(of ="id")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -66,13 +67,16 @@ public class Group {
     private Boolean isDeleted = false; // 매칭 여부
 
     @OneToMany(mappedBy = "group", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<GroupUser> groupUsers;
 
     @OneToMany(mappedBy = "responseGroup", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<GroupMatchingHistory> groupMatchingHistoriesResponse;
 
 
     @OneToMany(mappedBy = "requestGroup", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<GroupMatchingHistory> groupMatchingHistoriesRequest;
 
     public void setGroupUsers(List<GroupUser> groupUsers) {

@@ -18,6 +18,8 @@ public class MainService {
     public final GroupRepository groupRepository;
 
     public List<Group> getMeetingList() {
-        return groupRepository.findAll();
+        List<Group> MeetingList = groupRepository.findAll();
+        log.info("MeetingList: {}", MeetingList);
+        return MeetingList;
     }
 }
