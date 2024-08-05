@@ -1,9 +1,12 @@
 package com.project.api.metting.service;
 
+import com.project.api.auth.TokenProvider;
 import com.project.api.auth.TokenProvider.TokenUserInfo;
 import com.project.api.metting.dto.request.GroupCreateDto;
+import com.project.api.metting.dto.request.GroupJoinRequestDto;
 import com.project.api.metting.entity.*;
 import com.project.api.metting.repository.GroupRepository;
+import com.project.api.metting.repository.GroupUsersRepository;
 import com.project.api.metting.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,10 +19,11 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class GroupCreateService {
+public class GroupService {
 
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
+    private final GroupUsersRepository groupUsersRepository;
 
 
     /**
@@ -66,5 +70,34 @@ public class GroupCreateService {
 
         // 그룹과 그룹 사용자 저장
         groupRepository.save(group);
+    }
+
+    public void joinGroup(GroupJoinRequestDto dto, TokenUserInfo tokenInfo) {
+        User user = userRepository.findByEmail(tokenInfo.getEmail()).orElseThrow();
+        Group group = groupRepository.findById(dto.getGroupId())
+                .orElseThrow(() -> new IllegalStateException("해당 그룹을 찾을 수 없습니다."));
+
+        // 유저가 이미 해당 그룹에 가입 신청했는지 확인
+        boolean alreadyRequested = groupUsersRepository.existsByUserAndGroupAndStatus(user, group, GroupStatus.INVITING);
+        if (alreadyRequested) {
+            throw new IllegalStateException("이미 해당 그룹에 가입 신청하셨습니다.");
+        }
+
+        // 유저가 이미 해당 그룹에 가입되어 있는지 확인
+        boolean alreadyJoined = groupUsersRepository.existsByUserAndGroup(user, group);
+        if (alreadyJoined) {
+            throw new IllegalStateException("이미 해당 그룹에 가입되어 있습니다.");
+        }
+
+        // GroupUser 엔티티 생성
+        GroupUser groupUser = GroupUser.builder()
+                .group(group)
+                .user(user)
+                .joinedAt(LocalDateTime.now())
+                .auth(GroupAuth.MEMBER) // 기본적으로 MEMBER로 설정
+                .status(GroupStatus.INVITING) // 상태는 INVITING으로 설정
+                .build();
+
+        groupUsersRepository.save(groupUser);
     }
 }
