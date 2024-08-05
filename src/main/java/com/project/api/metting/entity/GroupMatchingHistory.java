@@ -32,6 +32,7 @@ public class GroupMatchingHistory {
 
 
     @Column(name = "mt_group_matching_history_process")
+    @Enumerated(EnumType.STRING)
     @Builder.Default
     private GroupProcess process = GroupProcess.INVITING;
 
