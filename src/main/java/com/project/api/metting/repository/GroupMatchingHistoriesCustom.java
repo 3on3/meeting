@@ -1,12 +1,11 @@
 package com.project.api.metting.repository;
 
-import com.project.api.metting.dto.request.ChatRequestDto;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import com.project.api.metting.entity.GroupMatchingHistory;
 
 import java.util.List;
 
-
 interface GroupMatchingHistoriesCustom {
-    List<ChatRequestDto> findGroupById(String groupId);
+
+    // 주최자 그룹 기준 히스토리 배열
+    List<GroupMatchingHistory> findByResponseGroupId(String groupId);
 }

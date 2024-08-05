@@ -3,6 +3,8 @@ package com.project.api.metting.controller;
 
 import com.project.api.metting.dto.request.GroupCreateDto;
 import com.project.api.metting.dto.request.GroupJoinRequestDto;
+import com.project.api.metting.dto.request.GroupMatchingRequestDto;
+import com.project.api.metting.service.GroupMatchingService;
 import com.project.api.metting.service.GroupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,4 +53,6 @@ public class GroupController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("그룹 참여 신청에 실패하였습니다. 다시 시도해주세요.");
         }
     }
+
+
 }

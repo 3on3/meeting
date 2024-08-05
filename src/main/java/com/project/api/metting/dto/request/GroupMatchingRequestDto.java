@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GroupMatchingHistoryRequestDto {
+public class GroupMatchingRequestDto {
     // 신청자 그룹
     private String requestGroupId;
     // 주최자 그룹
