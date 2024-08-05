@@ -39,12 +39,14 @@ public class GroupUser {
     private LocalDateTime joinedAt;
 
     @Column(name = "mt_group_user_auth")
-    @Builder.Default // 그룹 생성 시간
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
     private GroupAuth auth = GroupAuth.MEMBER;
 
 
     @Column(name = "mt_group_user_status")
-    @Builder.Default // 그룹 생성 시간
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
     private GroupStatus status = GroupStatus.INVITING;
 
     @JsonIgnore
