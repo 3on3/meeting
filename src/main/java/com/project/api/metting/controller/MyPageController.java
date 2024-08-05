@@ -26,9 +26,15 @@ public class MyPageController {
 
     private final GroupQueryService groupQueryService;
 
-//    @GetMapping("/mygroup")
-//    public ResponseEntity<List<GroupResponseDto>> getMyGroups(@AuthenticationPrincipal TokenUserInfo tokenInfo) {
-//        List<GroupResponseDto> groups = groupQueryService.getGroupsByUserEmail(tokenInfo.getEmail());
-//        return ResponseEntity.ok(groups);
-//    }
+//    fetch 내가 속한 그룹
+    @GetMapping("/mygroup")
+    public ResponseEntity<?> getMyGroups(@AuthenticationPrincipal TokenUserInfo tokenInfo) {
+        List<GroupResponseDto> groups = groupQueryService.getGroupsByUserEmail(tokenInfo.getEmail());
+        return ResponseEntity.ok(groups);
+    }
+
+    @GetMapping("/mychat")
+    public ResponseEntity<?> getMyChat(@AuthenticationPrincipal TokenUserInfo tokenInfo) {
+        return ResponseEntity.ok("");
+    }
 }
