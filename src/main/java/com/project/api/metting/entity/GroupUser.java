@@ -1,6 +1,7 @@
 package com.project.api.metting.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -46,12 +47,14 @@ public class GroupUser {
     @Builder.Default // 그룹 생성 시간
     private GroupStatus status = GroupStatus.INVITING;
 
-
+    @JsonIgnore
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mt_user_id",  nullable = false)
     private User user;
 
-
+    @JsonIgnore
+    @ToString.Exclude
     @ManyToOne
     @Setter
     @JoinColumn(name = "mt_group_id",  nullable = false)

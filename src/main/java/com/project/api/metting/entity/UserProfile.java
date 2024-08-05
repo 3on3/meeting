@@ -1,6 +1,7 @@
 package com.project.api.metting.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -37,6 +38,9 @@ public class UserProfile {
     @Column(name = "mt_profile_introduce")
     private String profileIntroduce; // 프로필 소개
 
+
+    @JsonIgnore
+    @ToString.Exclude
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mt_user_id",  nullable = false, unique = true)
     private User user;
