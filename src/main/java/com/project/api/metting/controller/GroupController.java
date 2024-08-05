@@ -15,12 +15,16 @@ import org.springframework.web.bind.annotation.*;
 
 import static com.project.api.auth.TokenProvider.*;
 
+
+/**
+ * 그룹을 생성하는 컨트롤러임
+ */
 @RestController
 @RequestMapping("/group")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin
-public class GroupCreateController {
+public class GroupController {
     private final GroupCreateService groupCreateService;
 
 
