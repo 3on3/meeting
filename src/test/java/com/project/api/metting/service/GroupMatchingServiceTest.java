@@ -1,34 +1,34 @@
 package com.project.api.metting.service;
 
-import com.project.api.metting.dto.request.GroupMatchingHistoryRequestDto;
+import com.project.api.metting.dto.request.GroupMatchingRequestDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest
-class GroupMatchingHistoriesServiceTest {
+class GroupMatchingServiceTest {
 
     @Autowired
-    private GroupMatchingHistoriesService groupMatchingHistoriesService;
+    private GroupMatchingService groupMatchingService;
 
     @Test
     @DisplayName("그룹 히스토리 생성 테스트")
     void createGroupMatchingHistories() {
         //given
-        String RequestGroupId = "251d4149-24a8-4780-b990-fa4a079dee12";
-        String ResponseGroupId = "6d0d7647-c613-4ab2-82c1-ec2849f7b905";
+        String RequestGroupId = "9b4e09cd-8c4c-4b94-bb95-36f54b9d0c6f";
+        String ResponseGroupId = "fd463cad-bf42-4cfc-93f5-57dc9c5f7171";
+//        String ResponseGroupId = "9b4e09cd-8c4c-4b94-bb95-36f54b9d0c6f";
+//        String RequestGroupId = "fd463cad-bf42-4cfc-93f5-57dc9c5f7171";
 
 
         //when
-        GroupMatchingHistoryRequestDto build = GroupMatchingHistoryRequestDto.builder()
+        GroupMatchingRequestDto build = GroupMatchingRequestDto.builder()
                 .requestGroupId(RequestGroupId)
                 .responseGroupId(ResponseGroupId)
                 .build();
         //then
-        groupMatchingHistoriesService.createHistory(build);
+        groupMatchingService.createHistory(build);
 
     }
 
@@ -36,11 +36,11 @@ class GroupMatchingHistoriesServiceTest {
     @DisplayName("그룹 히스토리 프로세싱 함수")
     void processGroupMatchingHistories() {
         //given
-        String historyId = "1d82dee9-b7fb-4dbe-9bac-881faeb3a3c1";
+        String historyId = "dda0fb92-3105-46d2-a4ba-fd4998a54051";
         //when
 
         //then
-        groupMatchingHistoriesService.processingHistory(historyId);
+        groupMatchingService.processingHistory(historyId);
 
     }
 }
