@@ -16,13 +16,13 @@ public class ChatMessageController {
 
     private final ChatMessageService chatMessageService;
 
-    @GetMapping("/testChat")
+    @GetMapping("/getMessage")
     public ResponseEntity<?> testChat(@RequestParam String chatRoomId) {
 
         System.out.println("chatRoomId = " + chatRoomId);
 
-        chatMessageService.finAllMessage(chatRoomId);
+        List<ChatMessage> chatMessages = chatMessageService.finAllMessage(chatRoomId);
 
-        return  ResponseEntity.ok().body(null);
+        return  ResponseEntity.ok().body(chatMessages);
     }
 }

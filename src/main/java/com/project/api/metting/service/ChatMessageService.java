@@ -21,10 +21,15 @@ public class ChatMessageService {
     private final ChatMessagesRepository chatMessagesRepository;
     private final ChatRoomsRepository chatRoomsRepository;
 
-    public void finAllMessage(String chatRoomId) {
+    public List<ChatMessage> finAllMessage(String chatRoomId) {
 
         System.out.println("chatRoomId = " + chatRoomId);
         Optional<ChatRoom> chatRoom = chatRoomsRepository.findById(chatRoomId);
         System.out.println("chatRoom = " + chatRoom);
+
+        List<ChatMessage> chatMessage = chatMessagesRepository.findByChatRoom(chatRoom.orElse(null));
+        System.out.println("chatMessage = " + chatMessage);
+
+        return chatMessage;
     }
 }
