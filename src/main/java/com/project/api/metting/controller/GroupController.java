@@ -5,6 +5,7 @@ import com.project.api.metting.dto.request.GroupCreateDto;
 import com.project.api.metting.dto.request.GroupJoinRequestDto;
 import com.project.api.metting.dto.request.GroupMatchingRequestDto;
 import com.project.api.metting.service.GroupMatchingService;
+import com.project.api.metting.entity.GroupUser;
 import com.project.api.metting.service.GroupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 import static com.project.api.auth.TokenProvider.*;
 
@@ -55,4 +58,24 @@ public class GroupController {
     }
 
 
+    @GetMapping("/{groupId}")
+    public ResponseEntity<?> getGroup(@PathVariable String groupId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+        List<GroupUser> joinRequests = groupService.getJoinRequests(groupId, tokenInfo);
+        return ResponseEntity.ok().body(joinRequests);
+    }
+
+    @PostMapping("/join-requests/{groupUserId}/accept")
+    public ResponseEntity<Void> acceptJoinRequest(@PathVariable String groupUserId,
+                                                  @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+        System.out.println("groupUserId = " + groupUserId);
+        groupService.acceptJoinRequest(groupUserId, tokenInfo);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/join-requests/{groupUserId}/cancel")
+    public ResponseEntity<Void> rejectJoinRequest(@PathVariable String groupUserId,
+                                                  @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+        groupService.cancelJoinRequest(groupUserId, tokenInfo);
+        return ResponseEntity.ok().build();
+    }
 }
