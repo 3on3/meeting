@@ -36,7 +36,7 @@ public class GroupRepositoryCustomImpl implements  GroupRepositoryCustom {
         return groups.stream().map(this::convertToGroupResponseDto).collect(Collectors.toList());
     }
 
-    private GroupResponseDto convertToGroupResponseDto(Group group) {
+    public GroupResponseDto convertToGroupResponseDto(Group group) {
         int memberCount = group.getGroupUsers().size();
         double averageAge = group.getGroupUsers().stream()
                 .mapToDouble(gu -> calculateAge(gu.getUser().getBirthDate()))

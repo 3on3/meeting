@@ -1,7 +1,7 @@
 package com.project.api.metting.controller;
 
 import com.project.api.metting.dto.request.GroupMatchingRequestDto;
-import com.project.api.metting.dto.response.GroupMatchingResponseDto;
+import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.entity.Group;
 import com.project.api.metting.service.GroupMatchingService;
 import lombok.RequiredArgsConstructor;
@@ -33,11 +33,11 @@ public class GroupMatchingController {
 
     /**
      * 매칭 요청 열람(주최자 기준)
-     * @param responseDto - 주최자 그룹 아이디
+     * @param groupId - 주최자 그룹 아이디
      * @return - 신청자 리스트 반환
      */
     @GetMapping("/response")
-    public List<Group> matchingResponst( @RequestParam String groupId) {
+    public List<GroupResponseDto> matchingResponse(@RequestParam String groupId) {
 //        GroupMatchingResponseDto responseDto = new GroupMatchingResponseDto(groupId);
 
 //        log.debug("그룹아이디", responseDto.getGroupId());

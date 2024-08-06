@@ -3,17 +3,20 @@ package com.project.api.metting.service;
 
 
 import com.project.api.metting.dto.request.GroupMatchingRequestDto;
-import com.project.api.metting.dto.response.GroupMatchingResponseDto;
+import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.entity.Group;
 import com.project.api.metting.entity.GroupMatchingHistory;
 import com.project.api.metting.entity.GroupProcess;
 import com.project.api.metting.repository.GroupMatchingHistoriesCustomImpl;
 import com.project.api.metting.repository.GroupMatchingHistoriesRepository;
 import com.project.api.metting.repository.GroupRepository;
+import com.project.api.metting.repository.GroupRepositoryCustomImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +28,7 @@ public class GroupMatchingService {
     private  final GroupMatchingHistoriesRepository groupMatchingHistoriesRepository;
     private  final GroupRepository groupRepository;
     private final GroupMatchingHistoriesCustomImpl groupMatchingHistoriesCustomImpl;
+    private final GroupRepositoryCustomImpl groupRepositoryCustomImpl;
 
     /**
      * 그룹 - 그룹 채팅 신청 버튼 클릭시 히스토리 생성하는 함수
@@ -72,12 +76,16 @@ public class GroupMatchingService {
         matchingHistory.setProcess(GroupProcess.MATCHED);
     }
 
-    public List<Group> viewRequestList(String groupId) {
+
+    @Transactional(readOnly = true)
+    public List<GroupResponseDto> viewRequestList(String groupId) {
 
         List<GroupMatchingHistory> histories = groupMatchingHistoriesCustomImpl.findByResponseGroupId(groupId);
 
-        List<Group> groups = histories.stream().map(GroupMatchingHistory::getResponseGroup).collect(Collectors.toList());
+        return histories.stream()
+                .map(GroupMatchingHistory::getResponseGroup)
+                .map(groupRepositoryCustomImpl::convertToGroupResponseDto)
+                .collect(Collectors.toList());
 
-        return groups;
     }
 }
