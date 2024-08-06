@@ -24,6 +24,8 @@ configurations {
 
 repositories {
     mavenCentral()
+
+    maven{url 'https://jitpack.io'}
 }
 
 dependencies {
@@ -50,7 +52,6 @@ dependencies {
 
     //MyBatis 모듈
     implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.2.2'
-    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.2.2'
 
     // 입력값 검증 라이브러리
     implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -60,10 +61,6 @@ dependencies {
 
     //스프링 시큐리티 모듈
     implementation 'org.springframework.boot:spring-boot-starter-security'
-
-
-    implementation 'org.springframework.boot:spring-boot-starter-websocket'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
     // json web token 라이브러리
     implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
@@ -77,6 +74,7 @@ dependencies {
     implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
     annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}"
 
+    implementation 'com.github.in-seo:univcert:master-SNAPSHOT'
 }
 
 tasks.named('test') {
