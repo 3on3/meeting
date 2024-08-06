@@ -1,6 +1,7 @@
 package com.project.api.metting.controller;
 
 import com.project.api.auth.TokenProvider;
+import com.project.api.metting.dto.request.ChatMessageRequestDto;
 import com.project.api.metting.dto.response.ChatMessageResponseDto;
 import com.project.api.metting.entity.ChatMessage;
 import com.project.api.metting.repository.UserRepository;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/testChat")
 public class ChatMessageController {
 
 
@@ -25,9 +27,7 @@ public class ChatMessageController {
     @GetMapping("/getMessage")
     public ResponseEntity<?> testChat(@RequestParam String chatRoomId) {
 
-        System.out.println("chatRoomId = " + chatRoomId);
-
-        List<ChatMessage> chatMessages = chatMessageService.finAllMessage(chatRoomId);
+        List<ChatMessageRequestDto> chatMessages = chatMessageService.finAllMessage(chatRoomId);
 
         return  ResponseEntity.ok().body(chatMessages);
     }
@@ -36,11 +36,11 @@ public class ChatMessageController {
     public ResponseEntity<?> sendMessage(@RequestBody ChatMessageResponseDto chatMessageResponseDto, @AuthenticationPrincipal TokenProvider.TokenUserInfo tokenUserInfo) {
 
         String userId = tokenUserInfo.getUserId();
-        System.out.println("userId = " + userId);
 
-        ChatMessage chatMessage = chatMessageService.saveChatMessage(chatMessageResponseDto, userId);
-        System.out.println("chatMessage = " + chatMessage);
+        ChatMessageRequestDto chatMessage = chatMessageService.saveChatMessage(chatMessageResponseDto, userId);
 
         return ResponseEntity.ok().body(chatMessage);
     }
+
+
 }
