@@ -74,6 +74,10 @@ dependencies {
     implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
     annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}"
 
+
+    //초대코드
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.5'
 
     implementation 'com.github.in-seo:univcert:master-SNAPSHOT'
