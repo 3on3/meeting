@@ -2,12 +2,12 @@ package com.project.api.metting.controller;
 
 import com.project.api.metting.dto.request.GroupMatchingRequestDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
-import com.project.api.metting.entity.Group;
 import com.project.api.metting.service.GroupMatchingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,7 +26,7 @@ public class GroupMatchingController {
      * @return - 요청 처리 body
      */
     @PostMapping("/createRequest")
-    public ResponseEntity<String> createRequest(@RequestBody GroupMatchingRequestDto groupMatchingRequestDto) {
+    public ResponseEntity<?> createRequest(@RequestBody GroupMatchingRequestDto groupMatchingRequestDto) {
         // 1. 히스토리 생성 요청
         groupMatchingService.createHistory(groupMatchingRequestDto);
 
@@ -36,15 +36,41 @@ public class GroupMatchingController {
 
     /**
      * 매칭 요청 리스트 열람(주최자 기준)
+     *
      * @param groupId - 주최자 그룹 아이디
      * @return - 신청자 리스트 반환
      */
     @GetMapping("/response")
-    public List<GroupResponseDto> matchingResponse(@RequestParam String groupId) {
-//        GroupMatchingResponseDto responseDto = new GroupMatchingResponseDto(groupId);
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<GroupResponseDto>> matchingResponse(@RequestParam String groupId) {
+        List<GroupResponseDto> groupResponseDtoList = groupMatchingService.viewRequestList(groupId);
 
-//        log.debug("그룹아이디", responseDto.getGroupId());
-        return groupMatchingService.viewRequestList(groupId);
+        return ResponseEntity.ok().body(groupResponseDtoList);
+    }
 
+    /**
+     * 요청 수락 요청
+     * @param historyId - 수락할 히스토리 아이디
+     * @return - 성공 메세지
+     */
+    @PostMapping("/response-accept")
+    public ResponseEntity<?> responseAccept(@RequestParam String historyId) {
+        boolean b = groupMatchingService.acceptRequest(historyId);
+
+        return ResponseEntity.ok().body(b);
+    }
+
+    /**
+     * 요청 거절 요청
+     * @param historyId - 거절할 히스토리 아이디
+     * @return - 실패 메세지
+     */
+    @PostMapping("/response-deny")
+    public ResponseEntity<?> responseDeny(@RequestParam String historyId) {
+        boolean b = groupMatchingService.denyRequest(historyId);
+
+        return ResponseEntity.ok().body(b);
     }
 }
+
+

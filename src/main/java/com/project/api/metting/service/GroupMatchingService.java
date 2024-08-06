@@ -83,7 +83,7 @@ public class GroupMatchingService {
      * @param process - 프로세스 상태 INVITED, MATCHED, DENIED
      * @param message - 예외처리 메세지
      */
-    private void processingRequest (String id, GroupProcess process, String message){
+    private boolean processingRequest (String id, GroupProcess process, String message){
         try{
             GroupMatchingHistory matchingHistory = groupMatchingHistoriesRepository.findById(id).orElse(null);
 
@@ -91,6 +91,8 @@ public class GroupMatchingService {
                 throw new GroupMatchingFailException(message, HttpStatus.BAD_REQUEST);
             }
             matchingHistory.setProcess(process);
+            groupMatchingHistoriesRepository.save(matchingHistory);
+            return true;
 
         } catch (NullPointerException e){
             throw new GroupMatchingFailException("히스토리에 일치하는 groupId 가 없습니다: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -99,25 +101,28 @@ public class GroupMatchingService {
             throw new GroupMatchingFailException("예외 발생: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     /**
      * 매칭 수락
      * - 히스토리 process 컬럼을 invited -> matched 로 수정하는 함수
      * @param historyId - 수정할 히스토리의 아이디
      */
-    public void acceptRequest (String historyId){
+    public boolean acceptRequest (String historyId){
         String message = "이미 매칭된 그룹입니다.";
-        processingRequest(historyId, GroupProcess.MATCHED, message);
+        boolean b = processingRequest(historyId, GroupProcess.MATCHED, message);
+        return b;
     }
+
     /**
      * 매칭 거절
      * - 히스토리 process 컬럼을 invited -> denied 로 수정하는 함수
      * @param historyId - 수정할 히스토리의 아이디
      */
-    public void denyRequest (String historyId){
+    public boolean denyRequest (String historyId){
         String message = "이미 매칭 거절된 그룹입니다.";
-        processingRequest(historyId, GroupProcess.DENIED, message);
+        boolean b = processingRequest(historyId, GroupProcess.DENIED, message);
+        return b;
     }
-
 
     /**
      * 주최자 기준 신청자 그룹 리스트 조회 함수
