@@ -33,6 +33,8 @@ public class MyPageController {
         return ResponseEntity.ok(groups);
     }
 
+
+//    fetch 내가 속한 채팅 - 채팅방 생성되면 작업할 예정(예진)
     @GetMapping("/mychat")
     public ResponseEntity<?> getMyChat(@AuthenticationPrincipal TokenUserInfo tokenInfo) {
         return ResponseEntity.ok("");

@@ -68,8 +68,6 @@ public class GroupRepositoryCustomImpl implements  GroupRepositoryCustom {
     }
 
 
-
-
 //  Date 생년월일을 나이로 변경
     private int calculateAge(Date birthDate) {
         if (birthDate == null) return 0;
@@ -103,6 +101,8 @@ public class GroupRepositoryCustomImpl implements  GroupRepositoryCustom {
 //        return Period.between(birthLocalDate, now).getYears();
 //    }
 
+
+//    필터링 커스텀
 
 
 
