@@ -2,7 +2,6 @@ package com.project.api.metting.dto.response;
 
 
 import com.project.api.metting.entity.Gender;
-import com.project.api.metting.entity.Group;
 import com.project.api.metting.entity.Place;
 import lombok.*;
 
@@ -13,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GroupResponseDto {
+public class myPageMyChetResponseDto {
 
     private String Id;
 
@@ -32,17 +31,10 @@ public class GroupResponseDto {
     //평균 나이
     private double averageAge;
 
+    //매칭 인원
+    private Integer maxNum;
+
     //학과
     private String Major;
 
-    public GroupResponseDto(Group group,int memberCount, int averageAge, String Major){
-        this.Id = group.getId();
-        this.groupName = group.getGroupName();
-        this.groupGender = group.getGroupGender();
-        this.groupPlace = group.getGroupPlace();
-        this.memberCount = memberCount;
-        this.averageAge = averageAge;
-        this.Major = Major;
-
-    }
 }
