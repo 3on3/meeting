@@ -19,6 +19,7 @@ import java.util.List;
  * : 해당 유저의 그룹 정보, 메세지 정보 (1 : M - GroupUser, ChatMessages)
  */
 @Getter
+@Setter
 @ToString()
 @EqualsAndHashCode(of ="id")
 @NoArgsConstructor
@@ -54,8 +55,8 @@ public class User {
     private String phoneNumber; // 폰 번호
 
 
-    @Column(name = "mt_user_univ")
-    private String univ; // 대학교
+    @Column(name = "mt_user_univ_name")
+    private String univName; // 대학교
 
 
     @Column(name = "mt_user_major")
@@ -109,12 +110,12 @@ public class User {
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ChatMessage> chatMessages;
 
-    public void confirm(String password, String name, Date Birth, String phone, String univ, String major, Gender gender, String nickname) {
+    public void confirm(String password, String name, Date Birth, String phone, String univName, String major, Gender gender, String nickname) {
         this.password = password;
         this.name = name;
         this.birthDate = Birth;
         this.phoneNumber = phone;
-        this.univ = univ;
+        this.univName = univName;
         this.major = major;
         this.gender = gender;
         this.nickname = nickname;
