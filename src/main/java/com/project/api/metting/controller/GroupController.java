@@ -67,7 +67,6 @@ public class GroupController {
         return ResponseEntity.ok().build();
     }
 
-    // 초대 코드를 통한 그룹 가입 메서드
     @PostMapping("/join/invite")
     public ResponseEntity<String> joinGroupWithInviteCode(@RequestParam String code, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
         log.info("Received invite code: {}", code);
