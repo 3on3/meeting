@@ -10,6 +10,7 @@ import com.project.api.metting.service.UserMyPageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,7 +33,7 @@ public class MyPageController {
     private final GroupQueryService groupQueryService;
     private final UserMyPageService userMyPageService;
 
-//    fetch 내가 속한 그룹
+    //    fetch 내가 속한 그룹
     @GetMapping("/mygroup")
     public ResponseEntity<?> getMyGroups(@AuthenticationPrincipal TokenUserInfo tokenInfo) {
         List<GroupResponseDto> groups = groupQueryService.getGroupsByUserEmail(tokenInfo.getEmail());
@@ -53,8 +54,21 @@ public class MyPageController {
 
 
     // 로그인한 유저 정보 조회
-    @PostMapping("/userInfo")
+//    @GetMapping("/userInfo")
+//    public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal TokenUserInfo tokenUserInfo) {
+//        Optional<UserMyPageDto> userInfo = userMyPageService.getUserInfo(tokenUserInfo.getUserId());
+//        if (userInfo.isPresent()) {
+//            return ResponseEntity.ok(userInfo.get());
+//        } else {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("유저없음");
+//        }
+//    }
+    @GetMapping("/{id}")
     public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal TokenUserInfo tokenUserInfo) {
+        if (tokenUserInfo == null || tokenUserInfo.getUserId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid user info");
+        }
+
         Optional<UserMyPageDto> userInfo = userMyPageService.getUserInfo(tokenUserInfo.getUserId());
         if (userInfo.isPresent()) {
             return ResponseEntity.ok(userInfo.get());
