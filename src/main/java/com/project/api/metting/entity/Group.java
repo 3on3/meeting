@@ -43,6 +43,7 @@ public class Group {
     private Place groupPlace; // 만남지역
 
     @Column(name = "mt_group_inviting_code", unique = true)
+    @Setter
     private String code; // 참여 코드
 
     @Column(name = "mt_group_max_number", nullable = false)
