@@ -47,6 +47,7 @@ public class GroupUser {
     @Column(name = "mt_group_user_status")
     @Builder.Default
     @Enumerated(EnumType.STRING)
+    @Setter
     private GroupStatus status = GroupStatus.INVITING;
 
     @JsonIgnore
