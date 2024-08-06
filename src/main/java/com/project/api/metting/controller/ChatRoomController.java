@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -24,11 +25,17 @@ public class ChatRoomController {
     private final GroupMatchingService groupMatchingService;
 
 
+    /**
+     * 그룹 생성 요청
+     * @param historyId - 매칭된 히스토리 아이디
+     * @return - 메세지
+     */
     @PostMapping("/create")
-    public void create(ChatRequestDto chatRequestDto) {
+    public ResponseEntity<?> create(@RequestParam String historyId) {
 
+        chatRoomService.createChatRoom(historyId);
 
-
+        return ResponseEntity.ok().body("채팅방 생성 완료");
 
     }
 
