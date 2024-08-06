@@ -14,8 +14,9 @@ import lombok.*;
 @Builder
 public class MainMeetingListFilterDto {
 
-    private Gender gender; // 성별
-    private Place groupPlace; // 만남지역
+    private String gender; // 성별
+    private String groupPlace; // 만남지역
     private Integer maxNum; // 최대 인원 수
+    private Boolean isMatched; //매칭 유무
 
 }
