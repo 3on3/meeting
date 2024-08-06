@@ -32,7 +32,7 @@ public class ChatMessageController {
         return  ResponseEntity.ok().body(chatMessages);
     }
 
-    @PostMapping("/sendMessage")
+    @GetMapping("/sendMessage")
     public ResponseEntity<?> sendMessage(@RequestBody ChatMessageResponseDto chatMessageResponseDto, @AuthenticationPrincipal TokenProvider.TokenUserInfo tokenUserInfo) {
 
         String userId = tokenUserInfo.getUserId();
