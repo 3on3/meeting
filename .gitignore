@@ -1,4 +1,7 @@
-/testChat
+### 웹소켓 ###
+/testChat/
+/config/WebSocketConfig
+
 .idea/
 application.yaml
 .gradle
