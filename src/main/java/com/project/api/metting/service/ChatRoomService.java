@@ -10,6 +10,7 @@ import com.project.api.metting.repository.GroupMatchingHistoriesRepository;
 import com.project.api.metting.repository.GroupRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.SimpleTimeZone;
@@ -27,15 +28,16 @@ public class ChatRoomService {
      * 매칭 후 채팅룸 생성 함수
      * @param id - 매칭된 히스토리 아이디
      */
+    @Transactional
     public void createChatRoom(String id) {
         try {
             GroupMatchingHistory matchingHistory = groupMatchingHistoriesRepository.findById(id).orElseThrow();
 
             boolean isProcessMatched = matchingHistory.getProcess().equals(GroupProcess.MATCHED);
 
-            if (!isProcessMatched){
-                throw new RuntimeException("매칭된 그룹이 아닙니다.");
-            }
+//            if (!isProcessMatched){
+//                throw new RuntimeException("매칭된 그룹이 아닙니다.");
+//            }
 
             ChatRoom build = ChatRoom.builder()
                     // 주최자 그룹명으로 채팅 명 설정
