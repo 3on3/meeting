@@ -2,6 +2,7 @@ package com.project.api.metting.dto.request;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.project.api.metting.entity.Gender;
 import lombok.*;
 
@@ -21,7 +22,7 @@ public class UserRegisterDto {
     private String name;
     private Date birthDate;
     private String phoneNumber; // 폰 번호
-    private String univ;
+    private String univName;
     private String major; // 전공
     private Gender gender; // 성별
     private String nickname; // 성별
