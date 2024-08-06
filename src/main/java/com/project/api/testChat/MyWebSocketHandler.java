@@ -32,7 +32,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     @OnOpen
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         final String sessionId = session.getId();
-        final String enteredMessage = sessionId + "qweqweqwe";
+        final String enteredMessage = sessionId + "가";
 
         sessions.put(sessionId, session);
 
@@ -81,8 +81,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     //통신 에러 발생 시
     @OnError
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-
-
+        System.out.println("session = " + session);
     }
 
     private void sendMessage(String sessionId, WebSocketMessage<?> message) {

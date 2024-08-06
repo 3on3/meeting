@@ -7,6 +7,9 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+/src/main/java/com/project/api/testChat/config/WebSocketConfig.java
+
+
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml
