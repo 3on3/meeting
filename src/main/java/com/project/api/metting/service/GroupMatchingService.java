@@ -2,6 +2,8 @@ package com.project.api.metting.service;
 
 
 
+import ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy;
+import com.project.api.exception.GroupMatchingFailException;
 import com.project.api.metting.dto.request.GroupMatchingRequestDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.entity.Group;
@@ -13,6 +15,7 @@ import com.project.api.metting.repository.GroupRepository;
 import com.project.api.metting.repository.GroupRepositoryCustomImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,48 +38,92 @@ public class GroupMatchingService {
      * @param groupMatchingRequestDto - 신청자 그룹, 주최자 그룹 이름 정보
      */
     public void createHistory (GroupMatchingRequestDto groupMatchingRequestDto){
+        try {
+            // 신청자 그룹
+            Group requestGroup = groupRepository.findById(groupMatchingRequestDto.getRequestGroupId()).orElse(null);
+            // 주최자 그룹
+            Group responseGroup = groupRepository.findById(groupMatchingRequestDto.getResponseGroupId()).orElse(null);
 
+            // [신청 불가 요건]
+            // 1. 이미 매칭 신청 중인 경우, 2. 매칭 히스토리 denied 상태일 경우
+            boolean exists = groupMatchingHistoriesRepository.existsByResponseGroupAndRequestGroup(responseGroup, requestGroup)
+                    || groupMatchingHistoriesRepository.existsByResponseGroupAndRequestGroup(requestGroup, responseGroup);
+            if(exists){
+                throw new GroupMatchingFailException("이미 신청한 그룹입니다.", HttpStatus.CONFLICT);
+            }
+            // 3. 인원 수 다를 경우
+            if(requestGroup.getMaxNum() != responseGroup.getMaxNum()){
+                throw new GroupMatchingFailException("인원 수가 다릅니다.", HttpStatus.BAD_REQUEST);
+            }
+            // 4. 지역 다를 경우
+            if(!requestGroup.getGroupPlace().equals(responseGroup.getGroupPlace()) ){
+                throw new GroupMatchingFailException("희망지역이 다릅니다.", HttpStatus.BAD_REQUEST);
+            }
 
-        // 신청자 그룹
-        Group requestGroup = groupRepository.findById(groupMatchingRequestDto.getRequestGroupId()).orElse(null);
-        // 주최자 그룹
-        Group responseGroup = groupRepository.findById(groupMatchingRequestDto.getResponseGroupId()).orElse(null);
+            // 히스토리 생성
+            GroupMatchingHistory groupMatchingHistory = GroupMatchingHistory.builder()
+                    .requestGroup(requestGroup)
+                    .responseGroup(responseGroup)
+                    .build();
 
-
-        // 같은 그룹 구성으로 신청내역이 있는지
-        boolean exists = groupMatchingHistoriesRepository.existsByResponseGroupAndRequestGroup(responseGroup, requestGroup)
-                || groupMatchingHistoriesRepository.existsByResponseGroupAndRequestGroup(requestGroup, responseGroup);
-        // 이미 신청내역이 있는 경우 히스토리 생성 하지 않음
-        if(exists){
-            log.error("이미 신청된 그룹");
-            return;
+            // 히스토리 저장
+            groupMatchingHistoriesRepository.save(groupMatchingHistory);
+        } catch (Exception e){
+            throw new GroupMatchingFailException("예외 발생: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        // 히스토리 생성
-        GroupMatchingHistory groupMatchingHistory = GroupMatchingHistory.builder()
-                .requestGroup(requestGroup)
-                .responseGroup(responseGroup)
-                .build();
+    }
 
-        groupMatchingHistoriesRepository.save(groupMatchingHistory);
 
+
+
+    /**
+     * 매칭 수락 또는 거절 프로세싱
+     * @param id - 수정할 히스토리의 아이디
+     * @param process - 프로세스 상태 INVITED, MATCHED, DENIED
+     * @param message - 예외처리 메세지
+     */
+    private void processingRequest (String id, GroupProcess process, String message){
+        try{
+            GroupMatchingHistory matchingHistory = groupMatchingHistoriesRepository.findById(id).orElse(null);
+
+            if(matchingHistory.getProcess().equals(process)){
+                throw new GroupMatchingFailException(message, HttpStatus.BAD_REQUEST);
+            }
+            matchingHistory.setProcess(process);
+
+        } catch (NullPointerException e){
+            throw new GroupMatchingFailException("히스토리에 일치하는 groupId 가 없습니다: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+
+        } catch (Exception e){
+            throw new GroupMatchingFailException("예외 발생: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    /**
+     * 매칭 수락
+     * - 히스토리 process 컬럼을 invited -> matched 로 수정하는 함수
+     * @param historyId - 수정할 히스토리의 아이디
+     */
+    public void acceptRequest (String historyId){
+        String message = "이미 매칭된 그룹입니다.";
+        processingRequest(historyId, GroupProcess.MATCHED, message);
+    }
+    /**
+     * 매칭 거절
+     * - 히스토리 process 컬럼을 invited -> denied 로 수정하는 함수
+     * @param historyId - 수정할 히스토리의 아이디
+     */
+    public void denyRequest (String historyId){
+        String message = "이미 매칭 거절된 그룹입니다.";
+        processingRequest(historyId, GroupProcess.DENIED, message);
     }
 
 
     /**
-     * 히스토리 process 컬럼을 invited -> matched 로 수정하는 함수
-     * @param id - 수정할 히스토리의 아이디
+     * 주최자 기준 신청자 그룹 리스트 조회 함수
+     * @param groupId - 주최자 그룹 아이디
+     * @return - 신청자 그룹 리스트 Dto 반환
      */
-    public void processingHistory (String id){
-        GroupMatchingHistory matchingHistory = groupMatchingHistoriesRepository.findById(id).orElse(null);
-
-        if(matchingHistory.getProcess().equals(GroupProcess.MATCHED)){
-            log.error("이미 매칭됨");
-        }
-        matchingHistory.setProcess(GroupProcess.MATCHED);
-    }
-
-
     @Transactional(readOnly = true)
     public List<GroupResponseDto> viewRequestList(String groupId) {
 
