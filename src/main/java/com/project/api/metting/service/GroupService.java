@@ -12,6 +12,7 @@ import com.project.api.metting.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,8 +32,10 @@ public class GroupService {
     private final GroupUsersRepository groupUsersRepository;
     private final RedisUtil redisUtil;
 
-    private static final String INVITE_LINK_PREFIX = "group_invite_code:";
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
+    private static final String INVITE_LINK_PREFIX = "group_invite_code:";
 
     /**
      * 그룹 생성 메서드
@@ -105,19 +108,24 @@ public class GroupService {
     @Transactional
     public String generateGroupInviteCode(String groupId) {
         validateExistGroup(groupId);
-        log.info("Generating invite code for group ID: {}", groupId);
+        log.info("Generating invite link for group ID: {}", groupId);
 
-        final Optional<String> link = redisUtil.getData(INVITE_LINK_PREFIX + groupId, String.class);
-        log.info("Existing link: {}", link.orElse("No existing link"));
+        final Optional<String> existingCode = redisUtil.getData(INVITE_LINK_PREFIX + groupId, String.class);
+        log.info("Existing invite code: {}", existingCode.orElse("No existing invite code"));
 
-        if (link.isEmpty()) {
-            final String randomCode = RandomUtil.generateRandomCode('0', 'z', 10);
-            log.info("Generated random code: {}", randomCode);
-            redisUtil.setDataExpire(INVITE_LINK_PREFIX + groupId, randomCode, RedisUtil.toTomorrow());
-            log.info("Invite code set in Redis with expiration: {}", randomCode);
-            return randomCode;
+        String inviteCode;
+        if (existingCode.isEmpty()) {
+            inviteCode = RandomUtil.generateRandomCode('0', 'z', 10);
+            log.info("Generated random code: {}", inviteCode);
+            redisUtil.setDataExpire(INVITE_LINK_PREFIX + inviteCode, groupId, RedisUtil.toTomorrow() * 1000);
+            log.info("Invite code set in Redis with expiration: {}", inviteCode);
+        } else {
+            inviteCode = existingCode.get();
         }
-        return link.get();
+
+        String inviteLink = "http://localhost:3000/group/join/invite?code=" + inviteCode;
+        log.info("Generated invite link: {}", inviteLink);
+        return inviteLink;
     }
 
     private void validateExistGroup(String groupId) {
@@ -163,6 +171,49 @@ public class GroupService {
     }
 
     /**
+     * 초대 코드로 그룹에 가입하는 메서드
+     *
+     * @param inviteCode - 초대 코드
+     * @param tokenInfo - 현재 로그인한 사람의 정보가 들어가 있는 token의 정보.
+     */
+    public void joinGroupWithInviteCode(String inviteCode, TokenUserInfo tokenInfo) {
+        log.info("Attempting to join group with invite code: {}", inviteCode);
+        String groupId = redisUtil.getData(INVITE_LINK_PREFIX + inviteCode, String.class)
+                .orElseThrow(() -> new IllegalStateException("Invalid invite code"));
+
+        log.info("groupId info - {}", groupId);
+
+        User user = userRepository.findByEmail(tokenInfo.getEmail())
+                .orElseThrow(() -> new IllegalStateException("User not found"));
+
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalStateException("Group not found"));
+
+        // 유저가 이미 해당 그룹에 가입 신청했는지 확인
+        boolean alreadyRequested = groupUsersRepository.existsByUserAndGroupAndStatus(user, group, GroupStatus.INVITING);
+        if (alreadyRequested) {
+            throw new IllegalStateException("이미 해당 그룹에 가입 신청하셨습니다.");
+        }
+
+        // 유저가 이미 해당 그룹에 가입되어 있는지 확인
+        boolean alreadyJoined = groupUsersRepository.existsByUserAndGroup(user, group);
+        if (alreadyJoined) {
+            throw new IllegalStateException("이미 해당 그룹에 가입되어 있습니다.");
+        }
+
+        // GroupUser 엔티티 생성
+        GroupUser groupUser = GroupUser.builder()
+                .group(group)
+                .user(user)
+                .joinedAt(LocalDateTime.now())
+                .auth(GroupAuth.MEMBER) // 기본적으로 MEMBER로 설정
+                .status(GroupStatus.REGISTERED) // 상태는 REGISTERED로 설정
+                .build();
+
+        groupUsersRepository.save(groupUser);
+    }
+
+    /**
      * 그룹 가입 신청 목록 조회 메서드
      *
      * @param groupId - 그룹 ID
@@ -191,7 +242,6 @@ public class GroupService {
     public void cancelJoinRequest(String groupUserId, TokenUserInfo tokenInfo) {
         GroupUser groupUser = groupUsersRepository.findById(groupUserId)
                 .orElseThrow(() -> new IllegalStateException("가입 신청을 찾을 수 없습니다."));
-
         // 거절 처리
         groupUser.setStatus(GroupStatus.CANCELLED);
         groupUsersRepository.save(groupUser);
