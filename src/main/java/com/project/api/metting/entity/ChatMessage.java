@@ -48,8 +48,8 @@ public class ChatMessage {
     @JoinColumn(name = "mt_chat_room_id",  nullable = false)
     private ChatRoom chatRoom;
 
-    @ToString.Exclude
-    @JsonIgnore
+//    @ToString.Exclude
+//    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "mt_user_id",  nullable = false)
     private User user;

@@ -17,4 +17,6 @@ public class GroupQueryService {
     public List<GroupResponseDto> getGroupsByUserEmail(String email) {
         return groupRepository.findGroupsByUserEmail(email);
     }
+
+
 }
