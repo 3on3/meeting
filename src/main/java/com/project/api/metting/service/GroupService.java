@@ -100,4 +100,37 @@ public class GroupService {
 
         groupUsersRepository.save(groupUser);
     }
+
+
+    public List<GroupUser> getJoinRequests(String groupId, TokenUserInfo tokenInfo) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalStateException("해당 그룹을 찾을 수 없습니다."));
+
+        // 그룹 생성자인지 확인 (Optional)
+        // if (!group.getCreatedBy().equals(tokenInfo.getEmail())) {
+        //     throw new IllegalStateException("권한이 없습니다.");
+        // }
+
+        return groupUsersRepository.findByGroupAndStatus(group, GroupStatus.INVITING);
+    }
+
+    @Transactional
+    public void acceptJoinRequest(String groupUserId, TokenUserInfo tokenInfo) {
+        GroupUser groupUser = groupUsersRepository.findById(groupUserId)
+                .orElseThrow(() -> new IllegalStateException("가입 신청을 찾을 수 없습니다."));
+
+        // 수락 처리
+        groupUser.setStatus(GroupStatus.REGISTERED);
+        groupUsersRepository.save(groupUser);
+    }
+
+    @Transactional
+    public void cancelJoinRequest(String groupUserId, TokenUserInfo tokenInfo) {
+        GroupUser groupUser = groupUsersRepository.findById(groupUserId)
+                .orElseThrow(() -> new IllegalStateException("가입 신청을 찾을 수 없습니다."));
+
+        // 거절 처리
+        groupUser.setStatus(GroupStatus.CANCELLED);
+        groupUsersRepository.save(groupUser);
+    }
 }
