@@ -37,8 +37,8 @@ public class UserSignInService {
                 .orElseThrow(
                         () -> new LoginFailException("가입된 회원이 아닙니다.")
                 );
-        // 이메일 인증을 안했거나 패스워드를 설정하지 않은 회원
-        if (!userInfo.getIsVerification() || userInfo.getPassword() == null) {
+        // 패스워드를 설정하지 않은 회원
+        if (userInfo.getPassword() == null) {
             throw new LoginFailException("회원가입이 중단된 회원입니다. 다시 가입해주세요.");
         }
 
@@ -60,6 +60,13 @@ public class UserSignInService {
                 .email(userInfo.getEmail())
                 .auth(userInfo.getAuth().toString())
                 .token(token)
+                .name(userInfo.getName())
+                .birthDate(String.valueOf(userInfo.getBirthDate()))
+                .phoneNumber(userInfo.getPhoneNumber())
+                .univName(userInfo.getUnivName())
+                .major(userInfo.getMajor())
+                .gender(userInfo.getGender())
+                .nickname(userInfo.getNickname())
                 .build();
 
         // 자동로그인이라면?
