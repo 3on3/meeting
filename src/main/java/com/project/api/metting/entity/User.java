@@ -113,6 +113,11 @@ public class User {
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ChatMessage> chatMessages;
 
+    @JsonIgnore
+    @ToString.Exclude
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private UserProfile userProfile; //유저프로필
+
     public void confirm(String password, String name, Date Birth, String phone, String univName, String major, Gender gender, String nickname) {
         this.password = password;
         this.name = name;

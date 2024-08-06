@@ -44,4 +44,7 @@ public class UserProfile {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mt_user_id",  nullable = false, unique = true)
     private User user;
+
+    public void setUser(User user) {
+    }
 }
