@@ -54,7 +54,7 @@ class GroupMatchingServiceTest {
     @DisplayName("그룹 히스토리 프로세싱 함수")
     void processGroupMatchingHistories() {
         //given
-        String historyId = "dda0fb92-3105-46d2-a4ba-fd4998a54051";
+        String historyId = "fe771b63-e666-4750-99c2-3a18b13677f9";
         //when
 
         //then
