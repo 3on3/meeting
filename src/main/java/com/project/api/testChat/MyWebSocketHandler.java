@@ -1,11 +1,15 @@
 package  com.project.api.testChat;
 
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.api.auth.TokenProvider;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.project.api.metting.dto.response.ChatMessageResponseDto;
+import com.project.api.metting.entity.ChatMessage;
+import com.project.api.metting.service.ChatMessageService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
@@ -18,21 +22,29 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+
 
 public class MyWebSocketHandler extends TextWebSocketHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(MyWebSocketHandler.class);
-    private final Map<String, WebSocketSession> sessions = new HashMap<>();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private final ObjectMapper objectMapper;
+    private final Map<String, WebSocketSession> sessions;
+
+    public MyWebSocketHandler(Map<String, WebSocketSession> sessions) {
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());
+        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); // 추가된 설정
+        this.sessions = sessions;
+    }
 
     //최초 연결 시
     @OnOpen
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         final String sessionId = session.getId();
         final String enteredMessage = sessionId + "가";
+
+        System.out.println("enteredMessage = " + enteredMessage);
 
         sessions.put(sessionId, session);
 
@@ -42,26 +54,24 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
 
     //양방향 데이터 통신할 떄 해당 메서드가 call 된다.
     @OnMessage
-    protected void handleTextMessage(WebSocketSession session, TextMessage message, @AuthenticationPrincipal TokenProvider.TokenUserInfo tokenUserInfo) throws Exception {
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         //do something
         final String sessionId = session.getId();
-
-        TestMessage testMessage = objectMapper.readValue(message.getPayload(), TestMessage.class);
-        testMessage.setUserName(sessionId);
+        ChatMessage sendMessage = objectMapper.readValue(message.getPayload(), ChatMessage.class);
+        System.out.println("message = " + message.getPayload());
 
         sessions.values().forEach((s) -> {
 
             if (!s.getId().equals(sessionId) && s.isOpen()) {
                 try {
-                    testMessage.setAuth("otherUser");
-                    String jsonMessage = objectMapper.writeValueAsString(testMessage);
+                    String jsonMessage = objectMapper.writeValueAsString(sendMessage);
                     s.sendMessage(new TextMessage(jsonMessage));
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             } else {
                 // 자신이 보낼 메시지일 경우
-                System.out.println("gkgkgkgkgkgdjskafjsdlfjasldfjsadlkf");
+                System.out.println("ㅣㅏㅣㅏㅣㅣㅏ");
             }
         });
     }
