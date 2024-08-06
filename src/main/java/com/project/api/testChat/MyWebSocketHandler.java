@@ -5,6 +5,7 @@ package  com.project.api.testChat;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.project.api.metting.dto.request.ChatMessageRequestDto;
 import com.project.api.metting.dto.response.ChatMessageResponseDto;
 import com.project.api.metting.entity.ChatMessage;
 import com.project.api.metting.service.ChatMessageService;
@@ -34,7 +35,9 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
 
     public MyWebSocketHandler(Map<String, WebSocketSession> sessions) {
         this.objectMapper = new ObjectMapper();
+        // localDateTime 을 제대로 받아오기 위한 코드
         this.objectMapper.registerModule(new JavaTimeModule());
+        // withdraw 오류
         this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); // 추가된 설정
         this.sessions = sessions;
     }
@@ -43,14 +46,11 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     @OnOpen
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         final String sessionId = session.getId();
-        final String enteredMessage = sessionId + "가";
 
-        System.out.println("enteredMessage = " + enteredMessage);
+        if(!sessions.containsKey(sessionId)) {
+            sessions.put(sessionId, session);
+        }
 
-        sessions.put(sessionId, session);
-
-        String jsonMessage = objectMapper.writeValueAsString(enteredMessage);
-        sendMessage(sessionId, new TextMessage(jsonMessage));
     }
 
     //양방향 데이터 통신할 떄 해당 메서드가 call 된다.
@@ -58,22 +58,16 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         //do something
         final String sessionId = session.getId();
-        ChatMessage sendMessage = objectMapper.readValue(message.getPayload(), ChatMessage.class);
-        System.out.println("message = " + message.getPayload());
+
+        ChatMessageRequestDto chatMessageRequestDto = objectMapper.readValue(message.getPayload(), ChatMessageRequestDto.class);
 
         sessions.values().forEach((s) -> {
-
-            if (!s.getId().equals(sessionId) && s.isOpen()) {
                 try {
-                    String jsonMessage = objectMapper.writeValueAsString(sendMessage);
+                    String jsonMessage = objectMapper.writeValueAsString(chatMessageRequestDto);
                     s.sendMessage(new TextMessage(jsonMessage));
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-            } else {
-                // 자신이 보낼 메시지일 경우
-                System.out.println("ㅣㅏㅣㅏㅣㅣㅏ");
-            }
         });
     }
 
@@ -81,13 +75,11 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     @OnClose
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         final String sessionId = session.getId();
-        final String leaveMessage = sessionId + "님이 떠났습니다.";
-
-        sessions.remove(sessionId); // 삭제
-
-        //메시지 전송
-        String jsonMessage = objectMapper.writeValueAsString(leaveMessage);
-        sendMessage(sessionId, new TextMessage(jsonMessage));
+        try {
+            sessions.remove(sessionId); // 삭제
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
     //통신 에러 발생 시
     @OnError
