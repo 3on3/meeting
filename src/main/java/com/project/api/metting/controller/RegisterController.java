@@ -60,6 +60,7 @@ public class RegisterController {
     @PostMapping("/sign-in")
     public ResponseEntity<?> singIn(@RequestBody LoginRequestDto dto) {
 
+
         try {
             // 사용자가 회원가입시 입력한 정보(LoginRequestDto)로 회원 로그인 인증
             // 로그인 정보가 맞다면 토큰 생성해서 LoginResponseDto에 성공 정보를 담아 반환
