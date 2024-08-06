@@ -1,6 +1,5 @@
 package com.project.api.metting.service;
 
-import com.project.api.auth.TokenProvider;
 import com.project.api.metting.dto.response.ChatMessageResponseDto;
 import com.project.api.metting.entity.ChatMessage;
 import com.project.api.metting.entity.ChatRoom;
@@ -13,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +30,7 @@ public class ChatMessageService {
         Optional<ChatRoom> chatRoom = chatRoomsRepository.findById(chatRoomId);
         System.out.println("chatRoom = " + chatRoom);
 
-        List<ChatMessage> chatMessage = chatMessagesRepository.findByChatRoom(chatRoom.orElse(null));
+        List<ChatMessage> chatMessage = chatMessagesRepository.findByChatRoomOrderByCreatedAt(chatRoom.orElse(null));
         System.out.println("chatMessage = " + chatMessage);
 
         return chatMessage;
