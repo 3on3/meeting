@@ -35,9 +35,9 @@ public class ChatRoomService {
 
             boolean isProcessMatched = matchingHistory.getProcess().equals(GroupProcess.MATCHED);
 
-//            if (!isProcessMatched){
-//                throw new RuntimeException("매칭된 그룹이 아닙니다.");
-//            }
+            if (!isProcessMatched){
+                throw new RuntimeException("수락된 매칭이 아닙니다.");
+            }
 
             ChatRoom build = ChatRoom.builder()
                     // 주최자 그룹명으로 채팅 명 설정
