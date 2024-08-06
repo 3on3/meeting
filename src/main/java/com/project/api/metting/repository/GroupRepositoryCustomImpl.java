@@ -42,7 +42,6 @@ public class GroupRepositoryCustomImpl implements  GroupRepositoryCustom {
     // main meetingList DTO
     public MainMeetingListResponseDto convertToMeetingListDto(Group group){
         return new MainMeetingListResponseDto(group, calculateAverageAge(group),hostMajor(group));
-
     }
 
 
@@ -61,7 +60,7 @@ public class GroupRepositoryCustomImpl implements  GroupRepositoryCustom {
     }
 
 //    GroupResponseDto
-    private GroupResponseDto convertToGroupResponseDto(Group group) {
+public GroupResponseDto convertToGroupResponseDto(Group group) {
         int memberCount = group.getGroupUsers().size();
 
         return new GroupResponseDto(group,memberCount,calculateAverageAge(group),hostMajor(group));
