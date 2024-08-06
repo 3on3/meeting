@@ -1,5 +1,6 @@
 package com.project.api.metting.dto.response;
 
+import com.project.api.metting.entity.Gender;
 import lombok.*;
 
 @Getter
@@ -15,4 +16,11 @@ public class LoginResponseDto {
     private String auth; // 권한 정보 (COMMON, ADMIN)
     private String token; // 인증 토큰
     private String refreshToken; // 리프레쉬 토큰 (자동로그인 확인시 필요)
+    private String name;
+    private String birthDate;
+    private String phoneNumber;
+    private String univName;
+    private String major; // 전공
+    private Gender gender; // 성별
+    private String nickname; // 성별
 }
