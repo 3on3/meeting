@@ -1,6 +1,7 @@
 package com.project.api.metting.service;
 
 
+import com.project.api.metting.dto.request.MainMeetingListFilterDto;
 import com.project.api.metting.dto.response.MainMeetingListResponseDto;
 import com.project.api.metting.entity.Group;
 import com.project.api.metting.repository.GroupRepository;
@@ -26,6 +27,11 @@ public class MainService {
 
         List<MainMeetingListResponseDto> groupUsersByAllGroup = groupRepository.findGroupUsersByAllGroup();
         return groupUsersByAllGroup;
+    }
+
+    public List<MainMeetingListResponseDto> postMeetingList(MainMeetingListFilterDto dto) {
+        List<MainMeetingListResponseDto> filterGroupUsersByAllGroup = groupRepository.filterGroupUsersByAllGroup(dto);
+        return filterGroupUsersByAllGroup;
     }
 
 //    나이 계산하기
