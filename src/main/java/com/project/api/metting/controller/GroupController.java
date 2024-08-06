@@ -76,4 +76,5 @@ public class GroupController {
         groupService.cancelJoinRequest(groupUserId, tokenInfo);
         return ResponseEntity.ok().build();
     }
+
 }
