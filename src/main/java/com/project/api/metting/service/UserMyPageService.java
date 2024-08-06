@@ -8,6 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.Optional;
 
 
@@ -44,12 +48,22 @@ import java.util.Optional;
             return UserMyPageDto.builder()
                     .password(user.getPassword())
                     .birthDate(user.getBirthDate())
+                    .age(calculateAge(user.getBirthDate()))
                     .phoneNumber(user.getPhoneNumber())
                     .major(user.getMajor())
                     .nickname(user.getNickname())
+                    .membership(user.getMembership())
                     .profileImg(profile != null ? profile.getProfileImg() : null)
                     .profileIntroduce(profile != null ? profile.getProfileIntroduce() : null)
                     .build();
+        }
+
+        private int calculateAge(Date birthDate) {
+            if (birthDate == null) {
+                return 0;
+            }
+            LocalDate birthLocalDate = birthDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            return Period.between(birthLocalDate, LocalDate.now()).getYears();
         }
     }
 

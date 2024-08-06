@@ -1,6 +1,7 @@
 package com.project.api.metting.dto.response;
 
 import com.project.api.metting.entity.Gender;
+import com.project.api.metting.entity.Membership;
 import lombok.*;
 
 import java.util.Date;
@@ -23,5 +24,8 @@ public class UserMyPageDto {
 
     private String profileImg; // 프로필 이미지 경로
     private String profileIntroduce; // 프로필 소개
+    private Membership membership; // 멤버십 등급
+
+    private int age; // 나이
 
 }
