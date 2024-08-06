@@ -5,6 +5,7 @@ import com.project.api.metting.entity.User;
 import com.project.api.metting.entity.UserVerification;
 import com.project.api.metting.repository.UserRepository;
 import com.project.api.metting.repository.UserVerificationRepository;
+import com.univcert.api.UnivCert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +25,7 @@ import java.util.Map;
 @Transactional
 @Service
 public class UserSignUpService {
+
     @Value("${univcert.api.key}")
     private String univCertApiKey;
 
