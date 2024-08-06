@@ -60,7 +60,7 @@ public class GroupRepositoryCustomImpl implements  GroupRepositoryCustom {
     }
 
 //    GroupResponseDto
-    private GroupResponseDto convertToGroupResponseDto(Group group) {
+public GroupResponseDto convertToGroupResponseDto(Group group) {
         int memberCount = group.getGroupUsers().size();
 
         return new GroupResponseDto(group,memberCount,calculateAverageAge(group),hostMajor(group));
