@@ -9,4 +9,5 @@ import java.util.List;
 public interface GroupRepository extends JpaRepository<Group, String>, GroupRepositoryCustom {
 
 
+    List<Group> findAllByGroupUsersUserId(String groupId);
 }
