@@ -3,6 +3,8 @@ package com.project.api.metting.service;
 import com.project.api.auth.TokenProvider.TokenUserInfo;
 import com.project.api.metting.dto.request.GroupCreateDto;
 import com.project.api.metting.dto.request.GroupJoinRequestDto;
+import com.project.api.metting.dto.response.GroupUsersViewListResponseDto;
+import com.project.api.metting.dto.response.UserResponseDto;
 import com.project.api.metting.entity.*;
 import com.project.api.metting.repository.GroupRepository;
 import com.project.api.metting.repository.GroupUsersRepository;
@@ -13,14 +15,20 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -262,4 +270,54 @@ public class GroupService {
         groupUser.setStatus(GroupStatus.REGISTERED);
         groupUsersRepository.save(groupUser);
     }
+
+
+    /**
+     * 그룹에 참여중인 유저 정보 전부 조회하기
+     *
+     * @param groupId - 그룹의 ID
+     * @return 그룹의 유저 정보 목록
+     */
+    @Transactional
+    public ResponseEntity<?> getGroupUsers(String groupId) {
+        log.info("groupId info - {}", groupId);
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalStateException("그룹을 찾을 수 없습니다."));
+
+        List<GroupUser> groupUsers = groupUsersRepository.findByGroup(group);
+        log.info("find group users list - {}", groupUsers);
+
+        List<UserResponseDto> users = groupUsers.stream()
+                .map(groupUser -> new UserResponseDto(groupUser.getUser()))
+                .collect(Collectors.toList());
+
+        // 멤버의 평균 나이 계산
+        double averageAge = groupUsers.stream()
+                .mapToDouble(groupUser -> {
+                    Date birthDate = groupUser.getUser().getBirthDate();
+                    LocalDate birthLocalDate = birthDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                    return ChronoUnit.YEARS.between(birthLocalDate, LocalDate.now());
+                })
+                .average()
+                .orElse(0);
+
+        // 주최자의 만남 위치
+        Place meetingPlace = group.getGroupPlace();
+
+        // 전체 멤버 수
+        int totalMembers = groupUsers.size();
+
+        //성별
+        Gender gender = groupUsers.isEmpty() ? null : groupUsers.get(0).getUser().getGender();
+
+        GroupUsersViewListResponseDto generateGroupResponseData = GroupUsersViewListResponseDto.builder()
+                .users(users)
+                .averageAge((int) averageAge)
+                .meetingPlace(meetingPlace.getDisplayName())
+                .totalMembers(totalMembers)
+                .gender(gender.getDisplayName())
+                .build();
+        return ResponseEntity.ok(generateGroupResponseData);
+    }
+
 }
