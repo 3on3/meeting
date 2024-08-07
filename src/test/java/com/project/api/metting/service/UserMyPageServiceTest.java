@@ -1,15 +1,19 @@
 package com.project.api.metting.service;
 
+import com.project.api.metting.dto.request.ChangePasswordDto;
 import com.project.api.metting.dto.response.UserMyPageDto;
 import com.project.api.metting.entity.Membership;
 import com.project.api.metting.entity.User;
 import com.project.api.metting.entity.UserProfile;
 import com.project.api.metting.repository.UserMyPageRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder; // PasswordEncoder import 추가
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -17,14 +21,17 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserMyPageServiceTest {
 
     @Mock
     private UserMyPageRepository userMyPageRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder; // PasswordEncoder 모의(mock) 추가
 
     @InjectMocks
     private UserMyPageService userMyPageService;
@@ -76,9 +83,8 @@ public class UserMyPageServiceTest {
     @Test
     void testGetUserInfo_UserNotFound() {
         // Given
-        String userId = "non-existing-user-id";
+        String userId = "123";
 
-        // Mocking repository response
         when(userMyPageRepository.findById(userId)).thenReturn(Optional.empty());
 
         // When
@@ -86,5 +92,117 @@ public class UserMyPageServiceTest {
 
         // Then
         assertEquals(false, result.isPresent());
+    }
+
+    @Test
+    void testChangePassword_Success() {
+        // Given
+        String userId = "1";
+        String currentPassword = "currentPassword";
+        String newPassword = "newPassword";
+        String confirmNewPassword = "newPassword";
+
+        ChangePasswordDto changePasswordDto = ChangePasswordDto.builder()
+                .currentPassword(currentPassword)
+                .newPassword(newPassword)
+                .confirmNewPassword(confirmNewPassword)
+                .build();
+
+        User user = User.builder()
+                .id(userId)
+                .password(passwordEncoder.encode(currentPassword)) // passwordEncoder를 사용하여 현재 비밀번호를 인코딩
+                .build();
+
+        when(userMyPageRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(currentPassword, user.getPassword())).thenReturn(true);
+        when(passwordEncoder.encode(newPassword)).thenReturn("encodedNewPassword");
+
+        // When
+        boolean result = userMyPageService.changePassword(userId, changePasswordDto);
+
+        // Then
+        assertTrue(result);
+        verify(userMyPageRepository, times(1)).save(user);
+        assertEquals("encodedNewPassword", user.getPassword()); // 인코딩된 새로운 비밀번호 확인
+    }
+
+    @Test
+    void testChangePassword_CurrentPasswordMismatch() {
+        // Given
+        String userId = "1";
+        String currentPassword = "currentPassword";
+        String newPassword = "newPassword";
+        String confirmNewPassword = "newPassword";
+
+        ChangePasswordDto changePasswordDto = ChangePasswordDto.builder()
+                .currentPassword(currentPassword)
+                .newPassword(newPassword)
+                .confirmNewPassword(confirmNewPassword)
+                .build();
+
+        User user = User.builder()
+                .id(userId)
+                .password(passwordEncoder.encode("wrongPassword"))
+                .build();
+
+        when(userMyPageRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(currentPassword, user.getPassword())).thenReturn(false);
+
+        // When
+        boolean result = userMyPageService.changePassword(userId, changePasswordDto);
+
+        // Then
+        assertFalse(result);
+        verify(userMyPageRepository, times(0)).save(user);
+    }
+
+    @Test
+    void testChangePassword_NewPasswordMismatch() {
+        // Given
+        String userId = "1";
+        String currentPassword = "currentPassword";
+        String newPassword = "newPassword";
+        String confirmNewPassword = "differentNewPassword";
+
+        ChangePasswordDto changePasswordDto = ChangePasswordDto.builder()
+                .currentPassword(currentPassword)
+                .newPassword(newPassword)
+                .confirmNewPassword(confirmNewPassword)
+                .build();
+
+        User user = User.builder()
+                .id(userId)
+                .password(passwordEncoder.encode(currentPassword)) // passwordEncoder를 사용하여 현재 비밀번호를 인코딩
+                .build();
+
+        when(userMyPageRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(currentPassword, user.getPassword())).thenReturn(true);
+
+        // When
+        boolean result = userMyPageService.changePassword(userId, changePasswordDto);
+
+        // Then
+        assertFalse(result);
+        verify(userMyPageRepository, times(0)).save(user);
+    }
+
+    @Test
+    void testChangePassword_UserNotFound() {
+        // Given
+        String userId = "123";
+        ChangePasswordDto changePasswordDto = ChangePasswordDto.builder()
+                .currentPassword("currentPassword")
+                .newPassword("newPassword")
+                .confirmNewPassword("newPassword")
+                .build();
+
+        when(userMyPageRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // When
+        boolean result = userMyPageService.changePassword(userId, changePasswordDto);
+
+        // Then
+        assertFalse(result);
+        verify(userMyPageRepository, times(0)).save(any(User.class));
     }
 }
