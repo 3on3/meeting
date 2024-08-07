@@ -179,15 +179,15 @@ public class GroupService {
     public void joinGroupWithInviteCode(String inviteCode, TokenUserInfo tokenInfo) {
         log.info("Attempting to join group with invite code: {}", inviteCode);
         String groupId = redisUtil.getData(INVITE_LINK_PREFIX + inviteCode, String.class)
-                .orElseThrow(() -> new IllegalStateException("Invalid invite code"));
+                .orElseThrow(() -> new IllegalStateException("더 이상 존재하지 않는 가입 코드입니다. 다시 확인해주세요."));
 
         log.info("groupId info - {}", groupId);
 
         User user = userRepository.findByEmail(tokenInfo.getEmail())
-                .orElseThrow(() -> new IllegalStateException("User not found"));
+                .orElseThrow(() -> new IllegalStateException("해당 유저를 찾을 수 없습니다."));
 
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new IllegalStateException("Group not found"));
+                .orElseThrow(() -> new IllegalStateException("해당 그룹을 찾을 수 없습니다."));
 
         // 유저가 이미 해당 그룹에 가입 신청했는지 확인
         boolean alreadyRequested = groupUsersRepository.existsByUserAndGroupAndStatus(user, group, GroupStatus.INVITING);
@@ -207,7 +207,7 @@ public class GroupService {
                 .user(user)
                 .joinedAt(LocalDateTime.now())
                 .auth(GroupAuth.MEMBER) // 기본적으로 MEMBER로 설정
-                .status(GroupStatus.REGISTERED) // 상태는 REGISTERED로 설정
+                .status(GroupStatus.INVITING) // 상태는 REGISTERED로 설정
                 .build();
 
         groupUsersRepository.save(groupUser);

@@ -69,17 +69,16 @@ public class GroupController {
 
     @PostMapping("/join/invite")
     public ResponseEntity<String> joinGroupWithInviteCode(@RequestParam String code, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
-        log.info("Received invite code: {}", code);
         if (code == null || code.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid invite code.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("해당 코드는 더 이상 존재하지 않습니다..");
         }
         try {
             groupService.joinGroupWithInviteCode(code, tokenInfo);
-            return ResponseEntity.ok("Joined group successfully.");
+            return ResponseEntity.ok("성공적으로 그룹에 가입신청을 완료하였습니다.");
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while joining the group.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("가입신청에 실패하였습니다. 다시 시도해주세요..");
         }
     }
 }
