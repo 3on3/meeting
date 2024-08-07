@@ -2,6 +2,7 @@ package com.project.api.metting.controller;
 
 
 import com.project.api.auth.TokenProvider.TokenUserInfo;
+import com.project.api.metting.dto.request.ChangePasswordDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.dto.response.UserMyPageDto;
 import com.project.api.metting.entity.User;
@@ -63,8 +64,9 @@ public class MyPageController {
 //            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("유저없음");
 //        }
 //    }
-    @GetMapping("/{id}")
+    @GetMapping("/userInfo")
     public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal TokenUserInfo tokenUserInfo) {
+
         if (tokenUserInfo == null || tokenUserInfo.getUserId() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid user info");
         }
@@ -74,6 +76,23 @@ public class MyPageController {
             return ResponseEntity.ok(userInfo.get());
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("유저없음");
+        }
+    }
+
+    @PatchMapping("/check-pass")
+    public ResponseEntity<?> updatePassword(@RequestBody ChangePasswordDto changePasswordDto,
+                                            @AuthenticationPrincipal TokenUserInfo tokenUserInfo) {
+
+        // 인증 정보 유효성 확인
+        if (tokenUserInfo == null || tokenUserInfo.getUserId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("유저 정보 유효하지 않음.");
+        }
+
+        boolean isChanged = userMyPageService.changePassword(tokenUserInfo.getUserId(), changePasswordDto);
+        if(isChanged) {
+            return ResponseEntity.ok("비밀번호 변경 성공");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("비밀번호 변경 실패");
         }
     }
 }
