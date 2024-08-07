@@ -27,12 +27,16 @@ public class ChatMessageController {
     @GetMapping("/getMessage")
     public ResponseEntity<?> testChat(@RequestParam String chatRoomId) {
 
+        System.out.println("chatRoomId = " + chatRoomId);
+
         List<ChatMessageRequestDto> chatMessages = chatMessageService.finAllMessage(chatRoomId);
+
+        System.out.println("chatMessages = " + chatMessages);
 
         return  ResponseEntity.ok().body(chatMessages);
     }
 
-    @GetMapping("/sendMessage")
+    @PostMapping("/sendMessage")
     public ResponseEntity<?> sendMessage(@RequestBody ChatMessageResponseDto chatMessageResponseDto, @AuthenticationPrincipal TokenProvider.TokenUserInfo tokenUserInfo) {
 
         String userId = tokenUserInfo.getUserId();
