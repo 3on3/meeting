@@ -48,7 +48,7 @@ public class GroupController {
         }
     }
 
-    @GetMapping("/{groupId}")
+    @GetMapping("/invite/{groupId}")
     public ResponseEntity<?> getGroup(@PathVariable String groupId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
         List<GroupUser> joinRequests = groupService.getJoinRequests(groupId, tokenInfo);
         return ResponseEntity.ok().body(joinRequests);
@@ -80,5 +80,17 @@ public class GroupController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("가입신청에 실패하였습니다. 다시 시도해주세요..");
         }
+    }
+
+
+    /**
+     * 특정 그룹 사용자 ID에 대한 그룹 목록을 가져오는 엔드포인트
+     *
+     * @param groupUserId - 그룹 사용자 ID
+     * @return - 그룹 목록
+     */
+    @GetMapping("/{groupUserId}")
+    public ResponseEntity<?> getGroupList(@PathVariable String groupUserId) {
+        return groupService.getGroupUsers(groupUserId);
     }
 }
