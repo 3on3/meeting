@@ -115,7 +115,7 @@ public class GroupService {
 
         String inviteCode;
         if (existingCode.isEmpty()) {
-            inviteCode = RandomUtil.generateRandomCode('0', 'z', 10);
+            inviteCode = RandomUtil.generateRandomCode('0', 'z', 20);
             log.info("Generated random code: {}", inviteCode);
             redisUtil.setDataExpire(INVITE_LINK_PREFIX + inviteCode, groupId, RedisUtil.toTomorrow() * 1000);
             log.info("Invite code set in Redis with expiration: {}", inviteCode);
