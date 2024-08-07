@@ -58,7 +58,7 @@ public class UserSignUpService {
     public void processSignUp(String email, String univName) {
         try {
             // Step 1: API 호출을 통해 인증 메일 발송
-            Map<String, Object> response = UnivCert.certify(univCertApiKey, email, univName, true);
+            Map<String, Object> response = UnivCert.certify(univCertApiKey, email, univName, false);
 
             // Step 2: 인증 메일 발송 성공 시 임시 회원가입
             if (response != null && Boolean.TRUE.equals(response.get("success"))) {
