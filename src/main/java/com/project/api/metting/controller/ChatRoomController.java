@@ -1,6 +1,7 @@
 package com.project.api.metting.controller;
 
 import com.project.api.metting.dto.request.ChatRequestDto;
+import com.project.api.metting.dto.request.ChatUserRequestDto;
 import com.project.api.metting.dto.response.ChatUserResponseDto;
 import com.project.api.metting.entity.User;
 import com.project.api.metting.repository.ChatRoomsRepository;
@@ -43,7 +44,9 @@ public class ChatRoomController {
     @PostMapping("/chatUsers")
     public ResponseEntity<?> chatUsers (@RequestBody ChatUserResponseDto chatUserDto){
 
-        List<User> chatUserList = chatRoomService.findChatUsers(chatUserDto);
+        List<ChatUserRequestDto> chatUserList = chatRoomService.findChatUsers(chatUserDto);
+
+        System.out.println("chatUserList = " + chatUserList);
 
         return ResponseEntity.ok().body(chatUserList);
     }
