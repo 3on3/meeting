@@ -29,6 +29,7 @@ public class MainService {
         return groupUsersByAllGroup;
     }
 
+//    group 필터링
     public List<MainMeetingListResponseDto> postMeetingList(MainMeetingListFilterDto dto) {
         List<MainMeetingListResponseDto> filterGroupUsersByAllGroup = groupRepository.filterGroupUsersByAllGroup(dto);
         return filterGroupUsersByAllGroup;
