@@ -1,6 +1,7 @@
 package com.project.api.metting.controller;
 
 import com.project.api.metting.dto.request.ChatRequestDto;
+import com.project.api.metting.dto.request.ChatRoomRequestDto;
 import com.project.api.metting.dto.request.ChatUserRequestDto;
 import com.project.api.metting.dto.response.ChatUserResponseDto;
 import com.project.api.metting.entity.User;
@@ -28,13 +29,13 @@ public class ChatRoomController {
 
     /**
      * 그룹 생성 요청
-     * @param historyId - 매칭된 히스토리 아이디
+     * @param chatRoomRequestDto - 매칭된 히스토리 아이디
      * @return - 메세지
      */
     @PostMapping("/create")
-    public ResponseEntity<?> create(@RequestParam String historyId) {
+    public ResponseEntity<?> create(@RequestBody ChatRoomRequestDto chatRoomRequestDto) {
 
-        chatRoomService.createChatRoom(historyId);
+        chatRoomService.createChatRoom(chatRoomRequestDto.getGroupId());
 
         return ResponseEntity.ok().body("채팅방 생성 완료");
 
