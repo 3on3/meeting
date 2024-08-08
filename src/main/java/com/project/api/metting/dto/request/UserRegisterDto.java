@@ -20,10 +20,11 @@ public class UserRegisterDto {
     private String email;
     private String password;
     private String name;
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private Date birthDate;
     private String phoneNumber; // 폰 번호
     private String univName;
     private String major; // 전공
     private Gender gender; // 성별
-    private String nickname; // 성별
+    private String nickname;
 }
