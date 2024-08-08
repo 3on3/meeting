@@ -1,5 +1,6 @@
 package com.project.api.metting.service;
 
+import com.project.api.metting.dto.request.ChatMessageRequestDto;
 import com.project.api.metting.dto.response.ChatMessageResponseDto;
 import com.project.api.metting.entity.ChatMessage;
 import com.project.api.metting.entity.ChatRoom;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,19 +26,22 @@ public class ChatMessageService {
     private final ChatRoomsRepository chatRoomsRepository;
     private final UserRepository userRepository;
 
-    public List<ChatMessage> finAllMessage(String chatRoomId) {
+    public List<ChatMessageRequestDto> finAllMessage(String chatRoomId) {
 
-        System.out.println("chatRoomId = " + chatRoomId);
         Optional<ChatRoom> chatRoom = chatRoomsRepository.findById(chatRoomId);
-        System.out.println("chatRoom = " + chatRoom);
 
         List<ChatMessage> chatMessage = chatMessagesRepository.findByChatRoomOrderByCreatedAt(chatRoom.orElse(null));
-        System.out.println("chatMessage = " + chatMessage);
 
-        return chatMessage;
+        List<ChatMessageRequestDto> chatMessageRequestDtoList = new ArrayList<>(chatMessage.size());
+
+        for (ChatMessage message : chatMessage) {
+            chatMessageRequestDtoList.add(new ChatMessageRequestDto(message));
+        }
+
+        return chatMessageRequestDtoList;
     }
 
-    public ChatMessage saveChatMessage(ChatMessageResponseDto chatMessageResponseDto, String userId) {
+    public ChatMessageRequestDto saveChatMessage(ChatMessageResponseDto chatMessageResponseDto, String userId) {
 
         User user = userRepository.findById(userId).orElse(null);
         ChatRoom chatRoom = chatRoomsRepository.findById(chatMessageResponseDto.getRoomId()).orElse(null);
@@ -48,6 +53,8 @@ public class ChatMessageService {
                 .build();
 
         ChatMessage savedMessage = chatMessagesRepository.save(chatMessage);
-        return savedMessage;
+
+        ChatMessageRequestDto chatMessageRequestDto = new ChatMessageRequestDto(savedMessage);
+        return chatMessageRequestDto;
     }
 }

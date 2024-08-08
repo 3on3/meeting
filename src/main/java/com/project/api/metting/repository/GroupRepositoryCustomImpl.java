@@ -1,19 +1,23 @@
 package com.project.api.metting.repository;
 
+import com.project.api.metting.dto.request.MainMeetingListFilterDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.dto.response.MainMeetingListResponseDto;
 import com.project.api.metting.entity.*;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.project.api.metting.entity.QGroup.group;
 
 
 @Repository
@@ -21,6 +25,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GroupRepositoryCustomImpl implements  GroupRepositoryCustom {
     private final JPAQueryFactory factory;
+
+
 
 
 //    main meetingList DTO
@@ -32,7 +38,29 @@ public class GroupRepositoryCustomImpl implements  GroupRepositoryCustom {
 
         List<Group> groups = factory.selectFrom(group)
                 .join(group.groupUsers, groupUser)
-                .where(groupUser.auth.eq(GroupAuth.HOST))
+                .where(groupUser.auth.eq(GroupAuth.HOST)
+                )
+                .fetch();
+
+        return groups.stream().map(this::convertToMeetingListDto).collect(Collectors.toList());
+
+    }
+
+    //    main meetingList DTO 필러링
+    @Override
+    public List<MainMeetingListResponseDto> filterGroupUsersByAllGroup(MainMeetingListFilterDto dto){
+
+        QGroup group = QGroup.group;
+        QGroupUser groupUser = QGroupUser.groupUser;
+
+        List<Group> groups = factory.selectFrom(group)
+                .join(group.groupUsers, groupUser)
+                .where(groupUser.auth.eq(GroupAuth.HOST),
+                        containGender(dto.getGender()),
+                        containPlace(dto.getGroupPlace()),
+                        containmaxNum(dto.getMaxNum()),
+                        containIsMatched(dto.getIsMatched())
+                )
                 .fetch();
 
         return groups.stream().map(this::convertToMeetingListDto).collect(Collectors.toList());
@@ -43,6 +71,28 @@ public class GroupRepositoryCustomImpl implements  GroupRepositoryCustom {
     public MainMeetingListResponseDto convertToMeetingListDto(Group group){
         return new MainMeetingListResponseDto(group, calculateAverageAge(group),hostMajor(group));
     }
+
+
+//    main filter :
+//    성별 필터링 : 없으면 null로 반환
+private BooleanExpression containGender(String gender) {
+    return StringUtils.hasText(gender) ? group.groupGender.eq(Gender.valueOf(gender)) : null;
+}
+
+//    인원수 필터링 : 없으면 null로 반환
+private BooleanExpression containmaxNum(Integer maxNum) {
+    return maxNum != null ? group.maxNum.eq(maxNum) : null;
+}
+
+//    장소 필터링 : 없으면 null로 반환
+private BooleanExpression containPlace(String place){
+        return StringUtils.hasText(place) ? group.groupPlace.eq(Place.valueOf(place)) : null;
+}
+
+//    매칭 가능한 필터링 : 없으면 null로 반환
+private BooleanExpression containIsMatched(Boolean isMatched){
+    return isMatched != null ? group.isMatched.eq(isMatched) : null;
+}
 
 
     //GroupResponseDto - 마이페이지 내가 속한 그룹
@@ -65,8 +115,6 @@ public GroupResponseDto convertToGroupResponseDto(Group group) {
 
         return new GroupResponseDto(group,memberCount,calculateAverageAge(group),hostMajor(group));
     }
-
-
 
 
 //  Date 생년월일을 나이로 변경
@@ -102,6 +150,8 @@ public GroupResponseDto convertToGroupResponseDto(Group group) {
 //        return Period.between(birthLocalDate, now).getYears();
 //    }
 
+
+//    필터링 커스텀
 
 
 

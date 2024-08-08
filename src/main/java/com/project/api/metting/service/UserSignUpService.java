@@ -25,6 +25,7 @@ import java.util.Map;
 @Transactional
 @Service
 public class UserSignUpService {
+
     @Value("${univcert.api.key}")
     private String univCertApiKey;
 

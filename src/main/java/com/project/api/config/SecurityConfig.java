@@ -48,7 +48,7 @@ public class SecurityConfig {
                 .antMatchers(HttpMethod.DELETE,"/events/*").hasAuthority("ADMIN")
                 .antMatchers(HttpMethod.PUT, "/auth/promote").hasAuthority("COMMON")
                 //아래의 요청은 모두 허용
-                .antMatchers("/**", "/signup/**", "/file/**", "/testChat").permitAll()
+                .antMatchers("/**", "/signup/**", "/file/**", "/testChat/**", "/group/**").permitAll()
                 //나머지 인증은 전부 인증(로그인) 후 진행해라.
                 .anyRequest().authenticated() //인가 설정 on
         ;
