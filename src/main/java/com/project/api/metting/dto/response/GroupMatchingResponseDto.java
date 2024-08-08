@@ -10,5 +10,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class GroupMatchingResponseDto {
-    private String groupId;
+    private String responseGroupId;
+    private String requestGroupId;
 }
