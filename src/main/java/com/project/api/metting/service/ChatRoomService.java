@@ -28,15 +28,19 @@ public class ChatRoomService {
     private final GroupUsersRepository groupUsersRepository;
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
+    private final GroupMatchingHistoriesCustomImpl groupMatchingHistoriesCustomImpl;
 
 
     /**
      * 매칭 후 채팅룸 생성 함수
-     * @param id - 매칭된 히스토리 아이디
+     * @param groupId - 매칭된 히스토리 아이디
      */
     @Transactional
-    public void createChatRoom(String id) {
+    public void createChatRoom(String groupId) {
         try {
+
+            List<GroupMatchingHistory> histories = groupMatchingHistoriesCustomImpl.findByResponseGroupId(groupId);
+            String id = histories.get(0).getId();
             GroupMatchingHistory matchingHistory = groupMatchingHistoriesRepository.findById(id).orElseThrow();
 
             boolean isProcessMatched = matchingHistory.getProcess().equals(GroupProcess.MATCHED);
