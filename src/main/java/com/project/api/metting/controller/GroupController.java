@@ -2,6 +2,7 @@ package com.project.api.metting.controller;
 
 import com.project.api.metting.dto.request.GroupCreateDto;
 import com.project.api.metting.dto.request.GroupJoinRequestDto;
+import com.project.api.metting.dto.response.InviteUsersViewResponseDto;
 import com.project.api.metting.entity.GroupUser;
 import com.project.api.metting.service.GroupService;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +51,7 @@ public class GroupController {
 
     @GetMapping("/invite/{groupId}")
     public ResponseEntity<?> getGroup(@PathVariable String groupId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
-        List<GroupUser> joinRequests = groupService.getJoinRequests(groupId, tokenInfo);
+        List<InviteUsersViewResponseDto> joinRequests = groupService.getJoinRequests(groupId, tokenInfo);
         return ResponseEntity.ok().body(joinRequests);
     }
 
@@ -90,7 +91,7 @@ public class GroupController {
      * @return - 그룹 목록
      */
     @GetMapping("/{groupUserId}")
-    public ResponseEntity<?> getGroupList(@PathVariable String groupUserId) {
-        return groupService.getGroupUsers(groupUserId);
+    public ResponseEntity<?> getGroupList(@PathVariable String groupUserId, @AuthenticationPrincipal TokenUserInfo tokenUserInfo) {
+        return groupService.getGroupUsers(groupUserId, tokenUserInfo);
     }
 }

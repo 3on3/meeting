@@ -16,6 +16,7 @@ public class UserResponseDto {
     private String univName;
     private String major;
     private String name;
+    private String id;
 
 
 
@@ -23,5 +24,6 @@ public class UserResponseDto {
         this.univName = user.getUnivName();
         this.major = user.getMajor();
         this.name = user.getName();
+        this.id = user.getId();
     }
 }
