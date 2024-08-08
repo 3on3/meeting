@@ -9,5 +9,6 @@ import lombok.*;
 @Builder
 public class ChatRoomRequestDto {
 
-    private String groupId;
+    private String requestGroupId;
+    private String responseGroupId;
 }

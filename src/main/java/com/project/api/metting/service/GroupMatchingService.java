@@ -5,6 +5,8 @@ package com.project.api.metting.service;
 import ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy;
 import com.project.api.exception.GroupMatchingFailException;
 import com.project.api.metting.dto.request.GroupMatchingRequestDto;
+import com.project.api.metting.dto.request.GroupRequestDto;
+import com.project.api.metting.dto.response.GroupMatchingResponseDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.entity.Group;
 import com.project.api.metting.entity.GroupMatchingHistory;
@@ -79,22 +81,20 @@ public class GroupMatchingService {
 
     /**
      * 매칭 수락 또는 거절 프로세싱
-     * @param groupid - 수정할 히스토리의 아이디
+     * @param groupMatchingResponseDto - 수정할 히스토리의 아이디
      * @param process - 프로세스 상태 INVITED, MATCHED, DENIED
      * @param message - 예외처리 메세지
      */
-    private GroupProcess processingRequest (String groupid, GroupProcess process, String message){
+    private GroupProcess processingRequest (GroupMatchingResponseDto groupMatchingResponseDto, GroupProcess process, String message){
         try{
-            List<GroupMatchingHistory> histories = groupMatchingHistoriesCustomImpl.findByResponseGroupId(groupid);
+            List<GroupMatchingHistory> histories = groupMatchingHistoriesCustomImpl.findByResponseGroupId(groupMatchingResponseDto.getResponseGroupId());
+            GroupMatchingHistory groupMatchingHistory = histories.stream().filter(history -> history.getRequestGroup().getId().equals(groupMatchingResponseDto.getRequestGroupId())).findFirst().orElseThrow();
 
-            String historyId = histories.get(0).getId();;
-            GroupMatchingHistory matchingHistory = groupMatchingHistoriesRepository.findById(historyId).orElse(null);
-
-            if(matchingHistory.getProcess().equals(process)){
+            if(groupMatchingHistory.getProcess().equals(process)){
                 throw new GroupMatchingFailException(message, HttpStatus.BAD_REQUEST);
             }
-            matchingHistory.setProcess(process);
-            groupMatchingHistoriesRepository.save(matchingHistory);
+            groupMatchingHistory.setProcess(process);
+            groupMatchingHistoriesRepository.save(groupMatchingHistory);
             return process;
 
         } catch (NullPointerException e){
@@ -108,22 +108,22 @@ public class GroupMatchingService {
     /**
      * 매칭 수락
      * - 히스토리 process 컬럼을 invited -> matched 로 수정하는 함수
-     * @param groupId - 수정할 히스토리의 아이디
+     * @param groupMatchingResponseDto - 수정할 히스토리의 아이디
      */
-    public GroupProcess acceptRequest (String groupId){
+    public GroupProcess acceptRequest (GroupMatchingResponseDto groupMatchingResponseDto){
         String message = "이미 매칭된 그룹입니다.";
-        GroupProcess process = processingRequest(groupId, GroupProcess.MATCHED, message);
+        GroupProcess process = processingRequest(groupMatchingResponseDto, GroupProcess.MATCHED, message);
         return process;
     }
 
     /**
      * 매칭 거절
      * - 히스토리 process 컬럼을 invited -> denied 로 수정하는 함수
-     * @param groupId - 수정할 히스토리의 아이디
+     * @param groupMatchingResponseDto - 수정할 히스토리의 아이디
      */
-    public GroupProcess denyRequest (String groupId){
+    public GroupProcess denyRequest (GroupMatchingResponseDto groupMatchingResponseDto){
         String message = "이미 매칭 거절된 그룹입니다.";
-        GroupProcess process = processingRequest(groupId, GroupProcess.DENIED, message);
+        GroupProcess process = processingRequest(groupMatchingResponseDto, GroupProcess.DENIED, message);
         return process;
     }
 
@@ -133,15 +133,15 @@ public class GroupMatchingService {
      * @return - 신청자 그룹 리스트 Dto 반환
      */
     @Transactional(readOnly = true)
-    public List<GroupResponseDto> viewRequestList(String groupId) {
+    public List<GroupRequestDto> viewRequestList(String groupId) {
 
         List<GroupMatchingHistory> histories = groupMatchingHistoriesCustomImpl.findByResponseGroupId(groupId);
         List<GroupMatchingHistory> collect = histories.stream()
                 .filter(groupMatchingHistory -> groupMatchingHistory.getProcess().equals(GroupProcess.INVITING))
                 .collect(Collectors.toList());
         return collect.stream()
-                .map(GroupMatchingHistory::getResponseGroup)
-                .map(groupRepositoryCustomImpl::convertToGroupResponseDto)
+                .map(GroupMatchingHistory::getRequestGroup)
+                .map(groupRepositoryCustomImpl::convertToGroupRequestDto)
                 .collect(Collectors.toList());
 
     }
