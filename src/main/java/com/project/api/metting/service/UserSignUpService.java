@@ -182,4 +182,11 @@ public class UserSignUpService {
         findUser.changePass(encodedPassword);
         userRepository.save(findUser);
     }
+
+    // 닉네임 업데이트
+    public void updateNickname(String email, String nickname) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.setNickname(nickname);
+        userRepository.save(user);
+    }
 }
