@@ -4,6 +4,7 @@ import com.project.api.auth.TokenProvider.TokenUserInfo;
 import com.project.api.metting.dto.request.GroupCreateDto;
 import com.project.api.metting.dto.request.GroupJoinRequestDto;
 import com.project.api.metting.dto.response.GroupUsersViewListResponseDto;
+import com.project.api.metting.dto.response.InviteUsersViewResponseDto;
 import com.project.api.metting.dto.response.UserResponseDto;
 import com.project.api.metting.entity.*;
 import com.project.api.metting.repository.GroupRepository;
@@ -123,7 +124,7 @@ public class GroupService {
 
         String inviteCode;
         if (existingCode.isEmpty()) {
-            inviteCode = RandomUtil.generateRandomCode('0', 'z', 20);
+            inviteCode = RandomUtil.generateRandomCode('0', 'z', 50);
             log.info("Generated random code: {}", inviteCode);
             redisUtil.setDataExpire(INVITE_LINK_PREFIX + inviteCode, groupId, RedisUtil.toTomorrow() * 1000);
             log.info("Invite code set in Redis with expiration: {}", inviteCode);
@@ -224,20 +225,27 @@ public class GroupService {
     /**
      * 그룹 가입 신청 목록 조회 메서드
      *
-     * @param groupId - 그룹 ID
+     * @param groupId   - 그룹 ID
      * @param tokenInfo - 현재 로그인한 사람의 정보가 들어가 있는 token의 정보.
      * @return - 그룹 가입 신청 목록
      */
-    public List<GroupUser> getJoinRequests(String groupId, TokenUserInfo tokenInfo) {
+    public List<InviteUsersViewResponseDto> getJoinRequests(String groupId, TokenUserInfo tokenInfo) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new IllegalStateException("해당 그룹을 찾을 수 없습니다."));
 
-        // 그룹 생성자인지 확인 (Optional)
-        // if (!group.getCreatedBy().equals(tokenInfo.getEmail())) {
-        //     throw new IllegalStateException("권한이 없습니다.");
-        // }
 
-        return groupUsersRepository.findByGroupAndStatus(group, GroupStatus.INVITING);
+        // 그룹 생성자인지 확인
+        boolean isHost = group.getGroupUsers().stream()
+                .anyMatch(groupUser -> groupUser.getUser().getId().equals(tokenInfo.getUserId()) && groupUser.getAuth() == GroupAuth.HOST);
+
+        if (!isHost) {
+            throw new IllegalStateException("권한이 없습니다.");
+        }
+
+        List<GroupUser> groupUsers = groupUsersRepository.findByGroupAndStatus(group, GroupStatus.INVITING);
+        return groupUsers.stream()
+                .map(InviteUsersViewResponseDto::new)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -279,12 +287,12 @@ public class GroupService {
      * @return 그룹의 유저 정보 목록
      */
     @Transactional
-    public ResponseEntity<?> getGroupUsers(String groupId) {
+    public ResponseEntity<?> getGroupUsers(String groupId, @AuthenticationPrincipal TokenUserInfo tokenUserInfo) {
         log.info("groupId info - {}", groupId);
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new IllegalStateException("그룹을 찾을 수 없습니다."));
 
-        List<GroupUser> groupUsers = groupUsersRepository.findByGroup(group);
+        List<GroupUser> groupUsers = groupUsersRepository.findByGroupAndStatus(group, GroupStatus.REGISTERED);
         log.info("find group users list - {}", groupUsers);
 
         List<UserResponseDto> users = groupUsers.stream()
@@ -304,8 +312,23 @@ public class GroupService {
         // 주최자의 만남 위치
         Place meetingPlace = group.getGroupPlace();
 
+        //rㅡ룹 이름
+        String groupName= group.getGroupName();
+
+        //그룹 초대 코드
+        String code = group.getCode();
+
         // 전체 멤버 수
         int totalMembers = groupUsers.size();
+
+
+        //로그인한 유저의 그룹 권한
+        GroupUser currentUser = groupUsers.stream()
+                .filter(groupUser -> groupUser.getUser().getId().equals(tokenUserInfo.getUserId()))
+                .findFirst()
+                .orElse(null);
+
+        String groupAuth = (currentUser != null) ? currentUser.getAuth().getDisplayName() : "USER"; // 기본값 설정
 
         //성별
         Gender gender = groupUsers.isEmpty() ? null : groupUsers.get(0).getUser().getGender();
@@ -315,7 +338,10 @@ public class GroupService {
                 .averageAge((int) averageAge)
                 .meetingPlace(meetingPlace.getDisplayName())
                 .totalMembers(totalMembers)
-                .gender(gender.getDisplayName())
+                .groupName(groupName)
+                .gender(gender != null ? gender.getDisplayName() : "N/A")
+                .groupAuth(groupAuth)
+                .inviteCode(code)
                 .build();
         return ResponseEntity.ok(generateGroupResponseData);
     }
