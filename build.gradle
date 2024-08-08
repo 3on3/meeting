@@ -84,6 +84,8 @@ dependencies {
 
     // s3 라이브러리
     implementation 'software.amazon.awssdk:s3:2.17.52'
+    //초대코드
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
 }
 
 tasks.named('test') {

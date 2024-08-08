@@ -12,4 +12,5 @@ public interface GroupUsersRepository extends JpaRepository<GroupUser, String> {
     boolean existsByUserAndGroupAndStatus(User user, Group group, GroupStatus status);
     boolean existsByUserAndGroup(User user, Group group);
     List<GroupUser> findByGroupAndStatus(Group group, GroupStatus status);
+    List<GroupUser> findByGroup(Group group);
 }
