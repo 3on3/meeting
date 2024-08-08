@@ -35,6 +35,8 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         QGroup group = QGroup.group;
         QGroupUser groupUser = QGroupUser.groupUser;
 
+
+
         List<Group> groups = factory.selectFrom(group)
                 .join(group.groupUsers, groupUser)
                 .where(groupUser.auth.eq(GroupAuth.HOST)
