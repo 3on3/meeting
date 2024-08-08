@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
+
+
 public interface GroupUsersRepository extends JpaRepository<GroupUser, String> {
     boolean existsByUserAndGroupAndStatus(User user, Group group, GroupStatus status);
     boolean existsByUserAndGroup(User user, Group group);
