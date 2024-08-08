@@ -23,19 +23,16 @@ import static com.project.api.metting.entity.QGroup.group;
 @Repository
 @RequiredArgsConstructor
 @Slf4j
-public class GroupRepositoryCustomImpl implements  GroupRepositoryCustom {
+public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     private final JPAQueryFactory factory;
 
 
-
-
-//    main meetingList DTO
+    //    main meetingList DTO
     @Override
-    public List<MainMeetingListResponseDto> findGroupUsersByAllGroup(){
+    public List<MainMeetingListResponseDto> findGroupUsersByAllGroup() {
 
         QGroup group = QGroup.group;
         QGroupUser groupUser = QGroupUser.groupUser;
-
 
 
         List<Group> groups = factory.selectFrom(group)
@@ -50,7 +47,7 @@ public class GroupRepositoryCustomImpl implements  GroupRepositoryCustom {
 
     //    main meetingList DTO 필러링
     @Override
-    public List<MainMeetingListResponseDto> filterGroupUsersByAllGroup(MainMeetingListFilterDto dto){
+    public List<MainMeetingListResponseDto> filterGroupUsersByAllGroup(MainMeetingListFilterDto dto) {
 
         QGroup group = QGroup.group;
         QGroupUser groupUser = QGroupUser.groupUser;
@@ -70,31 +67,34 @@ public class GroupRepositoryCustomImpl implements  GroupRepositoryCustom {
     }
 
     // main meetingList DTO
-    public MainMeetingListResponseDto convertToMeetingListDto(Group group){
-        return new MainMeetingListResponseDto(group, calculateAverageAge(group),hostMajor(group));
+    public MainMeetingListResponseDto convertToMeetingListDto(Group group) {
+        return new MainMeetingListResponseDto(group, calculateAverageAge(group), hostMajor(group));
     }
 
 
-//    main filter :
+    //    main filter :
 //    성별 필터링 : 없으면 null로 반환
-private BooleanExpression containGender(String gender) {
-    return StringUtils.hasText(gender) ? group.groupGender.eq(Gender.valueOf(gender)) : null;
-}
+    private BooleanExpression containGender(String gender) {
+        return StringUtils.hasText(gender) ? group.groupGender.eq(Gender.valueOf(gender)) : null;
+    }
 
-//    인원수 필터링 : 없으면 null로 반환
-private BooleanExpression containmaxNum(Integer maxNum) {
-    return maxNum != null ? group.maxNum.eq(maxNum) : null;
-}
+    //    인원수 필터링 : 없으면 null로 반환
+    private BooleanExpression containmaxNum(Integer maxNum) {
+        return maxNum != null ? group.maxNum.eq(maxNum) : null;
+    }
 
-//    장소 필터링 : 없으면 null로 반환
-private BooleanExpression containPlace(String place){
+    //    장소 필터링 : 없으면 null로 반환
+    private BooleanExpression containPlace(String place) {
         return StringUtils.hasText(place) ? group.groupPlace.eq(Place.valueOf(place)) : null;
-}
+    }
 
-//    매칭 가능한 필터링 : 없으면 null로 반환
-private BooleanExpression containIsMatched(Boolean isMatched){
-    return isMatched != null ? group.isMatched.eq(isMatched) : null;
-}
+    //    매칭 가능한 필터링 : 없으면 null로 반환
+    private BooleanExpression containIsMatched(Boolean isMatched) {
+        if (isMatched == null || isMatched) {
+            return null; // 필터링을 적용하지 않음 (전체 반환)
+        }
+        return group.isMatched.eq(false);
+    }
 
 
     //GroupResponseDto - 마이페이지 내가 속한 그룹
@@ -111,15 +111,15 @@ private BooleanExpression containIsMatched(Boolean isMatched){
         return groups.stream().map(this::convertToGroupResponseDto).collect(Collectors.toList());
     }
 
-//    GroupResponseDto
-public GroupResponseDto convertToGroupResponseDto(Group group) {
+    //    GroupResponseDto
+    public GroupResponseDto convertToGroupResponseDto(Group group) {
         int memberCount = group.getGroupUsers().size();
 
-        return new GroupResponseDto(group,memberCount,calculateAverageAge(group),hostMajor(group));
+        return new GroupResponseDto(group, memberCount, calculateAverageAge(group), hostMajor(group));
     }
 
 
-//  Date 생년월일을 나이로 변경
+    //  Date 생년월일을 나이로 변경
     private int calculateAge(Date birthDate) {
         if (birthDate == null) return 0;
 
@@ -134,8 +134,8 @@ public GroupResponseDto convertToGroupResponseDto(Group group) {
                 .average().orElse(0));
     }
 
-//    호스트 전공 추출
-    private String hostMajor(Group group){
+    //    호스트 전공 추출
+    private String hostMajor(Group group) {
         return group.getGroupUsers().stream()
                 .filter(groupUser -> groupUser.getAuth() == GroupAuth.HOST)
                 .map(groupUser -> groupUser.getUser().getMajor())
@@ -154,11 +154,6 @@ public GroupResponseDto convertToGroupResponseDto(Group group) {
 
 
 //    필터링 커스텀
-
-
-
-
-
 
 
 }
