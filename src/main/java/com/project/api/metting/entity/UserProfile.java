@@ -33,7 +33,8 @@ public class UserProfile {
 
 
     @Column(name = "mt_profile_img")
-    private String profileImg; // 프로필 이미지 경로
+    @Setter
+    private String profileImg; // 프로필 이미지
 
     @Column(name = "mt_profile_introduce")
     private String profileIntroduce; // 프로필 소개

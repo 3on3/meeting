@@ -23,4 +23,5 @@ public class LoginResponseDto {
     private String major; // 전공
     private Gender gender; // 성별
     private String nickname; // 성별
+    private String profileImg; // 프로필 이미지
 }

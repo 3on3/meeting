@@ -1,10 +1,7 @@
 package com.project.api.metting.controller;
 
 import com.project.api.exception.LoginFailException;
-import com.project.api.metting.dto.request.CertifyCodeRequestDto;
-import com.project.api.metting.dto.request.CertifyRequestDto;
-import com.project.api.metting.dto.request.LoginRequestDto;
-import com.project.api.metting.dto.request.UserRegisterDto;
+import com.project.api.metting.dto.request.*;
 import com.project.api.metting.dto.response.LoginResponseDto;
 import com.project.api.metting.service.UserSignInService;
 import com.project.api.metting.service.UserSignUpService;
@@ -62,8 +59,6 @@ public class RegisterController {
     //로그인 처리
     @PostMapping("/sign-in")
     public ResponseEntity<?> singIn(@RequestBody LoginRequestDto dto) {
-
-
         try {
             // 사용자가 회원가입시 입력한 정보(LoginRequestDto)로 회원 로그인 인증
             // 로그인 정보가 맞다면 토큰 생성해서 LoginResponseDto에 성공 정보를 담아 반환
@@ -85,6 +80,18 @@ public class RegisterController {
         } catch (LoginFailException e) {
             String errorMessage = e.getMessage();
             return ResponseEntity.status(422).body(errorMessage);
+        }
+    }
+
+    // 닉네임 업데이트 처리
+    @PostMapping("/update-nickname")
+    public ResponseEntity<?> updateNickname(@RequestBody UpdateNicknameRequestDto dto) {
+        try {
+            userSignUpService.updateNickname(dto.getEmail(), dto.getNickname());
+            return ResponseEntity.ok().body("Nickname updated successfully");
+        } catch (Exception e) {
+            log.error("Error during nickname update", e);
+            return ResponseEntity.status(500).body("Internal Server Error");
         }
     }
 }
