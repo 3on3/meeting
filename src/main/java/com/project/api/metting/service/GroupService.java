@@ -300,14 +300,16 @@ public class GroupService {
                 .collect(Collectors.toList());
 
         // 멤버의 평균 나이 계산
-        double averageAge = groupUsers.stream()
-                .mapToDouble(groupUser -> {
+        int averageAge = (int) groupUsers.stream()
+                .mapToLong(groupUser -> {
                     Date birthDate = groupUser.getUser().getBirthDate();
                     LocalDate birthLocalDate = birthDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
                     return ChronoUnit.YEARS.between(birthLocalDate, LocalDate.now());
                 })
                 .average()
                 .orElse(0);
+
+        log.info("average Age info - {}", averageAge);
 
         // 주최자의 만남 위치
         Place meetingPlace = group.getGroupPlace();
@@ -331,11 +333,13 @@ public class GroupService {
         String groupAuth = (currentUser != null) ? currentUser.getAuth().getDisplayName() : "USER"; // 기본값 설정
 
         //성별
-        Gender gender = groupUsers.isEmpty() ? null : groupUsers.get(0).getUser().getGender();
+        Gender gender = groupUsers.isEmpty() ? null : group.getGroupGender();
 
+        log.info("gender info - {}", gender.getDisplayName()
+        );
         GroupUsersViewListResponseDto generateGroupResponseData = GroupUsersViewListResponseDto.builder()
                 .users(users)
-                .averageAge((int) averageAge)
+                .averageAge(averageAge)
                 .meetingPlace(meetingPlace.getDisplayName())
                 .totalMembers(totalMembers)
                 .groupName(groupName)
