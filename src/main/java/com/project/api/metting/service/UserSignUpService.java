@@ -57,7 +57,7 @@ public class UserSignUpService {
     public void processSignUp(String email, String univName) {
         try {
             // Step 1: API 호출을 통해 인증 메일 발송
-            Map<String, Object> response = UnivCert.certify(univCertApiKey, email, univName, true);
+            Map<String, Object> response = UnivCert.certify(univCertApiKey, email, univName, false);
 
             // Step 2: 인증 메일 발송 성공 시 임시 회원가입
             if (response != null && Boolean.TRUE.equals(response.get("success"))) {
@@ -180,5 +180,12 @@ public class UserSignUpService {
         String encodedPassword = encoder.encode(password);
         findUser.changePass(encodedPassword);
         userRepository.save(findUser);
+    }
+
+    // 닉네임 업데이트
+    public void updateNickname(String email, String nickname) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.setNickname(nickname);
+        userRepository.save(user);
     }
 }
