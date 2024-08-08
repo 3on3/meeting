@@ -1,7 +1,9 @@
 package com.project.api.metting.controller;
 
 import com.project.api.metting.dto.request.GroupMatchingRequestDto;
+import com.project.api.metting.dto.response.GroupMatchingResponseDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
+import com.project.api.metting.entity.GroupProcess;
 import com.project.api.metting.service.GroupMatchingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +32,6 @@ public class GroupMatchingController {
         // 1. 히스토리 생성 요청
         groupMatchingService.createHistory(groupMatchingRequestDto);
 
-
         return ResponseEntity.status(HttpStatus.CREATED).body("매칭 신청이 성공적으로 생성되었습니다.");
     }
 
@@ -50,27 +51,25 @@ public class GroupMatchingController {
 
     /**
      * 요청 수락 요청
-     * @param historyId - 수락할 히스토리 아이디
+     * @param groupMatchingResponseDto - 수락할 히스토리 아이디
      * @return - 성공 메세지
      */
     @PostMapping("/response-accept")
-    public ResponseEntity<?> responseAccept(@RequestParam String historyId) {
-        boolean b = groupMatchingService.acceptRequest(historyId);
+    public ResponseEntity<?> responseAccept(@RequestBody GroupMatchingResponseDto groupMatchingResponseDto) {
+        GroupProcess groupProcess = groupMatchingService.acceptRequest(groupMatchingResponseDto.getGroupId());
 
-        return ResponseEntity.ok().body(b);
+        return ResponseEntity.ok().body(groupProcess);
     }
 
     /**
      * 요청 거절 요청
-     * @param historyId - 거절할 히스토리 아이디
+     * @param groupMatchingResponseDto - 거절할 히스토리 아이디
      * @return - 실패 메세지
      */
     @PostMapping("/response-deny")
-    public ResponseEntity<?> responseDeny(@RequestParam String historyId) {
-        boolean b = groupMatchingService.denyRequest(historyId);
+    public ResponseEntity<?> responseDeny(@RequestBody GroupMatchingResponseDto groupMatchingResponseDto) {
+        GroupProcess groupProcess = groupMatchingService.denyRequest(groupMatchingResponseDto.getGroupId());
 
-        return ResponseEntity.ok().body(b);
+        return ResponseEntity.ok().body(groupProcess);
     }
 }
-
-
