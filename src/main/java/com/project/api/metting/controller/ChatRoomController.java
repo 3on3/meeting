@@ -35,7 +35,7 @@ public class ChatRoomController {
     @PostMapping("/create")
     public ResponseEntity<?> create(@RequestBody ChatRoomRequestDto chatRoomRequestDto) {
 
-        chatRoomService.createChatRoom(chatRoomRequestDto.getGroupId());
+        chatRoomService.createChatRoom(chatRoomRequestDto);
 
         return ResponseEntity.ok().body("채팅방 생성 완료");
 

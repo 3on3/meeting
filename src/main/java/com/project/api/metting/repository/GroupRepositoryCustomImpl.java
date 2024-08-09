@@ -1,5 +1,6 @@
 package com.project.api.metting.repository;
 
+import com.project.api.metting.dto.request.GroupRequestDto;
 import com.project.api.metting.dto.request.MainMeetingListFilterDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.dto.response.MainMeetingListResponseDto;
@@ -90,6 +91,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
 
     //    매칭 가능한 필터링 : 없으면 null로 반환
     private BooleanExpression containIsMatched(Boolean isMatched) {
+
         if (isMatched == null || isMatched) {
             return null; // 필터링을 적용하지 않음 (전체 반환)
         }
@@ -116,6 +118,14 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         int memberCount = group.getGroupUsers().size();
 
         return new GroupResponseDto(group, memberCount, calculateAverageAge(group), hostMajor(group));
+    }
+
+    //    GroupResponseDto
+    public GroupRequestDto convertToGroupRequestDto(Group group) {
+        int memberCount = group.getGroupUsers().size();
+
+
+        return new GroupRequestDto(group, memberCount, calculateAverageAge(group), hostMajor(group));
     }
 
 
