@@ -36,7 +36,6 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         QGroupUser groupUser = QGroupUser.groupUser;
 
 
-
         List<Group> groups = factory.selectFrom(group)
                 .join(group.groupUsers, groupUser)
                 .where(groupUser.auth.eq(GroupAuth.HOST)
@@ -92,7 +91,11 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
 
     //    매칭 가능한 필터링 : 없으면 null로 반환
     private BooleanExpression containIsMatched(Boolean isMatched) {
-        return isMatched != null ? group.isMatched.eq(isMatched) : null;
+
+        if (isMatched == null || isMatched) {
+            return null; // 필터링을 적용하지 않음 (전체 반환)
+        }
+        return group.isMatched.eq(false);
     }
 
 
@@ -120,6 +123,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     //    GroupResponseDto
     public GroupRequestDto convertToGroupRequestDto(Group group) {
         int memberCount = group.getGroupUsers().size();
+
 
         return new GroupRequestDto(group, memberCount, calculateAverageAge(group), hostMajor(group));
     }
