@@ -24,16 +24,9 @@ public class RegisterController {
     @PostMapping("/check-email")
     public ResponseEntity<?> checkEmail(@RequestBody CertifyRequestDto dto) {
         log.info("Email verification request for: {}", dto.getEmail());
-        try {
-            boolean isDuplicate = userSignUpService.checkEmailDuplicate(dto.getEmail(), dto.getUnivName());
-            if (!isDuplicate) {
-                userSignUpService.processSignUp(dto.getEmail(), dto.getUnivName());
-            }
-            return ResponseEntity.ok().body(isDuplicate);
-        } catch (Exception e) {
-            log.error("Error during email verification process", e);
-            return ResponseEntity.status(500).body("Internal Server Error");
-        }
+        boolean isDuplicate = userSignUpService.checkEmailDuplicate(dto.getEmail(), dto.getUnivName());
+        return ResponseEntity.ok().body(isDuplicate);
+
     }
 
     // 인증 코드 검증 API
