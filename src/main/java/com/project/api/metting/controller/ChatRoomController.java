@@ -11,22 +11,25 @@ import com.project.api.metting.repository.ChatRoomsRepository;
 import com.project.api.metting.service.ChatRoomService;
 import com.project.api.metting.service.GroupMatchingService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 @RequestMapping("/chatroom")
+@Slf4j
 public class ChatRoomController {
 
     private final ChatRoomService chatRoomService;
     private final GroupMatchingService groupMatchingService;
 
-    @GetMapping()
-    public ResponseEntity<?> chat(@RequestParam String id){
+    @GetMapping("{id}")
+    public ResponseEntity<?> chat(@PathVariable String id){
+        log.info("id info - {}", id);
 
         ChatRoomResponseDto chatRoomResponseDto = chatRoomService.findChatById(id);
 
