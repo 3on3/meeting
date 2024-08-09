@@ -1,6 +1,7 @@
 package com.project.api.metting.service;
 
 import com.project.api.metting.dto.request.ChatRequestDto;
+import com.project.api.metting.dto.request.ChatRoomRequestDto;
 import com.project.api.metting.dto.request.ChatUserRequestDto;
 import com.project.api.metting.entity.*;
 import com.project.api.metting.repository.*;
@@ -23,39 +24,35 @@ import java.util.List;
 public class ChatRoomService {
 
     private final ChatRoomsRepository chatRoomsRepository;
-    private final GroupMatchingHistoriesRepository groupMatchingHistoriesRepository;
     private final GroupRepository groupRepository;
     private final GroupUsersRepository groupUsersRepository;
-    private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final GroupMatchingHistoriesCustomImpl groupMatchingHistoriesCustomImpl;
 
 
     /**
      * 매칭 후 채팅룸 생성 함수
-     * @param groupId - 매칭된 히스토리 아이디
+     * @param chatRoomRequestDto - 매칭된 히스토리 아이디
      */
     @Transactional
-    public void createChatRoom(String groupId) {
+    public void createChatRoom(ChatRoomRequestDto chatRoomRequestDto) {
         try {
+            Group findRequestGroup = groupRepository.findById(chatRoomRequestDto.getRequestGroupId()).orElseThrow(null);
+            Group findResponseGroup = groupRepository.findById(chatRoomRequestDto.getResponseGroupId()).orElseThrow(null);
+            List<GroupMatchingHistory> histories = groupMatchingHistoriesCustomImpl.findByResponseGroupId(findResponseGroup.getId());
+            GroupMatchingHistory history = histories.stream().filter(groupMatchingHistory -> groupMatchingHistory.getRequestGroup().getId().equals(chatRoomRequestDto.getRequestGroupId())).findFirst().orElseThrow(null);
 
-            List<GroupMatchingHistory> histories = groupMatchingHistoriesCustomImpl.findByResponseGroupId(groupId);
-            String id = histories.get(0).getId();
-            GroupMatchingHistory matchingHistory = groupMatchingHistoriesRepository.findById(id).orElseThrow();
-
-            boolean isProcessMatched = matchingHistory.getProcess().equals(GroupProcess.MATCHED);
+            // 같은 그룹 사이에 채팅방생성 isDeleted = 0이면 불가 isDeleted = 1 이면 새로운 채팅방.
+            boolean isProcessMatched = history.getProcess().equals(GroupProcess.MATCHED);
 
             if (!isProcessMatched){
                 throw new RuntimeException("수락된 매칭이 아닙니다.");
             }
 
-            ChatRoom build = ChatRoom.builder()
-                    // 주최자 그룹명으로 채팅 명 설정
-                    .chatRoomName(matchingHistory.getResponseGroup().getGroupName())
-                    .groupMatchingHistory(matchingHistory)
-                    .build();
+            ChatRoom chatRoom = ChatRoom.builder().chatRoomName(findResponseGroup.getGroupName()).groupMatchingHistory(history).build();
 
-            chatRoomsRepository.save(build);
+
+            chatRoomsRepository.save(chatRoom);
         } catch (Exception e){
             e.printStackTrace();
         }

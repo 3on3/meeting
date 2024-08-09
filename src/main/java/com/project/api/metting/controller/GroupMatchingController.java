@@ -1,6 +1,7 @@
 package com.project.api.metting.controller;
 
 import com.project.api.metting.dto.request.GroupMatchingRequestDto;
+import com.project.api.metting.dto.request.GroupRequestDto;
 import com.project.api.metting.dto.response.GroupMatchingResponseDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.entity.GroupProcess;
@@ -43,8 +44,8 @@ public class GroupMatchingController {
      */
     @GetMapping("/response")
     @Transactional(readOnly = true)
-    public ResponseEntity<List<GroupResponseDto>> matchingResponse(@RequestParam String groupId) {
-        List<GroupResponseDto> groupResponseDtoList = groupMatchingService.viewRequestList(groupId);
+    public ResponseEntity<List<GroupRequestDto>> matchingResponse(@RequestParam String groupId) {
+        List<GroupRequestDto> groupResponseDtoList = groupMatchingService.viewRequestList(groupId);
 
         return ResponseEntity.ok().body(groupResponseDtoList);
     }
@@ -56,7 +57,7 @@ public class GroupMatchingController {
      */
     @PostMapping("/response-accept")
     public ResponseEntity<?> responseAccept(@RequestBody GroupMatchingResponseDto groupMatchingResponseDto) {
-        GroupProcess groupProcess = groupMatchingService.acceptRequest(groupMatchingResponseDto.getGroupId());
+        GroupProcess groupProcess = groupMatchingService.acceptRequest(groupMatchingResponseDto);
 
         return ResponseEntity.ok().body(groupProcess);
     }
@@ -68,7 +69,7 @@ public class GroupMatchingController {
      */
     @PostMapping("/response-deny")
     public ResponseEntity<?> responseDeny(@RequestBody GroupMatchingResponseDto groupMatchingResponseDto) {
-        GroupProcess groupProcess = groupMatchingService.denyRequest(groupMatchingResponseDto.getGroupId());
+        GroupProcess groupProcess = groupMatchingService.denyRequest(groupMatchingResponseDto);
 
         return ResponseEntity.ok().body(groupProcess);
     }
