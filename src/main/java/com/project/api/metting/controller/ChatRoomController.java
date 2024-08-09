@@ -3,29 +3,38 @@ package com.project.api.metting.controller;
 import com.project.api.metting.dto.request.ChatRequestDto;
 import com.project.api.metting.dto.request.ChatRoomRequestDto;
 import com.project.api.metting.dto.request.ChatUserRequestDto;
+import com.project.api.metting.dto.response.ChatRoomResponseDto;
 import com.project.api.metting.dto.response.ChatUserResponseDto;
+import com.project.api.metting.entity.ChatRoom;
 import com.project.api.metting.entity.User;
 import com.project.api.metting.repository.ChatRoomsRepository;
 import com.project.api.metting.service.ChatRoomService;
 import com.project.api.metting.service.GroupMatchingService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 @RequestMapping("/chatroom")
+@Slf4j
 public class ChatRoomController {
 
     private final ChatRoomService chatRoomService;
     private final GroupMatchingService groupMatchingService;
 
+    @GetMapping("{id}")
+    public ResponseEntity<?> chat(@PathVariable String id){
+        log.info("id info - {}", id);
+
+        ChatRoomResponseDto chatRoomResponseDto = chatRoomService.findChatById(id);
+
+        return ResponseEntity.ok().body(chatRoomResponseDto);
+    }
 
     /**
      * 그룹 생성 요청
@@ -35,11 +44,12 @@ public class ChatRoomController {
     @PostMapping("/create")
     public ResponseEntity<?> create(@RequestBody ChatRoomRequestDto chatRoomRequestDto) {
 
-        chatRoomService.createChatRoom(chatRoomRequestDto);
+        ChatRoomResponseDto chatRoom = chatRoomService.createChatRoom(chatRoomRequestDto);
 
-        return ResponseEntity.ok().body("채팅방 생성 완료");
+        return ResponseEntity.ok().body(chatRoom);
 
     }
+
 
     // 채팅방에 있는 유저 정보 가져오기이이이ㅣㅣㅣㅣㅣㅣㅣㅣ
     @PostMapping("/chatUsers")

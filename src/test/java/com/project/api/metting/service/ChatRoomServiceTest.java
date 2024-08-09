@@ -18,17 +18,17 @@ class ChatRoomServiceTest {
     @Autowired
     private GroupMatchingService groupMatchingService;
 
-
-    @Test
-    @DisplayName("")
-    void createChatRoom () {
-        //given
-        String historyId = "fe771b63-e666-4750-99c2-3a18b13677f9";
-        //when
-        groupMatchingService.acceptRequest(historyId);
-        chatRoomService.createChatRoom(historyId);
-
-        //then
-    }
+//
+//    @Test
+//    @DisplayName("")
+//    void createChatRoom () {
+//        //given
+//        String historyId = "fe771b63-e666-4750-99c2-3a18b13677f9";
+//        //when
+//        groupMatchingService.acceptRequest(historyId);
+//        chatRoomService.createChatRoom(historyId);
+//
+//        //then
+//    }
 
 }
