@@ -3,6 +3,7 @@ package com.project.api.metting.service;
 import com.project.api.metting.dto.request.ChatRequestDto;
 import com.project.api.metting.dto.request.ChatRoomRequestDto;
 import com.project.api.metting.dto.request.ChatUserRequestDto;
+import com.project.api.metting.dto.response.ChatRoomResponseDto;
 import com.project.api.metting.entity.*;
 import com.project.api.metting.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,7 @@ public class ChatRoomService {
      * @param chatRoomRequestDto - 매칭된 히스토리 아이디
      */
     @Transactional
-    public void createChatRoom(ChatRoomRequestDto chatRoomRequestDto) {
+    public ChatRoomResponseDto createChatRoom(ChatRoomRequestDto chatRoomRequestDto) {
         try {
             Group findRequestGroup = groupRepository.findById(chatRoomRequestDto.getRequestGroupId()).orElseThrow(null);
             Group findResponseGroup = groupRepository.findById(chatRoomRequestDto.getResponseGroupId()).orElseThrow(null);
@@ -53,9 +54,12 @@ public class ChatRoomService {
 
 
             chatRoomsRepository.save(chatRoom);
+
+            return ChatRoomResponseDto.builder().id(chatRoom.getId()).name(chatRoom.getChatRoomName()).historyID(chatRoom.getGroupMatchingHistory().getId()).build();
         } catch (Exception e){
             e.printStackTrace();
         }
+        return null;
 
     }
 
@@ -107,5 +111,10 @@ public class ChatRoomService {
         }
 
         return chatUserRequestDtoList;
+    }
+
+    public ChatRoomResponseDto findChatById(String id) {
+        ChatRoom chatRoom = chatRoomsRepository.findById(id).orElseThrow();
+        return ChatRoomResponseDto.builder().id(chatRoom.getId()).name(chatRoom.getChatRoomName()).historyID(chatRoom.getGroupMatchingHistory().getId()).build();
     }
 }

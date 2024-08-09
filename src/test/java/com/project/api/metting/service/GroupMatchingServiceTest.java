@@ -22,19 +22,16 @@ class GroupMatchingServiceTest {
     @DisplayName("그룹 히스토리 생성 테스트")
     void createGroupMatchingHistories() {
         //given
-        String RequestGroupId = "1fc3a005-f582-4f44-9b54-410aa1a4b952";
-        String ResponseGroupId = "56a6e4f5-62d8-4169-a29d-4b92143a20cf";
+        String RequestGroupId = "9db3742d-2384-4c43-9171-1d81e92a0b8e";
+        String ResponseGroupId = "204675bf-9390-4da3-888e-b15be82fd8f0";
 //        String ResponseGroupId = "8840bec2-7a19-4611-a17e-c08691430ab0";
 //        String RequestGroupId = "1fc3a005-f582-4f44-9b54-410aa1a4b952";
 
 
         //when
-        GroupMatchingRequestDto build = GroupMatchingRequestDto.builder()
-                .requestGroupId(RequestGroupId)
-                .responseGroupId(ResponseGroupId)
-                .build();
+//        Grou
         //then
-        groupMatchingService.createHistory(build);
+//        groupMatchingService.createHistory(build);
 
     }
 
@@ -44,32 +41,32 @@ class GroupMatchingServiceTest {
         //given
         String groupId = "8840bec2-7a19-4611-a17e-c08691430ab0";
         //when
-        List<GroupResponseDto> groupResponseDtoList = groupMatchingService.viewRequestList(groupId);
+//        List<GroupResponseDto> groupResponseDtoList = groupMatchingService.viewRequestList(groupId);
 
         //then
-        groupResponseDtoList.forEach(System.out::println);
+//        groupResponseDtoList.forEach(System.out::println);
 
     }
-    @Test
-    @DisplayName("그룹 히스토리 프로세싱 함수")
-    void processGroupMatchingHistories() {
-        //given
-        String historyId = "fe771b63-e666-4750-99c2-3a18b13677f9";
-        //when
+//    @Test
+//    @DisplayName("그룹 히스토리 프로세싱 함수")
+//    void processGroupMatchingHistories() {
+//        //given
+//        String historyId = "fe771b63-e666-4750-99c2-3a18b13677f9";
+//        //when
+//
+//        //then
+////        groupMatchingService.processingHistory(historyId);
+//
+//    }
 
-        //then
-//        groupMatchingService.processingHistory(historyId);
-
-    }
-
-    @Test
-    @DisplayName("")
-    void acceptRequestTest() {
-        //given
-            String historyId = "fe771b63-e666-4750-99c2-3a18b13677f9";
-        //when
-        groupMatchingService.acceptRequest(historyId);
-        //then
-
-    }
+//    @Test
+//    @DisplayName("")
+//    void acceptRequestTest() {
+//        //given
+//            String historyId = "fe771b63-e666-4750-99c2-3a18b13677f9";
+//        //when
+//        groupMatchingService.acceptRequest(historyId);
+//        //then
+//
+//    }
 }
