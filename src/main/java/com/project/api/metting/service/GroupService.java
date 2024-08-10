@@ -3,6 +3,7 @@ package com.project.api.metting.service;
 import com.project.api.auth.TokenProvider.TokenUserInfo;
 import com.project.api.metting.dto.request.GroupCreateDto;
 import com.project.api.metting.dto.request.GroupJoinRequestDto;
+import com.project.api.metting.dto.request.GroupWithdrawRequestDto;
 import com.project.api.metting.dto.response.GroupUsersViewListResponseDto;
 import com.project.api.metting.dto.response.InviteUsersViewResponseDto;
 import com.project.api.metting.dto.response.UserResponseDto;
@@ -349,5 +350,23 @@ public class GroupService {
                 .build();
         return ResponseEntity.ok(generateGroupResponseData);
     }
+
+    @Transactional
+    public void groupWithDraw(GroupWithdrawRequestDto dto, TokenUserInfo tokenInfo) {
+        // 그룹 조회
+        Group findGroup = groupRepository.findById(dto.getGroupId())
+                .orElseThrow(() -> new IllegalStateException("그룹을 찾을 수 없습니다."));
+
+        log.info("dto get group id - {}", dto.getGroupId());
+
+        // 그룹과 유저를 기반으로 그룹 유저 조회
+        GroupUser groupUser = groupUsersRepository.findByGroupAndUserId(findGroup, tokenInfo.getUserId())
+                .orElseThrow(() -> new IllegalStateException("해당 그룹에 가입되어 있지 않습니다."));
+
+        // 탈퇴 처리
+        groupUser.setStatus(GroupStatus.WITHDRAW);
+        groupUsersRepository.save(groupUser);
+    }
+
 
 }
