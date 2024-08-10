@@ -62,6 +62,8 @@ public class GroupMatchingService {
                 throw new GroupMatchingFailException("희망지역이 다릅니다.", HttpStatus.BAD_REQUEST);
             }
 
+// if(requestGroup.getMaxNum())
+
             // 히스토리 생성
             GroupMatchingHistory groupMatchingHistory = GroupMatchingHistory.builder()
                     .requestGroup(requestGroup)
