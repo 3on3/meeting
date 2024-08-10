@@ -7,7 +7,7 @@ import com.project.api.metting.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
-
+import java.util.Optional;
 
 
 public interface GroupUsersRepository extends JpaRepository<GroupUser, String> {
@@ -15,4 +15,5 @@ public interface GroupUsersRepository extends JpaRepository<GroupUser, String> {
     boolean existsByUserAndGroup(User user, Group group);
     List<GroupUser> findByGroupAndStatus(Group group, GroupStatus status);
     List<GroupUser> findByGroup(Group group);
+    Optional<GroupUser> findByGroupAndUserId(Group group, String userId);
 }
