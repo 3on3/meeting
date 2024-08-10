@@ -9,6 +9,10 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -42,28 +46,50 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 )
                 .fetch();
 
+
+
         return groups.stream().map(this::convertToMeetingListDto).collect(Collectors.toList());
 
     }
 
     //    main meetingList DTO 필러링
     @Override
-    public List<MainMeetingListResponseDto> filterGroupUsersByAllGroup(MainMeetingListFilterDto dto) {
+    public Page<MainMeetingListResponseDto> filterGroupUsersByAllGroup(MainMeetingListFilterDto dto) {
 
         QGroup group = QGroup.group;
         QGroupUser groupUser = QGroupUser.groupUser;
 
+        // 공통 필터 조건
+        BooleanExpression conditions = groupUser.auth.eq(GroupAuth.HOST)
+                .and( containGender(dto.getGender()))
+                .and(containPlace(dto.getGroupPlace()))
+                .and(containmaxNum(dto.getMaxNum()))
+                .and(containIsMatched(dto.getIsMatched()));
+
+//        pageable 계산
+        Pageable pageable =  PageRequest.of(dto.getPageNo() -1 , dto.getPageSize());
+
+//
         List<Group> groups = factory.selectFrom(group)
                 .join(group.groupUsers, groupUser)
-                .where(groupUser.auth.eq(GroupAuth.HOST),
-                        containGender(dto.getGender()),
-                        containPlace(dto.getGroupPlace()),
-                        containmaxNum(dto.getMaxNum()),
-                        containIsMatched(dto.getIsMatched())
-                )
+                .where(conditions)
+                .orderBy(group.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
 
-        return groups.stream().map(this::convertToMeetingListDto).collect(Collectors.toList());
+//        총 데이터 수 조회
+        Long count = factory.select(group.count())
+                .from(group)
+                .join(group.groupUsers, groupUser)
+                .where(conditions)
+                .fetchOne();
+
+        List<MainMeetingListResponseDto> meetingList = groups.stream().map(this::convertToMeetingListDto).collect(Collectors.toList());
+
+
+
+        return new PageImpl<>(meetingList, pageable, count);
 
     }
 
@@ -154,17 +180,10 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .orElse("Unknown");
     }
 
-    ////        String 생년월일을 나이로 변경
-//    private int calculateAge(String birthDate) {
-//        if (birthDate == null) return 0;
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMdd");
-//        LocalDate birthLocalDate = LocalDate.parse(birthDate, formatter);
-//        LocalDate now = LocalDate.now();
-//        return Period.between(birthLocalDate, now).getYears();
-//    }
 
 
-//    필터링 커스텀
+
+
 
 
 }

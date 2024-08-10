@@ -7,6 +7,7 @@ import com.project.api.metting.entity.Group;
 import com.project.api.metting.repository.GroupRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,9 +31,9 @@ public class MainService {
     }
 
 //    group 필터링
-    public List<MainMeetingListResponseDto> postMeetingList(MainMeetingListFilterDto dto) {
-        List<MainMeetingListResponseDto> filterGroupUsersByAllGroup = groupRepository.filterGroupUsersByAllGroup(dto);
-        return filterGroupUsersByAllGroup;
+    public Page<MainMeetingListResponseDto> postMeetingList(MainMeetingListFilterDto dto) {
+
+        return  groupRepository.filterGroupUsersByAllGroup(dto);
     }
 
 //    나이 계산하기
