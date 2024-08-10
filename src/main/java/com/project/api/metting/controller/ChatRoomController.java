@@ -27,9 +27,14 @@ public class ChatRoomController {
     private final ChatRoomService chatRoomService;
     private final GroupMatchingService groupMatchingService;
 
+
+    /**
+     * 채팅방 겟 요청
+     * @param id - 채팅방 아이디
+     * @return - 채팅방 정보 dto
+     */
     @GetMapping("{id}")
     public ResponseEntity<?> chat(@PathVariable String id){
-        log.info("id info - {}", id);
 
         ChatRoomResponseDto chatRoomResponseDto = chatRoomService.findChatById(id);
 
