@@ -192,6 +192,15 @@ public class GroupService {
                 .orElseThrow(() -> new IllegalStateException("더 이상 존재하지 않는 가입 코드입니다. 다시 확인해주세요."));
 
         log.info("groupId info - {}", groupId);
+        Group findGroup = groupRepository.findById(groupId).orElseThrow(IllegalStateException::new);
+
+
+        User findUser = userRepository.findById(tokenInfo.getUserId()).orElseThrow(IllegalStateException::new);
+
+        if (findGroup.getGroupGender() != findUser.getGender()) {
+            throw new IllegalStateException("해당 그룹은 " + findGroup.getGroupGender() +"만 입장가능한 그룹입니다.");
+        }
+
 
         User user = userRepository.findByEmail(tokenInfo.getEmail())
                 .orElseThrow(() -> new IllegalStateException("해당 유저를 찾을 수 없습니다."));
@@ -294,6 +303,7 @@ public class GroupService {
                 .orElseThrow(() -> new IllegalStateException("그룹을 찾을 수 없습니다."));
 
         List<GroupUser> groupUsers = groupUsersRepository.findByGroupAndStatus(group, GroupStatus.REGISTERED);
+        GroupUser findGroupHost = groupUsersRepository.findByGroupAndAuth(group, GroupAuth.HOST);
         log.info("find group users list - {}", groupUsers);
 
         List<UserResponseDto> users = groupUsers.stream()
@@ -324,6 +334,9 @@ public class GroupService {
         // 전체 멤버 수
         int totalMembers = groupUsers.size();
 
+        //그룹 리더 아이디
+        String findHostId = findGroupHost.getUser().getId();
+
 
         //로그인한 유저의 그룹 권한
         GroupUser currentUser = groupUsers.stream()
@@ -347,6 +360,7 @@ public class GroupService {
                 .gender(gender != null ? gender.getDisplayName() : "N/A")
                 .groupAuth(groupAuth)
                 .inviteCode(code)
+                .hostUser(findHostId)
                 .build();
         return ResponseEntity.ok(generateGroupResponseData);
     }
