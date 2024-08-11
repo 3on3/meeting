@@ -22,9 +22,10 @@ public class GroupUsersViewListResponseDto {
     private String groupName;
     private String groupAuth;
     private String inviteCode;
+    private String hostUser;
 
     public GroupUsersViewListResponseDto(List<UserResponseDto> users, int averageAge, String meetingPlace, int totalMembers,
-                                         String gender, String groupName, String groupAuth, String groupInviteCode) {
+                                         String gender, String groupName, String groupAuth, String groupInviteCode, String hostUser) {
         this.users = users;
         this.averageAge = averageAge;
         this.meetingPlace = meetingPlace;
@@ -33,6 +34,7 @@ public class GroupUsersViewListResponseDto {
         this.groupName = groupName;
         this.groupAuth = groupAuth;
         this.inviteCode = groupInviteCode;
+        this.hostUser = hostUser;
     }
 
 }
