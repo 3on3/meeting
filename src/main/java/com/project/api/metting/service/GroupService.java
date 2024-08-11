@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -365,6 +366,20 @@ public class GroupService {
         return ResponseEntity.ok(generateGroupResponseData);
     }
 
+    public User findByGroupHost(String responseGroupId) {
+
+        Group group = groupRepository.findById(responseGroupId).orElseThrow(null);
+
+        List<GroupUser> groupUsers = groupUsersRepository.findByGroup(group);
+
+        for (GroupUser groupUser : groupUsers) {
+            if(groupUser.getAuth() == GroupAuth.HOST) {
+                return groupUser.getUser();
+            }
+        }
+
+        return null;
+    }
     @Transactional
     public void groupWithDraw(GroupWithdrawRequestDto dto, TokenUserInfo tokenInfo) {
         // 그룹 조회
@@ -381,6 +396,4 @@ public class GroupService {
         groupUser.setStatus(GroupStatus.WITHDRAW);
         groupUsersRepository.save(groupUser);
     }
-
-
 }
