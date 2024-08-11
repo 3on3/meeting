@@ -12,6 +12,7 @@ public interface GroupMatchingHistoriesRepository extends JpaRepository<GroupMat
 
 
     boolean existsByResponseGroupAndRequestGroup(Group responseGroup, Group requestGroup);
+    GroupMatchingHistory findByResponseGroupAndRequestGroup(Group responseGroup, Group requestGroup);
 
 
 }

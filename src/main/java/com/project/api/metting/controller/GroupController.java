@@ -2,6 +2,7 @@ package com.project.api.metting.controller;
 
 import com.project.api.metting.dto.request.GroupCreateDto;
 import com.project.api.metting.dto.request.GroupJoinRequestDto;
+import com.project.api.metting.dto.request.GroupWithdrawRequestDto;
 import com.project.api.metting.dto.response.InviteUsersViewResponseDto;
 import com.project.api.metting.entity.GroupUser;
 import com.project.api.metting.service.GroupService;
@@ -61,6 +62,16 @@ public class GroupController {
         groupService.acceptJoinRequest(groupUserId, tokenInfo);
         return ResponseEntity.ok().build();
     }
+
+
+    @PostMapping("/withdraw")
+    public ResponseEntity<?> withDrawGroup(@RequestBody GroupWithdrawRequestDto groupId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+        System.out.println("groupUserId = " + groupId);
+        groupService.groupWithDraw(groupId, tokenInfo);
+        return ResponseEntity.ok().body("성공적으로 그룹에서 탈퇴하였습니다.");
+    }
+
+
 
     @PostMapping("/join-requests/{groupUserId}/cancel")
     public ResponseEntity<Void> rejectJoinRequest(@PathVariable String groupUserId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
