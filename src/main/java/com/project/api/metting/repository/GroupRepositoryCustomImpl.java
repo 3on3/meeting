@@ -108,6 +108,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         List<Group> groups = factory.selectFrom(group)
                 .join(group.groupUsers, groupUser)
                 .where(groupUser.user.email.eq(email))
+                .where(groupUser.status.eq(GroupStatus.REGISTERED))
                 .fetch();
 
         return groups.stream().map(this::convertToGroupResponseDto).collect(Collectors.toList());
