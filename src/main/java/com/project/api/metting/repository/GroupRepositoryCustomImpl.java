@@ -170,7 +170,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     }
 
     //    평균 나이 계산
-    private int calculateAverageAge(Group group) {
+    public int calculateAverageAge(Group group) {
         return (int) Math.round(group.getGroupUsers().stream()
                         .filter(groupUser -> groupUser.getStatus() == GroupStatus.REGISTERED)
                 .mapToDouble(gr -> calculateAge(gr.getUser().getBirthDate()))
