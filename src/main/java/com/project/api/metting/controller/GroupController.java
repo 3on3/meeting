@@ -1,6 +1,7 @@
 package com.project.api.metting.controller;
 
 import com.project.api.metting.dto.request.GroupCreateDto;
+import com.project.api.metting.dto.request.GroupDeleteRequestDto;
 import com.project.api.metting.dto.request.GroupJoinRequestDto;
 import com.project.api.metting.dto.request.GroupWithdrawRequestDto;
 import com.project.api.metting.dto.response.InviteUsersViewResponseDto;
@@ -50,6 +51,19 @@ public class GroupController {
         }
     }
 
+
+    @PostMapping("/delete")
+    public ResponseEntity<?> GroupDelete(@RequestBody GroupDeleteRequestDto dto, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+        try {
+            groupService.groupDelete(dto, tokenInfo);
+            return ResponseEntity.ok().body("그룹 삭제가 완료 되었습니다.");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("그룹 참여 신청에 실패하였습니다. 다시 시도해주세요.");
+        }
+    }
+
     @GetMapping("/invite/{groupId}")
     public ResponseEntity<?> getGroup(@PathVariable String groupId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
         List<InviteUsersViewResponseDto> joinRequests = groupService.getJoinRequests(groupId, tokenInfo);
@@ -58,7 +72,6 @@ public class GroupController {
 
     @PostMapping("/join-requests/{groupUserId}/accept")
     public ResponseEntity<Void> acceptJoinRequest(@PathVariable String groupUserId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
-        System.out.println("groupUserId = " + groupUserId);
         groupService.acceptJoinRequest(groupUserId, tokenInfo);
         return ResponseEntity.ok().build();
     }
@@ -66,7 +79,6 @@ public class GroupController {
 
     @PostMapping("/withdraw")
     public ResponseEntity<?> withDrawGroup(@RequestBody GroupWithdrawRequestDto groupId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
-        System.out.println("groupUserId = " + groupId);
         groupService.groupWithDraw(groupId, tokenInfo);
         return ResponseEntity.ok().body("성공적으로 그룹에서 탈퇴하였습니다.");
     }
