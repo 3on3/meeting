@@ -6,6 +6,7 @@ import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.dto.response.MainMeetingListResponseDto;
 import com.project.api.metting.entity.*;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,39 +63,50 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
 
         // 공통 필터 조건
         BooleanExpression conditions = groupUser.auth.eq(GroupAuth.HOST)
-                .and( containGender(dto.getGender()))
+                .and(containGender(dto.getGender()))
                 .and(containPlace(dto.getGroupPlace()))
                 .and(containmaxNum(dto.getMaxNum()))
                 .and(containIsMatched(dto.getIsMatched()));
 
-        BooleanExpression userNum = group.groupUsers.size().eq(group.maxNum);
+        BooleanExpression registeredUserCountCondition = JPAExpressions
+                .select(groupUser.count().intValue())
+                .from(groupUser)
+                .where(groupUser.group.eq(group)
+                        .and(groupUser.status.eq(GroupStatus.REGISTERED)))
+                .eq(group.maxNum);
 
-//        pageable 계산
-        Pageable pageable =  PageRequest.of(dto.getPageNo() -1 , dto.getPageSize());
 
-//
+
+        // 조건 결합
+        BooleanExpression combinedCondition = conditions.and(registeredUserCountCondition);
+
+        // pageable 계산
+        Pageable pageable = PageRequest.of(dto.getPageNo() - 1, dto.getPageSize());
+
+        // 그룹 필터링 및 페이징
         List<Group> groups = factory.selectFrom(group)
                 .join(group.groupUsers, groupUser)
-                .where(conditions.and(userNum))
+                .where(combinedCondition)
                 .orderBy(group.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-//        총 데이터 수 조회
+        // 카운트 계산
         Long count = factory.select(group.count())
                 .from(group)
                 .join(group.groupUsers, groupUser)
-                .where(conditions)
-                .fetchOne();
+                .where(combinedCondition)
+                .groupBy(group.id)
+                .stream().count();
 
-        List<MainMeetingListResponseDto> meetingList = groups.stream().map(this::convertToMeetingListDto).collect(Collectors.toList());
-
-
+        List<MainMeetingListResponseDto> meetingList = groups.stream()
+                .map(this::convertToMeetingListDto)
+                .collect(Collectors.toList());
 
         return new PageImpl<>(meetingList, pageable, count);
-
     }
+
 
     // main meetingList DTO
     public MainMeetingListResponseDto convertToMeetingListDto(Group group) {
