@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.project.api.metting.dto.response.LoginResponseDto;
 import com.project.api.metting.dto.response.MainWebSocketResponseDto;
+import com.project.api.metting.repository.GroupRepository;
+import com.project.api.metting.service.GroupService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
@@ -19,6 +22,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@RequiredArgsConstructor
 public class MainWebSocketHandler extends TextWebSocketHandler {
 
     private final ObjectMapper objectMapper;
@@ -58,7 +62,11 @@ public class MainWebSocketHandler extends TextWebSocketHandler {
             users.put(sessionId, mainWebSocketResponseDto.getLoginUser());
         }
 
-        System.out.println("users = " + users);
+        if(mainWebSocketResponseDto.getType().equals("matching")) {
+
+            String responseGroupId = mainWebSocketResponseDto.getResponseGroupId();
+
+        }
 
         sessions.values().forEach((s) -> {
             try {
@@ -77,6 +85,8 @@ public class MainWebSocketHandler extends TextWebSocketHandler {
         try {
             users.remove(sessionId);
             sessions.remove(sessionId); // 삭제
+
+            System.out.println("users = " + users);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -90,13 +100,4 @@ public class MainWebSocketHandler extends TextWebSocketHandler {
 
     }
 
-    private void sendMessage(String sessionId, WebSocketMessage<?> message) {
-        sessions.values().forEach(s -> {
-            if(!s.getId().equals(sessionId) && s.isOpen()) {
-                try {
-                    s.sendMessage(message);
-                } catch (IOException e) {}
-            }
-        });
-    }
 }

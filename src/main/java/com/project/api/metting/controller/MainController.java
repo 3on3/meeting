@@ -6,6 +6,7 @@ import com.project.api.metting.entity.Group;
 import com.project.api.metting.service.MainService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +37,13 @@ public class MainController {
     @PostMapping("/main")
     public ResponseEntity<?> getMeetingList(@RequestBody MainMeetingListFilterDto dto) {
         log.info(dto.toString());
-        List<MainMeetingListResponseDto> meetingList = mainService.postMeetingList(dto);
+        Page<MainMeetingListResponseDto> meetingList = null;
+        try {
+            meetingList = mainService.postMeetingList(dto);
+        } catch (Exception e) {
+            log.error("Error occurred while fetching meeting list", e);
+                throw new RuntimeException(e);
+        }
 
         return ResponseEntity.ok().body(meetingList);
     }
