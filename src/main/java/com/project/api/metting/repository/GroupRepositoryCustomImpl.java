@@ -30,6 +30,7 @@ import static com.project.api.metting.entity.QGroup.group;
 @Slf4j
 public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     private final JPAQueryFactory factory;
+    private final GroupUsersRepository groupUsersRepository;
 
 
     //    main meetingList DTO
@@ -135,8 +136,8 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
 
         List<Group> groups = factory.selectFrom(group)
                 .join(group.groupUsers, groupUser)
-                .where(groupUser.user.email.eq(email))
-                .where(groupUser.status.eq(GroupStatus.REGISTERED))
+                .where(groupUser.user.email.eq(email)
+                        .and(groupUser.status.eq(GroupStatus.REGISTERED))) // status 필터링 추가)
                 .fetch();
 
         return groups.stream().map(this::convertToGroupResponseDto).collect(Collectors.toList());
@@ -144,7 +145,9 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
 
     //    GroupResponseDto
     public GroupResponseDto convertToGroupResponseDto(Group group) {
-        int memberCount = group.getGroupUsers().size();
+        int memberCount = (int) group.getGroupUsers().stream()
+                .filter(groupUser -> groupUser.getStatus() == GroupStatus.REGISTERED)
+                .count();
 
         return new GroupResponseDto(group, memberCount, calculateAverageAge(group), hostMajor(group));
     }
