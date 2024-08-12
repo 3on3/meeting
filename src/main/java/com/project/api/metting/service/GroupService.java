@@ -170,6 +170,11 @@ public class GroupService {
             throw new IllegalStateException("이미 해당 그룹에 가입되어 있습니다.");
         }
 
+        long currentUserCount = groupUsersRepository.countByGroupAndStatus(group, GroupStatus.REGISTERED);
+        log.info("currrent user count - {}", currentUserCount);
+        if (currentUserCount >= group.getMaxNum()) {
+            throw new IllegalStateException("해당 그룹의 최대 인원 수를 초과했습니다.");
+        }
         // GroupUser 엔티티 생성
         GroupUser groupUser = GroupUser.builder()
                 .group(group)
@@ -285,6 +290,14 @@ public class GroupService {
     public void acceptJoinRequest(String groupUserId, TokenUserInfo tokenInfo) {
         GroupUser groupUser = groupUsersRepository.findById(groupUserId)
                 .orElseThrow(() -> new IllegalStateException("가입 신청을 찾을 수 없습니다."));
+
+
+        long currentUserCount = groupUsersRepository.countByGroupAndStatus(groupUser.getGroup(), GroupStatus.REGISTERED);
+        log.info("currrent user count - {}", currentUserCount);
+        if (currentUserCount >= groupUser.getGroup().getMaxNum()) {
+            throw new IllegalStateException("해당 그룹의 최대 인원 수를 초과했습니다.");
+        }
+
 
         // 수락 처리
         groupUser.setStatus(GroupStatus.REGISTERED);
