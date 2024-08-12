@@ -66,13 +66,15 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .and(containmaxNum(dto.getMaxNum()))
                 .and(containIsMatched(dto.getIsMatched()));
 
+        BooleanExpression userNum = group.groupUsers.size().eq(group.maxNum);
+
 //        pageable 계산
         Pageable pageable =  PageRequest.of(dto.getPageNo() -1 , dto.getPageSize());
 
 //
         List<Group> groups = factory.selectFrom(group)
                 .join(group.groupUsers, groupUser)
-                .where(conditions)
+                .where(conditions.and(userNum))
                 .orderBy(group.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
