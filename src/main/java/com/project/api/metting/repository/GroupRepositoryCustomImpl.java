@@ -66,7 +66,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .and(containGender(dto.getGender()))
                 .and(containPlace(dto.getGroupPlace()))
                 .and(containmaxNum(dto.getMaxNum()))
-                .and(containIsMatched(dto.getIsMatched()));
+                .and(group.isMatched.eq(false));
 
         BooleanExpression registeredUserCountCondition = JPAExpressions
                 .select(groupUser.count().intValue())
