@@ -17,6 +17,7 @@ public class UserResponseDto {
     private String major;
     private String name;
     private String id;
+    private String Auth;
 
 
 
@@ -25,5 +26,6 @@ public class UserResponseDto {
         this.major = user.getMajor();
         this.name = user.getName();
         this.id = user.getId();
+        this.Auth = user.getAuth().toString();
     }
 }

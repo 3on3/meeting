@@ -3,9 +3,12 @@ package com.project.api.metting.service;
 import com.project.api.metting.dto.request.ChatRequestDto;
 import com.project.api.metting.dto.request.ChatRoomRequestDto;
 import com.project.api.metting.dto.request.ChatUserRequestDto;
+import com.project.api.metting.dto.response.ChatRoomResponseDto;
 import com.project.api.metting.entity.*;
 import com.project.api.metting.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,11 +26,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChatRoomService {
 
+    private static final Logger log = LoggerFactory.getLogger(ChatRoomService.class);
     private final ChatRoomsRepository chatRoomsRepository;
     private final GroupRepository groupRepository;
     private final GroupUsersRepository groupUsersRepository;
     private final UserProfileRepository userProfileRepository;
-    private final GroupMatchingHistoriesCustomImpl groupMatchingHistoriesCustomImpl;
+    private final GroupMatchingHistoriesRepository groupMatchingHistoriesRepository;
 
 
     /**
@@ -35,12 +39,12 @@ public class ChatRoomService {
      * @param chatRoomRequestDto - 매칭된 히스토리 아이디
      */
     @Transactional
-    public void createChatRoom(ChatRoomRequestDto chatRoomRequestDto) {
+    public ChatRoomResponseDto createChatRoom(ChatRoomRequestDto chatRoomRequestDto) {
         try {
             Group findRequestGroup = groupRepository.findById(chatRoomRequestDto.getRequestGroupId()).orElseThrow(null);
             Group findResponseGroup = groupRepository.findById(chatRoomRequestDto.getResponseGroupId()).orElseThrow(null);
-            List<GroupMatchingHistory> histories = groupMatchingHistoriesCustomImpl.findByResponseGroupId(findResponseGroup.getId());
-            GroupMatchingHistory history = histories.stream().filter(groupMatchingHistory -> groupMatchingHistory.getRequestGroup().getId().equals(chatRoomRequestDto.getRequestGroupId())).findFirst().orElseThrow(null);
+
+            GroupMatchingHistory history = groupMatchingHistoriesRepository.findByResponseGroupAndRequestGroup(findResponseGroup, findRequestGroup);
 
             // 같은 그룹 사이에 채팅방생성 isDeleted = 0이면 불가 isDeleted = 1 이면 새로운 채팅방.
             boolean isProcessMatched = history.getProcess().equals(GroupProcess.MATCHED);
@@ -53,9 +57,12 @@ public class ChatRoomService {
 
 
             chatRoomsRepository.save(chatRoom);
+
+            return ChatRoomResponseDto.builder().id(chatRoom.getId()).name(chatRoom.getChatRoomName()).historyID(chatRoom.getGroupMatchingHistory().getId()).build();
         } catch (Exception e){
             e.printStackTrace();
         }
+        return null;
 
     }
 
@@ -107,5 +114,15 @@ public class ChatRoomService {
         }
 
         return chatUserRequestDtoList;
+    }
+
+    /**
+     * 채팅방 아이디로 채팅방 dto 반환
+     * @param id - 채팅방 아이디
+     * @return 채팅방 dto
+     */
+    public ChatRoomResponseDto findChatById(String id) {
+        ChatRoom chatRoom = chatRoomsRepository.findById(id).orElseThrow();
+        return ChatRoomResponseDto.builder().id(chatRoom.getId()).name(chatRoom.getChatRoomName()).historyID(chatRoom.getGroupMatchingHistory().getId()).build();
     }
 }
