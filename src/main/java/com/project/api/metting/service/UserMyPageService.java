@@ -6,6 +6,7 @@ import com.project.api.metting.dto.request.RemoveUserDto;
 import com.project.api.metting.dto.response.UserMyPageDto;
 import com.project.api.metting.entity.Membership;
 import com.project.api.metting.entity.User;
+import com.project.api.metting.entity.UserProfile;
 import com.project.api.metting.repository.UserMyPageRepository;
 import com.univcert.api.UnivCert;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,8 @@ public class UserMyPageService {
 
     @Value("${univcert.api.key}")
     private String univCertApiKey;
+    
+    private final EmailService emailService;
 
 
     // 사용자 정보 가져오기
@@ -48,8 +51,13 @@ public class UserMyPageService {
 
     private UserMyPageDto convertToDto(User user) {
         log.info("Converting user entity to DTO for user: {}", user.getNickname());
+
+        String profileImagePath = null;
+        if (user.getUserProfile() != null) {
+            profileImagePath = user.getUserProfile().getProfileImg();
+        }
         return UserMyPageDto.builder()
-                .profileImg(user.getUserProfile() != null ? user.getUserProfile().getProfileImg() : null)
+                .profileImg(profileImagePath) // 프로필 이미지 경로 설정
                 .profileIntroduce(user.getUserProfile() != null && user.getUserProfile().getProfileIntroduce() != null
                         ? user.getUserProfile().getProfileIntroduce()
                         : "소개가 없습니다.")
@@ -75,8 +83,6 @@ public class UserMyPageService {
      * @return convertToUserMyPageDto 객체를 담은 Optional
      */
 
-
-
     // 사용자 정보를 업데이트하는 메서드
     public UserMyPageDto updateUserFields(String userId, UserUpdateRequestDto updateDto) {
         log.info("Updating user fields for user ID: {}", userId);
@@ -98,6 +104,15 @@ public class UserMyPageService {
         }
         if (updateDto.getMajor() != null) {
             user.setMajor(updateDto.getMajor());
+        }
+
+        // 프로필 이미지 업데이트
+        if (updateDto.getProfileImg() != null) {
+            if (user.getUserProfile() == null) {
+                user.setUserProfile(new UserProfile());
+            }
+            log.info("Updating profile image to: {}", updateDto.getProfileImg());
+            user.getUserProfile().setProfileImg(updateDto.getProfileImg());
         }
 
         userMyPageRepository.save(user);
@@ -128,6 +143,21 @@ public class UserMyPageService {
         }
 
         return dto;
+    }
+
+    // 유저 ID를 기반으로 해당 유저의 프로필 이미지를 반환
+    public String getProfileImage(String userId) {
+        // 사용자 조회
+        User user = userMyPageRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저 아이디 찾을 수 없음: " + userId));
+
+        // 프로필 이미지가 있는지 확인하고 반환
+        if (user.getUserProfile() != null) {
+            return user.getUserProfile().getProfileImg(); // 프로필 이미지 경로 반환
+        } else {
+            // 프로필 이미지가 없으면 기본 이미지 경로나 null을 반환
+            return null; // 또는 기본 이미지 경로를 반환할 수 있습니다.
+        }
     }
 
 
@@ -166,14 +196,20 @@ public class UserMyPageService {
         User user = userMyPageRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("해당 이메일로 가입된 유저가 없습니다."));
 
+        String code = String.format("%06d", (int) (Math.random() * 1000000)); // 새 인증 코드 생성
+        saveVerificationCode(email, code); // 새 인증 코드 저장
+
         try {
+            // UnivCert API를 통해 인증 코드 발송 요청
             Map<String, Object> response = UnivCert.certify(univCertApiKey, email, user.getUnivName(), false);
 
             if (response != null && Boolean.TRUE.equals(response.get("success"))) {
                 log.info("새로운 인증 코드가 이메일로 전송되었습니다: {}", email);
             } else if ("이미 완료된 요청입니다.".equals(response.get("message"))) {
                 log.warn("이미 완료된 요청: {}", email);
-                // 필요시 추가 로직 구현 (예: 일정 시간 후 재시도)
+                // 기존 요청이 완료되었어도 새 인증 코드를 전송하기 위한 이메일 전송 로직
+                emailService.sendEmail(email, "인증 코드", "귀하의 인증 코드는 " + code + "입니다.");
+                log.info("기존 요청이 완료되었으므로 새로운 인증 코드를 이메일로 전송했습니다: {}", email);
             } else {
                 log.error("인증 코드 발송 실패: {}", email);
                 throw new IllegalStateException("인증 코드 발송에 실패했습니다.");
@@ -184,6 +220,8 @@ public class UserMyPageService {
         }
     }
 
+    private void saveVerificationCode(String email, String code) {
+    }
 
 
     /**
@@ -224,4 +262,6 @@ public class UserMyPageService {
             throw new IllegalStateException("인증 코드 검증 중 오류가 발생했습니다.");
         }
     }
+
+
 }
