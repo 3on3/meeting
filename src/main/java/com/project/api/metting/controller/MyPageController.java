@@ -2,6 +2,7 @@ package com.project.api.metting.controller;
 
 import com.project.api.auth.TokenProvider.TokenUserInfo;
 import com.project.api.metting.dto.request.ChangePasswordDto;
+import com.project.api.metting.dto.request.MatchedGroupRequestDto;
 import com.project.api.metting.dto.request.UserUpdateRequestDto;
 import com.project.api.metting.dto.request.RemoveUserDto;
 import com.project.api.metting.dto.response.ChatRoomResponseDto;
@@ -123,5 +124,13 @@ public class MyPageController {
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
+    }
+
+
+    // 내가 속한 그룹 조회
+    @PostMapping("/mygroup-matched")
+    public ResponseEntity<?> getMyGroupsMatched(@AuthenticationPrincipal TokenUserInfo tokenInfo,@RequestBody MatchedGroupRequestDto matchedGroupRequestDto) {
+        List<GroupResponseDto> groups = groupQueryService.getMatchedMyGroups(tokenInfo,matchedGroupRequestDto.getId());
+        return ResponseEntity.ok().body(groups);
     }
 }
