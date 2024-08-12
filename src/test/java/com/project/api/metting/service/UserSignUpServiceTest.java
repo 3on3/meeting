@@ -6,6 +6,7 @@ import com.project.api.metting.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Date;
 
@@ -16,6 +17,10 @@ class UserSignUpServiceTest {
 
     @Autowired
     private UserRepository userRepository;
+
+
+    @Autowired
+    private PasswordEncoder encoder;
 
     @Test
     public void testRegisterUsers() {
@@ -32,6 +37,10 @@ class UserSignUpServiceTest {
                     .nickname("Nickname " + i)
                     .build();
 
+
+            String password = user.getPassword();
+            String encodedPassword = encoder.encode(password);
+            user.changePass(encodedPassword);
             userRepository.save(user);
         }
 
