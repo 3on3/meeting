@@ -9,4 +9,6 @@ import java.util.Optional;
 public interface UserVerificationRepository extends JpaRepository<UserVerification, String> {
 
     Optional<UserVerification> findByUser(User user);
+
+    UserVerification findByEmail(String email);
 }

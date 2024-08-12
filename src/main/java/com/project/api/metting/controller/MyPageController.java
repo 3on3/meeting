@@ -58,7 +58,13 @@ public class MyPageController {
     @GetMapping("/userInfo")
     public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal TokenUserInfo tokenInfo) {
 
+        // 유저 정보와 프로필 이미지를 함께 조회
         UserMyPageDto userInfo = userMyPageService.getUserInfo(tokenInfo.getUserId());
+
+        // 프로필 이미지 조회
+        String profileImage = userMyPageService.getProfileImage(tokenInfo.getUserId());
+        userInfo.setProfileImg(profileImage);
+
         System.out.println("userInfo =" + userInfo);
         return ResponseEntity.ok(userInfo);
     }
