@@ -15,6 +15,7 @@ import java.util.Objects;
 public class MainWebSocketResponseDto {
     private String type;
     private LoginResponseDto loginUser;
-    private String ResponseGroupId;
+    private String email;
+    private String responseGroupId;
 
 }
