@@ -363,14 +363,14 @@ public class GroupService {
                 .groupAuth(groupAuth)
                 .inviteCode(code)
                 .hostUser(findHostId)
+                .groupSize(group.getMaxNum())
                 .build();
         return ResponseEntity.ok(generateGroupResponseData);
     }
 
     /**
      *
-     * @param dto - 그룹 탈퇴 dto
-     * @param tokenInfo - 로그인한 유저의 token 정보
+     * @param responseGroupId - 로그인한 유저의 token 정보
      */
     public User findByGroupHost(String responseGroupId) {
 
