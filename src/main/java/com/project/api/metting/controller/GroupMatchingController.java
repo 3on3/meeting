@@ -1,5 +1,6 @@
 package com.project.api.metting.controller;
 
+import com.project.api.metting.dto.request.AlarmRequestDto;
 import com.project.api.metting.dto.request.GroupMatchingRequestDto;
 import com.project.api.metting.dto.request.GroupRequestDto;
 import com.project.api.metting.dto.response.GroupMatchingAlarmResponseDto;
@@ -85,6 +86,9 @@ public class GroupMatchingController {
         if(hostUser == null) {
             return ResponseEntity.badRequest().body("존재하지 않는 그룹입니다.");
         }
-        return ResponseEntity.ok().body(hostUser.getId());
+
+        AlarmRequestDto alarmRequestDto = new AlarmRequestDto();
+        alarmRequestDto.setEmail(hostUser.getEmail());
+        return ResponseEntity.ok().body(alarmRequestDto);
     }
 }
