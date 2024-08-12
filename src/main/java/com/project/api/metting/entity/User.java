@@ -143,4 +143,7 @@ public class User {
         this.refreshToken = refreshToken;
         this.refreshTokenExpiryDate = expiryDate;
     }
+
+    public void setIsWithdrawn(boolean b) {
+    }
 }
