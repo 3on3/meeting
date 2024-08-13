@@ -262,17 +262,17 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
 
 
     //  group 히스토리 조회
-    public boolean existsGroupMatchingHistoryByResponse(Group group) {
+    public List<GroupMatchingHistory> groupsMatchingHistoryByResponse(Group group) {
         QGroup qGroup = QGroup.group;
         QGroupMatchingHistory qGroupMatchingHistory = QGroupMatchingHistory.groupMatchingHistory;
 
         // 결과가 존재하는지 유무 체크
-        return factory.selectOne()
+        return factory.select(qGroupMatchingHistory)
                 .from(qGroup)
                 .join(qGroupMatchingHistory)
                 .on(qGroup.eq(qGroupMatchingHistory.responseGroup))
                 .where(qGroup.eq(group))  // group 객체를 직접 비교
-                .fetchFirst() != null;
+                .fetch();
     }
 
 }

@@ -154,4 +154,8 @@ public class GroupMatchingService {
     public GroupMatchingHistory findByResponseGroupAndRequestGroup(Group findResponseGroup,Group findRequestGroup){
         return groupMatchingHistoriesRepository.findByResponseGroupAndRequestGroup(findResponseGroup, findRequestGroup);
     }
+    // 요청 그룹아이디로 히스토리 조회
+    public List<GroupMatchingHistory> findByResponseGroup(Group findRequestGroup){
+        return groupMatchingHistoriesRepository.findAllByRequestGroup(findRequestGroup);
+    }
 }

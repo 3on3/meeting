@@ -18,6 +18,6 @@ public interface GroupRepositoryCustom {
     List<Group> findGroupsEntityByUserEmail(String email);
 
     Page<MainMeetingListResponseDto> findGroupUsersByAllGroup(Pageable pageable);
-    // 여기야
     Integer myChatListRequestDto(Group group);
+
 }
