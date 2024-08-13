@@ -12,15 +12,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.SimpleTimeZone;
+import java.util.*;
 
 import com.project.api.metting.dto.response.ChatUserResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +32,7 @@ public class ChatRoomService {
 
     /**
      * 매칭 후 채팅룸 생성 함수
+     *
      * @param chatRoomRequestDto - 매칭된 히스토리 아이디
      */
     @Transactional
@@ -49,7 +46,7 @@ public class ChatRoomService {
             // 같은 그룹 사이에 채팅방생성 isDeleted = 0이면 불가 isDeleted = 1 이면 새로운 채팅방.
             boolean isProcessMatched = history.getProcess().equals(GroupProcess.MATCHED);
 
-            if (!isProcessMatched){
+            if (!isProcessMatched) {
                 throw new RuntimeException("수락된 매칭이 아닙니다.");
             }
 
@@ -59,7 +56,7 @@ public class ChatRoomService {
             chatRoomsRepository.save(chatRoom);
 
             return ChatRoomResponseDto.builder().id(chatRoom.getId()).name(chatRoom.getChatRoomName()).historyID(chatRoom.getGroupMatchingHistory().getId()).build();
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -98,7 +95,7 @@ public class ChatRoomService {
 
             String imgUrl;
 
-            if(userProfile == null){
+            if (userProfile == null) {
                 imgUrl = "imgOriginUrl";
             } else {
                 imgUrl = userProfile.getProfileImg();
@@ -125,4 +122,26 @@ public class ChatRoomService {
         ChatRoom chatRoom = chatRoomsRepository.findById(id).orElseThrow();
         return ChatRoomResponseDto.builder().id(chatRoom.getId()).name(chatRoom.getChatRoomName()).historyID(chatRoom.getGroupMatchingHistory().getId()).build();
     }
+
+
+//    public ChatRoomResponseDto findChatById(String id) {
+//        // Optional을 사용하여 채팅방을 조회합니다.
+//        Optional<ChatRoom> chatRoomOptional = chatRoomsRepository.findById(id);
+//
+//        // 채팅방이 존재하지 않는 경우 사용자 친화적인 메시지를 반환합니다.
+//        if (chatRoomOptional.isEmpty()) {
+//            // 채팅방을 찾을 수 없는 경우 사용자 친화적인 예외를 발생시킵니다.
+//            throw new RuntimeException("해당 ID로 채팅방을 찾을 수 없습니다: " + id);
+//        }
+//
+//        // 채팅방이 존재하는 경우, DTO로 변환하여 반환합니다.
+//        ChatRoom chatRoom = chatRoomOptional.get();
+//        return ChatRoomResponseDto.builder()
+//                .id(chatRoom.getId())
+//                .name(chatRoom.getChatRoomName())
+//                .historyID(chatRoom.getGroupMatchingHistory().getId())
+//                .build();
+//    }
+
+
 }
