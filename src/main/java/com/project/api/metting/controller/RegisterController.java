@@ -84,7 +84,21 @@ public class RegisterController {
             return ResponseEntity.ok().body("Nickname updated successfully");
         } catch (Exception e) {
             log.error("Error during nickname update", e);
-            return ResponseEntity.status(500).body("Internal Server Error");
+            return ResponseEntity.status(500).body("중복된 닉네임 입니다!");
         }
+    }
+
+    // 닉네임 중복 확인 API
+    @PostMapping("/check-nickname")
+    public ResponseEntity<?> checkNickname(@RequestBody String nickname) {
+        boolean isDuplicate = userSignUpService.checkNicknameDuplicate(nickname);
+        return ResponseEntity.ok(isDuplicate); // boolean 값 반환
+    }
+
+    // 전화번호 중복 확인 API
+    @PostMapping("/check-phone-number")
+    public ResponseEntity<?> checkPhoneNumber(@RequestBody String phoneNumber) {
+        boolean isDuplicate = userSignUpService.checkPhoneNumberDuplicate(phoneNumber);
+        return ResponseEntity.ok(isDuplicate); // boolean 값 반환
     }
 }
