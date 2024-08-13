@@ -84,11 +84,10 @@ public class GroupController {
 
 
     @PostMapping("/withdraw")
-    public ResponseEntity<?> withDrawGroup(@RequestBody GroupWithdrawRequestDto groupId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
-        groupService.groupWithDraw(groupId, tokenInfo);
-        return ResponseEntity.ok().body("성공적으로 그룹에서 탈퇴하였습니다.");
+    public ResponseEntity<Void> groupWithDraw(@RequestBody GroupWithdrawRequestDto dto, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+        groupService.groupWithDraw(dto, tokenInfo);
+        return ResponseEntity.ok().build();
     }
-
 
 
     @PostMapping("/join-requests/{groupUserId}/cancel")
