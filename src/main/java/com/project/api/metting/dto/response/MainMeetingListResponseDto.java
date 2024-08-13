@@ -36,6 +36,10 @@ public class MainMeetingListResponseDto {
     //학과
     private String Major;
 
+    // 로그인한 유저 기준 해당 그룹과 히스토리가 있는지
+    @Setter
+    private boolean isExistMatchingHistory;
+
 
 //    ,int memberCount 보류
     public MainMeetingListResponseDto(Group group, int averageAge,String hostMajor){
@@ -48,8 +52,23 @@ public class MainMeetingListResponseDto {
         this.averageAge = averageAge;
         this.Major = hostMajor;
 //        this.memberCount = memberCount;
+        this.isExistMatchingHistory = false;
 
 
     }
+//    public MainMeetingListExistsHistoriesResponseDto(MainMeetingListResponseDto mainMeetingListResponseDto, boolean isExistMatchingHistory){
+//        this.id = mainMeetingListResponseDto.getId();
+//        this.groupName = mainMeetingListResponseDto.getGroupName();
+//        this.groupPlace = mainMeetingListResponseDto.getGroupPlace();
+//        this.groupGender = mainMeetingListResponseDto.getGroupGender();
+//        this.isMatched = mainMeetingListResponseDto.getIsMatched();
+//        this.maxNum = mainMeetingListResponseDto.getMaxNum();
+//        this.averageAge = mainMeetingListResponseDto.getAverageAge();
+//        this.Major = mainMeetingListResponseDto.getMajor();
+////        this.memberCount = memberCount;
+//        this.isExistMatchingHistory = isExistMatchingHistory;
+//
+//
+//    }
 
 }
