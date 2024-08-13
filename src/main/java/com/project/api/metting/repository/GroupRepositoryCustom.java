@@ -19,5 +19,6 @@ public interface GroupRepositoryCustom {
     List<Group> findGroupsEntityByUserEmail(String email);
 
     Page<MainMeetingListResponseDto> findGroupUsersByAllGroup(String email,Pageable pageable);
+    // 여기야
     public void myChatListRequestDto(Group group, MyChatListRequestDto dto);
 }
