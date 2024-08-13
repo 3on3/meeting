@@ -4,6 +4,7 @@ import com.project.api.metting.dto.request.MainMeetingListFilterDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.dto.response.MainMeetingListResponseDto;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -14,5 +15,5 @@ public interface GroupRepositoryCustom {
 
     List<GroupResponseDto> findGroupsByUserEmail(String email);
 
-    List<MainMeetingListResponseDto> findGroupUsersByAllGroup();
+    Page<MainMeetingListResponseDto> findGroupUsersByAllGroup(Pageable pageable);
 }
