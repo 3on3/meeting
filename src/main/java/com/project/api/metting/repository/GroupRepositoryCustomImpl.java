@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.project.api.metting.entity.QGroup.group;
@@ -39,7 +40,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
 
     //    main meetingList DTO
     @Override
-    public Page<MainMeetingListResponseDto> findGroupUsersByAllGroup(Pageable pageable) {
+    public Page<MainMeetingListResponseDto> findGroupUsersByAllGroup(String email, Pageable pageable) {
 
         QGroup group = QGroup.group;
         QGroupUser groupUser = QGroupUser.groupUser;
@@ -54,7 +55,6 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .where(groupUser.group.eq(group)
                         .and(groupUser.status.eq(GroupStatus.REGISTERED)))
                 .eq(group.maxNum);
-
 
 
         // 조건 결합
@@ -78,16 +78,24 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .groupBy(group.id)
                 .stream().count();
 
-//<<<<<<< HEAD
-//        return groups.stream().map(this::convertToMeetingListDto).collect(Collectors.toList());
-//=======
-
         List<MainMeetingListResponseDto> meetingList = groups.stream()
                 .map(this::convertToMeetingListDto)
                 .collect(Collectors.toList());
 
+        // ================= setExistMatchingHistory
+        // 해당 사용자가 속한 그룹들을 가져옴
+        List<Group> groupsByUserEmail = groupRepository.findGroupsEntityByUserEmail(email);
+        // groupsByUserEmail 리스트의 ID들을 Set으로 변환
+        Set<String> userGroupIds = groupsByUserEmail.stream()
+                .map(Group::getId)
+                .collect(Collectors.toSet());
+        // groupUsersByAllGroup 리스트를 순회하며 ID를 비교하여 isExistMatchingHistory 설정
+        for (MainMeetingListResponseDto dto : meetingList) {
+            if (userGroupIds.contains(dto.getId())) {
+                dto.setExistMatchingHistory(true);
+            }
+        }
         return new PageImpl<>(meetingList, pageable, count);
-//>>>>>>> main2
 
     }
 
@@ -182,8 +190,6 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     }
 
 
-
-
     //GroupResponseDto - 마이페이지 내가 속한 그룹
     @Override
     public List<GroupResponseDto> findGroupsByUserEmail(String email) {
@@ -198,6 +204,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
 
         return groups.stream().map(this::convertToGroupResponseDto).collect(Collectors.toList());
     }
+
     @Override
     public List<Group> findGroupsEntityByUserEmail(String email) {
         QGroup group = QGroup.group;
