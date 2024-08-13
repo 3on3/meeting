@@ -4,8 +4,8 @@ import com.project.api.metting.dto.request.GroupCreateDto;
 import com.project.api.metting.dto.request.GroupDeleteRequestDto;
 import com.project.api.metting.dto.request.GroupJoinRequestDto;
 import com.project.api.metting.dto.request.GroupWithdrawRequestDto;
+import com.project.api.metting.dto.response.InviteResultResponseDto;
 import com.project.api.metting.dto.response.InviteUsersViewResponseDto;
-import com.project.api.metting.entity.GroupUser;
 import com.project.api.metting.service.GroupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 import static com.project.api.auth.TokenProvider.TokenUserInfo;
 
@@ -71,9 +70,16 @@ public class GroupController {
     }
 
     @PostMapping("/join-requests/{groupUserId}/accept")
-    public ResponseEntity<Void> acceptJoinRequest(@PathVariable String groupUserId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+    public ResponseEntity<String> acceptJoinRequest(@PathVariable String groupUserId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+
+        try {
         groupService.acceptJoinRequest(groupUserId, tokenInfo);
-        return ResponseEntity.ok().build();
+            return ResponseEntity.ok("성공적으로 그룹에 가입신청을 완료하였습니다.");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("가입신청 수락에 실패하였습니다.. 다시 시도해주세요..");
+        }
     }
 
 
@@ -92,17 +98,17 @@ public class GroupController {
     }
 
     @PostMapping("/join/invite")
-    public ResponseEntity<String> joinGroupWithInviteCode(@RequestParam String code, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+    public ResponseEntity<?> joinGroupWithInviteCode(@RequestParam String code, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
         if (code == null || code.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("해당 코드는 더 이상 존재하지 않습니다..");
         }
         try {
-            groupService.joinGroupWithInviteCode(code, tokenInfo);
-            return ResponseEntity.ok("성공적으로 그룹에 가입신청을 완료하였습니다.");
+            InviteResultResponseDto resultDto = groupService.joinGroupWithInviteCode(code, tokenInfo);
+            return ResponseEntity.ok(resultDto);
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("가입신청에 실패하였습니다. 다시 시도해주세요..");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("가입신청에 실패하였습니다. 다시 시도해주세요.");
         }
     }
 
