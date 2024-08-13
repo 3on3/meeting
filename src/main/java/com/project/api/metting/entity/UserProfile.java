@@ -31,21 +31,20 @@ public class UserProfile {
     @Column(name = "mt_profile_id")
     private String id; // 프로필 아이디
 
-
-    @Column(name = "mt_profile_img")
     @Setter
-    private String profileImg; // 프로필 이미지
+    @Column(name = "mt_profile_img")
+    private String profileImg; // 프로필 이미지 경로
 
+    @Setter
     @Column(name = "mt_profile_introduce")
     private String profileIntroduce; // 프로필 소개
 
-
+    @Setter
     @JsonIgnore
     @ToString.Exclude
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mt_user_id",  nullable = false, unique = true)
     private User user;
 
-    public void setUser(User user) {
-    }
+
 }

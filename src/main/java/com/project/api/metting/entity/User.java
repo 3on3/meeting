@@ -115,7 +115,7 @@ public class User {
 
     @JsonIgnore
     @ToString.Exclude
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private UserProfile userProfile; //유저프로필
 
     @Enumerated(EnumType.STRING)
@@ -142,5 +142,8 @@ public class User {
     public void updateRefreshToken(String refreshToken, Instant expiryDate) {
         this.refreshToken = refreshToken;
         this.refreshTokenExpiryDate = expiryDate;
+    }
+
+    public void setIsWithdrawn(boolean b) {
     }
 }

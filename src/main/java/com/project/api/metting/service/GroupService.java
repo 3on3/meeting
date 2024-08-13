@@ -2,6 +2,7 @@ package com.project.api.metting.service;
 
 import com.project.api.auth.TokenProvider.TokenUserInfo;
 import com.project.api.metting.dto.request.GroupCreateDto;
+import com.project.api.metting.dto.request.GroupDeleteRequestDto;
 import com.project.api.metting.dto.request.GroupJoinRequestDto;
 import com.project.api.metting.dto.request.GroupWithdrawRequestDto;
 import com.project.api.metting.dto.response.GroupUsersViewListResponseDto;
@@ -169,6 +170,11 @@ public class GroupService {
             throw new IllegalStateException("이미 해당 그룹에 가입되어 있습니다.");
         }
 
+        long currentUserCount = groupUsersRepository.countByGroupAndStatus(group, GroupStatus.REGISTERED);
+        log.info("currrent user count - {}", currentUserCount);
+        if (currentUserCount >= group.getMaxNum()) {
+            throw new IllegalStateException("해당 그룹의 최대 인원 수를 초과했습니다.");
+        }
         // GroupUser 엔티티 생성
         GroupUser groupUser = GroupUser.builder()
                 .group(group)
@@ -285,6 +291,14 @@ public class GroupService {
         GroupUser groupUser = groupUsersRepository.findById(groupUserId)
                 .orElseThrow(() -> new IllegalStateException("가입 신청을 찾을 수 없습니다."));
 
+
+        long currentUserCount = groupUsersRepository.countByGroupAndStatus(groupUser.getGroup(), GroupStatus.REGISTERED);
+        log.info("currrent user count - {}", currentUserCount);
+        if (currentUserCount >= groupUser.getGroup().getMaxNum()) {
+            throw new IllegalStateException("해당 그룹의 최대 인원 수를 초과했습니다.");
+        }
+
+
         // 수락 처리
         groupUser.setStatus(GroupStatus.REGISTERED);
         groupUsersRepository.save(groupUser);
@@ -362,10 +376,15 @@ public class GroupService {
                 .groupAuth(groupAuth)
                 .inviteCode(code)
                 .hostUser(findHostId)
+                .groupSize(group.getMaxNum())
                 .build();
         return ResponseEntity.ok(generateGroupResponseData);
     }
 
+    /**
+     *
+     * @param responseGroupId - 로그인한 유저의 token 정보
+     */
     public User findByGroupHost(String responseGroupId) {
 
         Group group = groupRepository.findById(responseGroupId).orElseThrow(null);
@@ -396,4 +415,40 @@ public class GroupService {
         groupUser.setStatus(GroupStatus.WITHDRAW);
         groupUsersRepository.save(groupUser);
     }
+
+    /**
+     *
+     * @param dto - 삭제 시킬 그룹의 group Id의 dto
+     * @param tokenUserInfo - 로그인한 유저의 info
+     */
+    @Transactional
+    public void groupDelete(GroupDeleteRequestDto dto, TokenUserInfo tokenUserInfo) {
+        // 그룹을 찾기
+        Group findGroup = groupRepository.findById(dto.getGroupId())
+                .orElseThrow(() -> new IllegalStateException("그룹을 찾을 수 없습니다."));
+
+        // 그룹과 유저를 기반으로 그룹 유저 조회
+        GroupUser groupUser = groupUsersRepository.findByGroupAndUserId(findGroup, tokenUserInfo.getUserId())
+                .orElseThrow(() -> new IllegalStateException("해당 그룹에 가입되어 있지 않습니다."));
+
+        // 그룹 유저의 Auth를 조회해서 HOST인지 확인
+        String groupUserAuth = groupUser.getAuth().getDisplayName();
+        if (!groupUserAuth.equals(GroupAuth.HOST.getDisplayName())) {
+            throw new IllegalStateException("그룹 삭제는 호스트만 가능합니다.");
+        }
+
+        // 그룹에 가입된 모든 유저를 조회
+        List<GroupUser> groupUsers = groupUsersRepository.findByGroup(findGroup);
+
+        // 모든 그룹 유저의 상태를 WITHDRAW로 업데이트
+        for (GroupUser gu : groupUsers) {
+            gu.setStatus(GroupStatus.WITHDRAW);
+            groupUsersRepository.save(gu);
+        }
+
+        // 그룹 삭제 처리
+        findGroup.setIsDeleted(true);
+        groupRepository.save(findGroup);
+    }
+
 }
