@@ -26,26 +26,16 @@ public class MainController {
 
 
     //    미팅 리스트 전체 조회
-//<<<<<<< HEAD
-//    @GetMapping("/main")
-//    public ResponseEntity<?> getMeetingList(@AuthenticationPrincipal TokenUserInfo tokenUserInfo) {
-//
-////        List<Group> meetingList = mainService.getMeetingList();
-//
-////        log.info("meetingList: {}", meetingList);
-//        List<MainMeetingListResponseDto> meetingList = mainService.getMeetingList(tokenUserInfo.getEmail());
-//=======
     @GetMapping("/main/{pageNo}")
-    public ResponseEntity<?> getMeetingList(@PathVariable int pageNo) {
+    public ResponseEntity<?> getMeetingList(@AuthenticationPrincipal TokenUserInfo tokenUserInfo,@PathVariable int pageNo) {
 
         Page<MainMeetingListResponseDto> meetingList = null;
         try {
-            meetingList = mainService.getMeetingList(pageNo);
+            meetingList = mainService.getMeetingList(tokenUserInfo.getEmail(), pageNo);
         } catch (Exception e) {
             log.error("Error occurred while fetching meeting list", e);
             throw new RuntimeException(e);
         }
-//>>>>>>> main2
 
         return ResponseEntity.ok().body(meetingList);
     }
