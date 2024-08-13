@@ -470,4 +470,13 @@ public class GroupService {
     public Group findGroupById(String groupId) {
        return groupRepository.findById(groupId).orElseThrow(null);
     }
+
+
+    public List<GroupUser> findGroupUserList(User user) {
+         return groupUsersRepository.findByUserAndStatus(user, GroupStatus.REGISTERED);
+    }
+
+
+
+
 }

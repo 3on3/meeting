@@ -40,7 +40,7 @@ public class ChatRoomService {
     private final UserRepository userRepository;
     private final GroupService groupService;
     private final GroupMatchingService groupMatchingService;
-
+    private final UserService userService;
 
     /**
      * 매칭 후 채팅룸 생성 함수
@@ -135,11 +135,12 @@ public class ChatRoomService {
         return ChatRoomResponseDto.builder().id(chatRoom.getId()).name(chatRoom.getChatRoomName()).historyID(chatRoom.getGroupMatchingHistory().getId()).build();
     }
 
+
     public List<MyChatListRequestDto> findChatList(String userId) {
 
-        User user = userRepository.findById(userId).orElseThrow();
+        User user = userService.findUser(userId);
 
-        List<GroupUser> groupUsers = groupUsersRepository.findByUserAndStatus(user, GroupStatus.REGISTERED);
+        List<GroupUser> groupUsers = groupService.findGroupUserList(user);
 
         System.out.println("groupUsers = " + groupUsers);
 
@@ -182,6 +183,8 @@ public class ChatRoomService {
 
             User hostUser = userRepository.findById(groupUser.getUser().getId()).orElseThrow();
 
+            Integer averageAge = groupRepository.myChatListRequestDto(matchingGroups.get(i));
+
             MyChatListRequestDto myChatListRequestDto = MyChatListRequestDto.builder()
                     .chatRoomId(matchingHistories.get(i).getChatRoom().getId())
                     .groupName(matchingGroups.get(i).getGroupName())
@@ -189,10 +192,9 @@ public class ChatRoomService {
                     .maxNum(matchingGroups.get(i).getMaxNum())
                     .gender(matchingGroups.get(i).getGroupGender())
                     .major(hostUser.getMajor())
+                    .age(averageAge)
                     .build();
 
-            // 그룹의 평균나이 계산
-            groupRepository.myChatListRequestDto(matchingGroups.get(i), myChatListRequestDto);
 
             myChatListRequestDtoList.add(myChatListRequestDto);
         }
