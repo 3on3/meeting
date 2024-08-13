@@ -213,7 +213,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         if (birthDate == null) return 0;
 
         LocalDate birthLocalDate = new java.sql.Date(birthDate.getTime()).toLocalDate();
-        return Period.between(birthLocalDate, LocalDate.now()).getYears();
+        return Period.between(birthLocalDate, LocalDate.now()).getYears() + 2;
     }
 
     //    평균 나이 계산
