@@ -8,6 +8,8 @@ import com.project.api.metting.entity.Membership;
 import com.project.api.metting.entity.User;
 import com.project.api.metting.entity.UserProfile;
 import com.project.api.metting.repository.UserMyPageRepository;
+import com.project.api.metting.repository.UserProfileRepository;
+import com.project.api.metting.repository.UserRepository;
 import com.univcert.api.UnivCert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,49 +17,49 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.ZoneId;
 import java.util.*;
+import java.io.File;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserMyPageService {
 
-
-    private final UserMyPageRepository userMyPageRepository;
-
-    private final PasswordEncoder passwordEncoder;
-
     @Value("${univcert.api.key}")
     private String univCertApiKey;
-    
+
+    private String profileImageUploadDir; // 프로필 이미지를 저장할 디렉토리 경로
+
+    private final UserMyPageRepository userMyPageRepository;
+    private final UserProfileRepository userProfileRepository; // UserProfile 엔티티를 다루는 JPA 리포지토리
+    private final UserRepository userRepository; // User 엔티티를 다루는 JPA 리포지토리
+    private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
 
     // 사용자 정보 가져오기
     public UserMyPageDto getUserInfo(String userEmail) {
-
         User user = userMyPageRepository.findById(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
         log.info("User information retrieved successfully for email: {}", userEmail);
-
         return convertToDto(user);
     }
 
     private UserMyPageDto convertToDto(User user) {
         log.info("Converting user entity to DTO for user: {}", user.getNickname());
 
-        String profileImagePath = null;
-        if (user.getUserProfile() != null) {
-            profileImagePath = user.getUserProfile().getProfileImg();
-        }
         return UserMyPageDto.builder()
-                .profileImg(profileImagePath) // 프로필 이미지 경로 설정
                 .profileIntroduce(user.getUserProfile() != null && user.getUserProfile().getProfileIntroduce() != null
                         ? user.getUserProfile().getProfileIntroduce()
                         : "소개가 없습니다.")
@@ -69,7 +71,6 @@ public class UserMyPageService {
                 .build();
     }
 
-
     // 나이 계산 메서드
     private int calculateAge(Date birthDate) {
         LocalDate birthLocalDate = birthDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
@@ -78,6 +79,7 @@ public class UserMyPageService {
 
     /**
      * 사용자 Id를 기반으로 유저 정보 조회
+     * 닉네임, 멤버십등급, 대학교, 전공
      *
      * @param userId 조회할 사용자의 ID
      * @return convertToUserMyPageDto 객체를 담은 Optional
@@ -106,31 +108,62 @@ public class UserMyPageService {
             user.setMajor(updateDto.getMajor());
         }
 
-        // 프로필 이미지 업데이트
-        if (updateDto.getProfileImg() != null) {
-            if (user.getUserProfile() == null) {
-                user.setUserProfile(new UserProfile());
-            }
-            log.info("Updating profile image to: {}", updateDto.getProfileImg());
-            user.getUserProfile().setProfileImg(updateDto.getProfileImg());
-        }
 
         userMyPageRepository.save(user);
-        log.info("User fields updated and saved for user ID: {}", userId);
-
         return convertToUserMyPageDto(user);
     }
+
+    // 특정 유저의 프로필을 조회하는 메서드
+    public UserProfile getUserProfile (String userId){
+        // 유저 ID로 User 객체를 조회
+        Optional<User> user = userRepository.findById(userId);
+        // 조회한 User 객체와 연결된 UserProfile을 반환
+        return user.map(userProfileRepository::findByUser).orElse(null);
+    }
+
+    // 특정 유저의 프로필 이미지를 업데이트하는 메서드
+    public void updateUserProfileImage(String userId, MultipartFile file) throws IOException {
+        // 유저 ID로 User 객체를 조회
+        Optional<User> user = userRepository.findById(userId);
+
+        if (user.isPresent()) { // 유저가 존재하는 경우
+            UserProfile userProfile = userProfileRepository.findByUser(user.get()); // 유저와 연결된 프로필을 조회
+            if (userProfile != null && file != null && !file.isEmpty()) { // 프로필이 존재하고, 파일이 유효한 경우
+                String filePath = saveProfileImage(file);  // 수정: 파일 시스템에 저장 로직 추가
+                userProfile.setProfileImg(filePath); // 프로필 이미지 경로를 설정
+                userProfileRepository.save(userProfile); // 변경된 프로필을 저장
+
+            }
+        }
+    }
+
+
+    // 프로필 이미지를 저장하고, 저장된 파일 경로를 반환하는 메서드
+    private String saveProfileImage(MultipartFile file) throws IOException {
+        File dir = new File(profileImageUploadDir);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        Path filePath = Paths.get(profileImageUploadDir, fileName);
+
+        // 예외 처리와 자원 관리를 위한 try-with-resources 사용
+        try (InputStream inputStream = file.getInputStream()) {
+            Files.copy(inputStream, filePath);
+        } catch (IOException e) {
+            log.error("파일 저장 중 오류 발생: " + filePath, e);
+            throw e; // 발생한 예외를 다시 던져 호출자에게 알림
+        }
+
+        return filePath.toString();
+    }
+
 
     // User 엔티티를 UserMyPageDto로 변환하는 로직
     public UserMyPageDto convertToUserMyPageDto(User user) {
         log.info("Converting updated user entity to DTO for user: {}", user.getNickname());
         UserMyPageDto dto = new UserMyPageDto();
-
-        // 프로필 이미지와 소개가 있는 경우 설정
-        if (user.getUserProfile() != null) {
-            dto.setProfileImg(user.getUserProfile().getProfileImg());
-            dto.setProfileIntroduce(user.getUserProfile().getProfileIntroduce());
-        }
 
         dto.setNickname(user.getNickname());
         dto.setMembership(user.getMembership());
@@ -145,23 +178,8 @@ public class UserMyPageService {
         return dto;
     }
 
-    // 유저 ID를 기반으로 해당 유저의 프로필 이미지를 반환
-    public String getProfileImage(String userId) {
-        // 사용자 조회
-        User user = userMyPageRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저 아이디 찾을 수 없음: " + userId));
 
-        // 프로필 이미지가 있는지 확인하고 반환
-        if (user.getUserProfile() != null) {
-            return user.getUserProfile().getProfileImg(); // 프로필 이미지 경로 반환
-        } else {
-            // 프로필 이미지가 없으면 기본 이미지 경로나 null을 반환
-            return null; // 또는 기본 이미지 경로를 반환할 수 있습니다.
-        }
-    }
-
-
-    // 비밀번호 변경 로직
+// 비밀번호 변경 로직
     public void changePassword(String userId, ChangePasswordDto changePasswordDto) {
 
         if (changePasswordDto == null) {
@@ -186,12 +204,12 @@ public class UserMyPageService {
     }
 
 
-    /**
-     * 회원 탈퇴를 위한 인증 코드를 사용자 이메일로 전송하는 메서드.
-     * 인증 상태나 이전 요청과 관계없이 새로운 인증 코드를 생성하여 전송합니다.
-     *
-     * @param email 사용자 이메일
-     */
+/**
+ * 회원 탈퇴를 위한 인증 코드를 사용자 이메일로 전송하는 메서드.
+ * 인증 상태나 이전 요청과 관계없이 새로운 인증 코드를 생성하여 전송
+ *
+ * @param email 사용자 이메일
+ */
     public void sendRemovalVerificationCode(String email) {
         User user = userMyPageRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("해당 이메일로 가입된 유저가 없습니다."));
@@ -216,21 +234,34 @@ public class UserMyPageService {
             }
         } catch (IOException e) {
             log.error("인증 코드 발송 중 예외 발생: ", e);
-            throw new IllegalStateException("인증 코드 발송 중 오류가 발생했습니다.");
+            throw new IllegalStateException("인증 코드 발송 중 오류가 발생했습니다.", e);
+        } catch (Exception e) {
+            log.error("예상치 못한 예외 발생: ", e);
+            throw new IllegalStateException("인증 코드 발송 중 예상치 못한 오류가 발생했습니다.", e);
         }
     }
 
     private void saveVerificationCode(String email, String code) {
+
     }
 
 
     /**
      * 인증 코드와 비밀번호를 확인한 후 사용자를 탈퇴 처리하는 메서드
      *
-     * @param email           사용자 이메일
-     * @param verificationCode 사용자 인증 코드
-     * @param inputPassword   사용자 입력 비밀번호
+     * @param user           사용자 이메일
+     * @param inputPassword    사용자 입력 비밀번호
+     *
+
      */
+
+    private void verifyUserPassword(User user, String inputPassword) {
+        if (!passwordEncoder.matches(inputPassword, user.getPassword())) {
+            log.error("비밀번호가 일치하지 않습니다: {}", user.getEmail());
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+    }
+
     @Transactional
     public void removeUserWithVerification(String email, int verificationCode, String inputPassword) {
         User user = userMyPageRepository.findByEmail(email)
@@ -242,10 +273,7 @@ public class UserMyPageService {
             if (response != null && Boolean.TRUE.equals(response.get("success"))) {
                 log.info("인증 코드가 확인되었습니다: {}", email);
 
-                if (!passwordEncoder.matches(inputPassword, user.getPassword())) {
-                    log.error("비밀번호가 일치하지 않습니다: {}", email);
-                    throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-                }
+                verifyUserPassword(user, inputPassword);
 
                 user.setEmail(null);
                 user.setPassword(null);
@@ -262,6 +290,4 @@ public class UserMyPageService {
             throw new IllegalStateException("인증 코드 검증 중 오류가 발생했습니다.");
         }
     }
-
-
 }

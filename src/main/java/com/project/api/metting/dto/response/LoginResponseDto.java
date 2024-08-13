@@ -24,4 +24,5 @@ public class LoginResponseDto {
     private Gender gender; // 성별
     private String nickname; // 성별
     private String profileImg; // 프로필 이미지
+    private boolean isWithdrawn; // 탈퇴 여부
 }

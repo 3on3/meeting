@@ -14,9 +14,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.SimpleTimeZone;
+import java.util.*;
 
 import com.project.api.metting.dto.response.ChatUserResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +23,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 @Service
 @RequiredArgsConstructor
 public class ChatRoomService {
@@ -44,6 +41,7 @@ public class ChatRoomService {
 
     /**
      * 매칭 후 채팅룸 생성 함수
+     *
      * @param chatRoomRequestDto - 매칭된 히스토리 아이디
      */
     @Transactional
@@ -58,7 +56,7 @@ public class ChatRoomService {
             // 같은 그룹 사이에 채팅방생성 isDeleted = 0이면 불가 isDeleted = 1 이면 새로운 채팅방.
             boolean isProcessMatched = history.getProcess().equals(GroupProcess.MATCHED);
 
-            if (!isProcessMatched){
+            if (!isProcessMatched) {
                 throw new RuntimeException("수락된 매칭이 아닙니다.");
             }
 
@@ -68,7 +66,7 @@ public class ChatRoomService {
             chatRoomsRepository.save(chatRoom);
 
             return ChatRoomResponseDto.builder().id(chatRoom.getId()).name(chatRoom.getChatRoomName()).historyID(chatRoom.getGroupMatchingHistory().getId()).build();
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -107,7 +105,7 @@ public class ChatRoomService {
 
             String imgUrl;
 
-            if(userProfile == null){
+            if (userProfile == null) {
                 imgUrl = "imgOriginUrl";
             } else {
                 imgUrl = userProfile.getProfileImg();
@@ -134,7 +132,6 @@ public class ChatRoomService {
         ChatRoom chatRoom = chatRoomsRepository.findById(id).orElseThrow();
         return ChatRoomResponseDto.builder().id(chatRoom.getId()).name(chatRoom.getChatRoomName()).historyID(chatRoom.getGroupMatchingHistory().getId()).build();
     }
-
 
     public List<MyChatListRequestDto> findChatList(String userId) {
 
