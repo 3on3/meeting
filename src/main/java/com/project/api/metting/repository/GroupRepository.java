@@ -10,4 +10,5 @@ public interface GroupRepository extends JpaRepository<Group, String>, GroupRepo
 
 
     List<Group> findAllByGroupUsersUserId(String groupId);
+
 }
