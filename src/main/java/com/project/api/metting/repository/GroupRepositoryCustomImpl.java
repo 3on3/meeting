@@ -2,6 +2,7 @@ package com.project.api.metting.repository;
 
 import com.project.api.metting.dto.request.GroupRequestDto;
 import com.project.api.metting.dto.request.MainMeetingListFilterDto;
+import com.project.api.metting.dto.request.MyChatListRequestDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.dto.response.MainMeetingListResponseDto;
 import com.project.api.metting.entity.*;
@@ -170,6 +171,10 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
 
 
         return new GroupRequestDto(group, memberCount, calculateAverageAge(group), hostMajor(group));
+    }
+
+    public void myChatListRequestDto(Group group, MyChatListRequestDto dto) {
+        dto.setAge(calculateAverageAge(group));
     }
 
 
