@@ -13,7 +13,7 @@ public interface GroupUsersRepository extends JpaRepository<GroupUser, String> {
     List<GroupUser> findByGroupAndStatus(Group group, GroupStatus status);
     GroupUser findByGroupAndAuth(Group group, GroupAuth auth);
     List<GroupUser> findByGroup(Group group);
-    Optional<GroupUser> findByGroupAndUserId(Group group, String userId);
+    Optional<GroupUser> findByGroupAndUserIdAndStatus(Group group, String userId, GroupStatus status);
     List<GroupUser> findByUserAndStatus(User user, GroupStatus groupStatus);
 
     long countByGroupAndStatus(Group group, GroupStatus groupStatus);
