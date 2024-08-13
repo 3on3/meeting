@@ -2,6 +2,7 @@ package com.project.api.metting.repository;
 
 import com.project.api.metting.dto.request.GroupRequestDto;
 import com.project.api.metting.dto.request.MainMeetingListFilterDto;
+import com.project.api.metting.dto.request.MyChatListRequestDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.dto.response.MainMeetingListResponseDto;
 import com.project.api.metting.entity.*;
@@ -38,20 +39,55 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
 
     //    main meetingList DTO
     @Override
-    public List<MainMeetingListResponseDto> findGroupUsersByAllGroup() {
+    public Page<MainMeetingListResponseDto> findGroupUsersByAllGroup(Pageable pageable) {
 
         QGroup group = QGroup.group;
         QGroupUser groupUser = QGroupUser.groupUser;
 
+        // 공통 필터 조건
+        BooleanExpression conditions = groupUser.auth.eq(GroupAuth.HOST)
+                .and(group.isMatched.eq(false));
 
+        BooleanExpression registeredUserCountCondition = JPAExpressions
+                .select(groupUser.count().intValue())
+                .from(groupUser)
+                .where(groupUser.group.eq(group)
+                        .and(groupUser.status.eq(GroupStatus.REGISTERED)))
+                .eq(group.maxNum);
+
+
+
+        // 조건 결합
+        BooleanExpression combinedCondition = conditions.and(registeredUserCountCondition);
+
+
+        // 그룹 필터링 및 페이징
         List<Group> groups = factory.selectFrom(group)
                 .join(group.groupUsers, groupUser)
-                .where(groupUser.auth.eq(GroupAuth.HOST)
-                )
+                .where(combinedCondition)
+                .orderBy(group.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
 
+        // 카운트 계산
+        Long count = factory.select(group.count())
+                .from(group)
+                .join(group.groupUsers, groupUser)
+                .where(combinedCondition)
+                .groupBy(group.id)
+                .stream().count();
 
-        return groups.stream().map(this::convertToMeetingListDto).collect(Collectors.toList());
+//<<<<<<< HEAD
+//        return groups.stream().map(this::convertToMeetingListDto).collect(Collectors.toList());
+//=======
+
+        List<MainMeetingListResponseDto> meetingList = groups.stream()
+                .map(this::convertToMeetingListDto)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(meetingList, pageable, count);
+//>>>>>>> main2
 
     }
 
@@ -193,13 +229,17 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         return new GroupRequestDto(group, memberCount, calculateAverageAge(group), hostMajor(group));
     }
 
+    public void myChatListRequestDto(Group group, MyChatListRequestDto dto) {
+        dto.setAge(calculateAverageAge(group));
+    }
+
 
     //  Date 생년월일을 나이로 변경
     private int calculateAge(Date birthDate) {
         if (birthDate == null) return 0;
 
         LocalDate birthLocalDate = new java.sql.Date(birthDate.getTime()).toLocalDate();
-        return Period.between(birthLocalDate, LocalDate.now()).getYears();
+        return Period.between(birthLocalDate, LocalDate.now()).getYears() + 2;
     }
 
     //    평균 나이 계산
