@@ -10,7 +10,6 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
 public class UserUpdateRequestDto {
 
     //    @JsonProperty("product_img")
