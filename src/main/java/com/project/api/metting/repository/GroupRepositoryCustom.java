@@ -1,6 +1,7 @@
 package com.project.api.metting.repository;
 
 import com.project.api.metting.dto.request.MainMeetingListFilterDto;
+import com.project.api.metting.dto.request.MyChatListRequestDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.dto.response.MainMeetingListResponseDto;
 import com.project.api.metting.entity.Group;
@@ -18,4 +19,5 @@ public interface GroupRepositoryCustom {
     List<Group> findGroupsEntityByUserEmail(String email);
 
     Page<MainMeetingListResponseDto> findGroupUsersByAllGroup(String email,Pageable pageable);
+    public void myChatListRequestDto(Group group, MyChatListRequestDto dto);
 }

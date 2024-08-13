@@ -148,4 +148,10 @@ public class GroupMatchingService {
                 .collect(Collectors.toList());
 
     }
+
+
+    // 요청 그룹, 주최자 그룹으로 히스토리 조회
+    public GroupMatchingHistory findByResponseGroupAndRequestGroup(Group findResponseGroup,Group findRequestGroup){
+        return groupMatchingHistoriesRepository.findByResponseGroupAndRequestGroup(findResponseGroup, findRequestGroup);
+    }
 }

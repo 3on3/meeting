@@ -10,6 +10,7 @@ import com.project.api.metting.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,12 +32,14 @@ public class ChatRoomService {
 
     private static final Logger log = LoggerFactory.getLogger(ChatRoomService.class);
     private final ChatRoomsRepository chatRoomsRepository;
+    @Lazy
     private final GroupRepository groupRepository;
     private final GroupUsersRepository groupUsersRepository;
     private final UserProfileRepository userProfileRepository;
     private final GroupMatchingHistoriesRepository groupMatchingHistoriesRepository;
     private final UserRepository userRepository;
-    private final GroupRepositoryCustomImpl groupRepositoryCustom;
+    private final GroupService groupService;
+    private final GroupMatchingService groupMatchingService;
 
 
     /**
@@ -46,10 +49,11 @@ public class ChatRoomService {
     @Transactional
     public ChatRoomResponseDto createChatRoom(ChatRoomRequestDto chatRoomRequestDto) {
         try {
-            Group findRequestGroup = groupRepository.findById(chatRoomRequestDto.getRequestGroupId()).orElseThrow(null);
-            Group findResponseGroup = groupRepository.findById(chatRoomRequestDto.getResponseGroupId()).orElseThrow(null);
 
-            GroupMatchingHistory history = groupMatchingHistoriesRepository.findByResponseGroupAndRequestGroup(findResponseGroup, findRequestGroup);
+            Group findRequestGroup = groupService.findGroupById(chatRoomRequestDto.getRequestGroupId());
+            Group findResponseGroup = groupService.findGroupById(chatRoomRequestDto.getResponseGroupId());
+
+            GroupMatchingHistory history = groupMatchingService.findByResponseGroupAndRequestGroup(findResponseGroup, findRequestGroup);
 
             // 같은 그룹 사이에 채팅방생성 isDeleted = 0이면 불가 isDeleted = 1 이면 새로운 채팅방.
             boolean isProcessMatched = history.getProcess().equals(GroupProcess.MATCHED);
@@ -150,7 +154,7 @@ public class ChatRoomService {
         System.out.println("userGroups = " + userGroups);
 
         List<GroupMatchingHistory> matchingHistories = new ArrayList<>();
-        
+
         List<Group> matchingGroups = new ArrayList<>();
 
         for (Group userGroup : userGroups) {
@@ -167,7 +171,6 @@ public class ChatRoomService {
             }
         }
 
-        System.out.println("matchingHistories = " + matchingHistories);
 
         List<MyChatListRequestDto> myChatListRequestDtoList = new ArrayList<>();
 
@@ -189,7 +192,7 @@ public class ChatRoomService {
                     .build();
 
             // 그룹의 평균나이 계산
-            groupRepositoryCustom.myChatListRequestDto(matchingGroups.get(i), myChatListRequestDto);
+            groupRepository.myChatListRequestDto(matchingGroups.get(i), myChatListRequestDto);
 
             myChatListRequestDtoList.add(myChatListRequestDto);
         }

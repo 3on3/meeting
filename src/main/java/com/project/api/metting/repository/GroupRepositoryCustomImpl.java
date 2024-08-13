@@ -12,6 +12,7 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -83,18 +84,18 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .collect(Collectors.toList());
 
         // ================= setExistMatchingHistory
-        // 해당 사용자가 속한 그룹들을 가져옴
-        List<Group> groupsByUserEmail = groupRepository.findGroupsEntityByUserEmail(email);
-        // groupsByUserEmail 리스트의 ID들을 Set으로 변환
-        Set<String> userGroupIds = groupsByUserEmail.stream()
-                .map(Group::getId)
-                .collect(Collectors.toSet());
-        // groupUsersByAllGroup 리스트를 순회하며 ID를 비교하여 isExistMatchingHistory 설정
-        for (MainMeetingListResponseDto dto : meetingList) {
-            if (userGroupIds.contains(dto.getId())) {
-                dto.setExistMatchingHistory(true);
-            }
-        }
+//        // 해당 사용자가 속한 그룹들을 가져옴
+//        List<Group> groupsByUserEmail = groupRepository.findGroupsEntityByUserEmail(email);
+//        // groupsByUserEmail 리스트의 ID들을 Set으로 변환
+//        Set<String> userGroupIds = groupsByUserEmail.stream()
+//                .map(Group::getId)
+//                .collect(Collectors.toSet());
+//        // groupUsersByAllGroup 리스트를 순회하며 ID를 비교하여 isExistMatchingHistory 설정
+//        for (MainMeetingListResponseDto dto : meetingList) {
+//            if (userGroupIds.contains(dto.getId())) {
+//                dto.setExistMatchingHistory(true);
+//            }
+//        }
         return new PageImpl<>(meetingList, pageable, count);
 
     }
