@@ -5,6 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.project.api.metting.dto.response.LoginResponseDto;
 import com.project.api.metting.dto.response.MainWebSocketResponseDto;
+import com.project.api.metting.repository.GroupRepository;
+import com.project.api.metting.service.GroupService;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
@@ -17,10 +22,13 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+@RequiredArgsConstructor
 public class MainWebSocketHandler extends TextWebSocketHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(MainWebSocketHandler.class);
     private final ObjectMapper objectMapper;
     private final Map<String, WebSocketSession> sessions;
     private final Map<String, LoginResponseDto> users = new ConcurrentHashMap<>();
@@ -56,18 +64,43 @@ public class MainWebSocketHandler extends TextWebSocketHandler {
 
         if(mainWebSocketResponseDto.getType().equals("login")) {
             users.put(sessionId, mainWebSocketResponseDto.getLoginUser());
+            System.out.println("users = " + users);
         }
 
-        System.out.println("users = " + users);
+        if(mainWebSocketResponseDto.getType().equals("matching")) {
 
-        sessions.values().forEach((s) -> {
-            try {
-                String jsonMessage = objectMapper.writeValueAsString(null);
-                s.sendMessage(new TextMessage(jsonMessage));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            String email = mainWebSocketResponseDto.getEmail();
+
+//            String email = "qwdk0529@naver.com";
+
+            for (Map.Entry<String, LoginResponseDto> entry : users.entrySet()) {
+                // Check if the email matches
+                if (email.equals(entry.getValue().getEmail())) {
+                    String hostSessionId = entry.getKey();
+
+                    sessions.values().forEach((s) -> {
+                        if (s.getId().equals(hostSessionId)) {
+                            try {
+                                String jsonMessage = objectMapper.writeValueAsString(mainWebSocketResponseDto.getResponseGroupId());
+                                s.sendMessage(new TextMessage(jsonMessage));
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    });
+                }
             }
-        });
+
+        }
+
+//        sessions.values().forEach((s) -> {
+//            try {
+//                String jsonMessage = objectMapper.writeValueAsString(null);
+//                s.sendMessage(new TextMessage(jsonMessage));
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        });
     }
 
     //웹소켓 종료
@@ -77,6 +110,8 @@ public class MainWebSocketHandler extends TextWebSocketHandler {
         try {
             users.remove(sessionId);
             sessions.remove(sessionId); // 삭제
+
+            System.out.println("users = " + users);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -90,13 +125,4 @@ public class MainWebSocketHandler extends TextWebSocketHandler {
 
     }
 
-    private void sendMessage(String sessionId, WebSocketMessage<?> message) {
-        sessions.values().forEach(s -> {
-            if(!s.getId().equals(sessionId) && s.isOpen()) {
-                try {
-                    s.sendMessage(message);
-                } catch (IOException e) {}
-            }
-        });
-    }
 }

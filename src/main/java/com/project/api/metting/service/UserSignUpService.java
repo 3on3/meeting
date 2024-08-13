@@ -114,6 +114,20 @@ public class UserSignUpService {
         }
     }
 
+    // 닉네임 중복 확인
+    public boolean checkNicknameDuplicate(String nickname) {
+        boolean exists = userRepository.existsByNickname(nickname);
+        log.info("Checking nickname {} is duplicate: {}", nickname, exists);
+        return exists;
+    }
+
+    // 전화번호 중복 확인
+    public boolean checkPhoneNumberDuplicate(String phoneNumber) {
+        boolean exists = userRepository.existsByPhoneNumber(phoneNumber);
+        log.info("Checking phone number {} is duplicate: {}", phoneNumber, exists);
+        return exists;
+    }
+
 //    private void generateAndCreateCode(String email, User user) {
 //        // 2. 이메일 인증코드 발송
 //        String code = sendVerificationEmail(email);

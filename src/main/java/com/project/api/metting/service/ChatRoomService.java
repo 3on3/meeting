@@ -3,6 +3,7 @@ package com.project.api.metting.service;
 import com.project.api.metting.dto.request.ChatRequestDto;
 import com.project.api.metting.dto.request.ChatRoomRequestDto;
 import com.project.api.metting.dto.request.ChatUserRequestDto;
+import com.project.api.metting.dto.request.MyChatListRequestDto;
 import com.project.api.metting.dto.response.ChatRoomResponseDto;
 import com.project.api.metting.entity.*;
 import com.project.api.metting.repository.*;
@@ -18,6 +19,9 @@ import com.project.api.metting.dto.response.ChatUserResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 @Service
 @RequiredArgsConstructor
 public class ChatRoomService {
@@ -28,6 +32,8 @@ public class ChatRoomService {
     private final GroupUsersRepository groupUsersRepository;
     private final UserProfileRepository userProfileRepository;
     private final GroupMatchingHistoriesRepository groupMatchingHistoriesRepository;
+    private final UserRepository userRepository;
+    private final GroupRepositoryCustomImpl groupRepositoryCustom;
 
 
     /**
@@ -144,4 +150,73 @@ public class ChatRoomService {
 //    }
 
 
+    public List<MyChatListRequestDto> findChatList(String userId) {
+
+        User user = userRepository.findById(userId).orElseThrow();
+
+        List<GroupUser> groupUsers = groupUsersRepository.findByUserAndStatus(user, GroupStatus.REGISTERED);
+
+        System.out.println("groupUsers = " + groupUsers);
+
+        List<Group> userGroups = new ArrayList<>();
+
+        for (GroupUser groupUser : groupUsers) {
+            if(!groupUser.getGroup().getIsDeleted()) {
+                userGroups.add(groupUser.getGroup());
+            }
+        }
+
+        System.out.println("userGroups = " + userGroups);
+
+        List<GroupMatchingHistory> matchingHistories = new ArrayList<>();
+        
+        List<Group> matchingGroups = new ArrayList<>();
+
+        for (Group userGroup : userGroups) {
+            GroupMatchingHistory responseHistory = groupMatchingHistoriesRepository.findByResponseGroupAndProcess(userGroup, GroupProcess.MATCHED);
+            GroupMatchingHistory requestHistory = groupMatchingHistoriesRepository.findByRequestGroupAndProcess(userGroup, GroupProcess.MATCHED);
+
+            if(responseHistory != null) {
+                matchingHistories.add(responseHistory);
+                matchingGroups.add(responseHistory.getRequestGroup());
+            }
+            if(requestHistory != null) {
+                matchingHistories.add(requestHistory);
+                matchingGroups.add(requestHistory.getResponseGroup());
+            }
+        }
+
+        System.out.println("matchingHistories = " + matchingHistories);
+
+        List<MyChatListRequestDto> myChatListRequestDtoList = new ArrayList<>();
+
+        for (int i = 0; i < matchingHistories.size(); i++) {
+
+
+
+            GroupUser groupUser = groupUsersRepository.findByGroupAndAuth(matchingGroups.get(i), GroupAuth.HOST);
+
+            User hostUser = userRepository.findById(groupUser.getUser().getId()).orElseThrow();
+
+            MyChatListRequestDto myChatListRequestDto = MyChatListRequestDto.builder()
+                    .chatRoomId(matchingHistories.get(i).getChatRoom().getId())
+                    .groupName(matchingGroups.get(i).getGroupName())
+                    .groupPlace(matchingGroups.get(i).getGroupPlace())
+                    .maxNum(matchingGroups.get(i).getMaxNum())
+                    .gender(matchingGroups.get(i).getGroupGender())
+                    .major(hostUser.getMajor())
+                    .build();
+
+            // 그룹의 평균나이 계산
+            groupRepositoryCustom.myChatListRequestDto(matchingGroups.get(i), myChatListRequestDto);
+
+            myChatListRequestDtoList.add(myChatListRequestDto);
+        }
+
+        System.out.println("myChatListRequestDtoList = " + myChatListRequestDtoList);
+
+
+        return myChatListRequestDtoList;
+
+    }
 }
