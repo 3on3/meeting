@@ -237,6 +237,8 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         return new GroupRequestDto(group, memberCount, calculateAverageAge(group), hostMajor(group));
     }
 
+
+    // 여기야
     public void myChatListRequestDto(Group group, MyChatListRequestDto dto) {
         dto.setAge(calculateAverageAge(group));
     }
