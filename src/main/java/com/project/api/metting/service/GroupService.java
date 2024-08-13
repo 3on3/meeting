@@ -457,6 +457,7 @@ public class GroupService {
 
         // 모든 그룹 유저의 상태를 WITHDRAW로 업데이트
         for (GroupUser gu : groupUsers) {
+            if (gu.getStatus() != GroupStatus.CANCELLED)
             gu.setStatus(GroupStatus.WITHDRAW);
             groupUsersRepository.save(gu);
         }
