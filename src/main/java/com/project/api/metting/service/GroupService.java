@@ -6,6 +6,7 @@ import com.project.api.metting.dto.request.GroupDeleteRequestDto;
 import com.project.api.metting.dto.request.GroupJoinRequestDto;
 import com.project.api.metting.dto.request.GroupWithdrawRequestDto;
 import com.project.api.metting.dto.response.GroupUsersViewListResponseDto;
+import com.project.api.metting.dto.response.InviteResultResponseDto;
 import com.project.api.metting.dto.response.InviteUsersViewResponseDto;
 import com.project.api.metting.dto.response.UserResponseDto;
 import com.project.api.metting.entity.*;
@@ -32,7 +33,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -52,7 +52,7 @@ public class GroupService {
     /**
      * 그룹 생성 메서드
      *
-     * @param dto - 그룹 생성에 필요한 dto
+     * @param dto       - 그룹 생성에 필요한 dto
      * @param tokenInfo - 현재 로그인한 사람의 정보가 들어가 있는 token의 정보.
      */
     @Transactional
@@ -149,7 +149,7 @@ public class GroupService {
     /**
      * 그룹 가입 신청 메서드
      *
-     * @param dto - 가입 신청에 필요한 dto
+     * @param dto       - 가입 신청에 필요한 dto
      * @param tokenInfo - 현재 로그인한 사람의 정보가 들어가 있는 token의 정보.
      */
     @Transactional
@@ -191,12 +191,23 @@ public class GroupService {
      * 초대 코드로 그룹에 가입하는 메서드
      *
      * @param inviteCode - 초대 코드
-     * @param tokenInfo - 현재 로그인한 사람의 정보가 들어가 있는 token의 정보.
+     * @param tokenInfo  - 현재 로그인한 사람의 정보가 들어가 있는 token의 정보.
      */
-    public void joinGroupWithInviteCode(String inviteCode, TokenUserInfo tokenInfo) {
+    public InviteResultResponseDto joinGroupWithInviteCode(String inviteCode, TokenUserInfo tokenInfo) {
         log.info("Attempting to join group with invite code: {}", inviteCode);
         String groupId = redisUtil.getData(INVITE_LINK_PREFIX + inviteCode, String.class)
                 .orElseThrow(() -> new IllegalStateException("더 이상 존재하지 않는 가입 코드입니다. 다시 확인해주세요."));
+
+        User loginUser = userRepository.findByEmail(tokenInfo.getEmail()).orElseThrow();
+        // 유저가 이미 참여한 그룹의 개수 확인
+        long groupCount = loginUser.getGroupUsers().stream()
+                .filter(groupUser -> groupUser.getStatus() == GroupStatus.REGISTERED)
+                .count();
+
+        // 그룹 생성 제한 조건 검사
+        if (groupCount >= 3) {
+            throw new IllegalStateException("이미 세 개의 그룹에 참여 중입니다. 더 이상 그룹에 참여신청이 불가능합니다.");
+        }
 
         log.info("groupId info - {}", groupId);
         Group findGroup = groupRepository.findById(groupId).orElseThrow(IllegalStateException::new);
@@ -205,7 +216,7 @@ public class GroupService {
         User findUser = userRepository.findById(tokenInfo.getUserId()).orElseThrow(IllegalStateException::new);
 
         if (findGroup.getGroupGender() != findUser.getGender()) {
-            throw new IllegalStateException("해당 그룹은 " + findGroup.getGroupGender() +"만 입장가능한 그룹입니다.");
+            throw new IllegalStateException("해당 그룹은 " +findGroup.getGroupGender()+ "성만 입장가능한 그룹입니다.");
         }
 
 
@@ -218,13 +229,13 @@ public class GroupService {
         // 유저가 이미 해당 그룹에 가입 신청했는지 확인
         boolean alreadyRequested = groupUsersRepository.existsByUserAndGroupAndStatus(user, group, GroupStatus.INVITING);
         if (alreadyRequested) {
-            throw new IllegalStateException("이미 해당 그룹에 가입 신청하셨습니다.");
+            throw new IllegalStateException("이미 해당 그룹에 가입 신청을 완료하였습니다.");
         }
 
         // 유저가 이미 해당 그룹에 가입되어 있는지 확인
-        boolean alreadyJoined = groupUsersRepository.existsByUserAndGroup(user, group);
+        boolean alreadyJoined = groupUsersRepository.existsByUserAndGroupAndStatus(user, group, GroupStatus.REGISTERED);
         if (alreadyJoined) {
-            throw new IllegalStateException("이미 해당 그룹에 가입되어 있습니다.");
+            throw new IllegalStateException("이미 해당 그룹에 가입되어 있는 상태입니다.");
         }
 
         // GroupUser 엔티티 생성
@@ -237,6 +248,11 @@ public class GroupService {
                 .build();
 
         groupUsersRepository.save(groupUser);
+
+        InviteResultResponseDto dto = InviteResultResponseDto.builder()
+                .groupName(group.getGroupName())
+                .build();
+        return dto;
     }
 
     /**
@@ -269,7 +285,7 @@ public class GroupService {
      * 그룹 가입 신청 거절 메서드
      *
      * @param groupUserId - 그룹 사용자 ID
-     * @param tokenInfo - 현재 로그인한 사람의 정보가 들어가 있는 token의 정보.
+     * @param tokenInfo   - 현재 로그인한 사람의 정보가 들어가 있는 token의 정보.
      */
     @Transactional
     public void cancelJoinRequest(String groupUserId, TokenUserInfo tokenInfo) {
@@ -284,7 +300,7 @@ public class GroupService {
      * 그룹 가입 신청 수락 메서드
      *
      * @param groupUserId - 그룹 사용자 ID
-     * @param tokenInfo - 현재 로그인한 사람의 정보가 들어가 있는 token의 정보.
+     * @param tokenInfo   - 현재 로그인한 사람의 정보가 들어가 있는 token의 정보.
      */
     @Transactional
     public void acceptJoinRequest(String groupUserId, TokenUserInfo tokenInfo) {
@@ -330,7 +346,7 @@ public class GroupService {
                 .mapToLong(groupUser -> {
                     Date birthDate = groupUser.getUser().getBirthDate();
                     LocalDate birthLocalDate = birthDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                    return ChronoUnit.YEARS.between(birthLocalDate, LocalDate.now());
+                    return ChronoUnit.YEARS.between(birthLocalDate, LocalDate.now()) + 2;
                 })
                 .average()
                 .orElse(0);
@@ -341,7 +357,7 @@ public class GroupService {
         Place meetingPlace = group.getGroupPlace();
 
         //rㅡ룹 이름
-        String groupName= group.getGroupName();
+        String groupName = group.getGroupName();
 
         //그룹 초대 코드
         String code = group.getCode();
@@ -382,7 +398,6 @@ public class GroupService {
     }
 
     /**
-     *
      * @param responseGroupId - 로그인한 유저의 token 정보
      */
     public User findByGroupHost(String responseGroupId) {
@@ -392,13 +407,14 @@ public class GroupService {
         List<GroupUser> groupUsers = groupUsersRepository.findByGroup(group);
 
         for (GroupUser groupUser : groupUsers) {
-            if(groupUser.getAuth() == GroupAuth.HOST) {
+            if (groupUser.getAuth() == GroupAuth.HOST) {
                 return groupUser.getUser();
             }
         }
 
         return null;
     }
+
     @Transactional
     public void groupWithDraw(GroupWithdrawRequestDto dto, TokenUserInfo tokenInfo) {
         // 그룹 조회
@@ -417,8 +433,7 @@ public class GroupService {
     }
 
     /**
-     *
-     * @param dto - 삭제 시킬 그룹의 group Id의 dto
+     * @param dto           - 삭제 시킬 그룹의 group Id의 dto
      * @param tokenUserInfo - 로그인한 유저의 info
      */
     @Transactional
