@@ -37,21 +37,51 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
 
     //    main meetingList DTO
     @Override
-    public List<MainMeetingListResponseDto> findGroupUsersByAllGroup() {
+    public Page<MainMeetingListResponseDto> findGroupUsersByAllGroup(Pageable pageable) {
 
         QGroup group = QGroup.group;
         QGroupUser groupUser = QGroupUser.groupUser;
 
+        // 공통 필터 조건
+        BooleanExpression conditions = groupUser.auth.eq(GroupAuth.HOST)
+                .and(group.isMatched.eq(false));
 
+        BooleanExpression registeredUserCountCondition = JPAExpressions
+                .select(groupUser.count().intValue())
+                .from(groupUser)
+                .where(groupUser.group.eq(group)
+                        .and(groupUser.status.eq(GroupStatus.REGISTERED)))
+                .eq(group.maxNum);
+
+
+
+        // 조건 결합
+        BooleanExpression combinedCondition = conditions.and(registeredUserCountCondition);
+
+
+        // 그룹 필터링 및 페이징
         List<Group> groups = factory.selectFrom(group)
                 .join(group.groupUsers, groupUser)
-                .where(groupUser.auth.eq(GroupAuth.HOST)
-                )
+                .where(combinedCondition)
+                .orderBy(group.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
 
+        // 카운트 계산
+        Long count = factory.select(group.count())
+                .from(group)
+                .join(group.groupUsers, groupUser)
+                .where(combinedCondition)
+                .groupBy(group.id)
+                .stream().count();
 
 
-        return groups.stream().map(this::convertToMeetingListDto).collect(Collectors.toList());
+        List<MainMeetingListResponseDto> meetingList = groups.stream()
+                .map(this::convertToMeetingListDto)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(meetingList, pageable, count);
 
     }
 

@@ -8,6 +8,8 @@ import com.project.api.metting.repository.GroupRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,12 +24,13 @@ public class MainService {
 
 
 //    Group 전체 조회
-    public List<MainMeetingListResponseDto> getMeetingList() {
+    public Page<MainMeetingListResponseDto> getMeetingList(int pageNo) {
 //        List<Group> MeetingList = groupRepository.findAll();
 //        log.info("MeetingList: {}", MeetingList);
 
-        List<MainMeetingListResponseDto> groupUsersByAllGroup = groupRepository.findGroupUsersByAllGroup();
-        return groupUsersByAllGroup;
+        PageRequest pageable = PageRequest.of(pageNo - 1, 5);
+
+        return groupRepository.findGroupUsersByAllGroup(pageable);
     }
 
 //    group 필터링
