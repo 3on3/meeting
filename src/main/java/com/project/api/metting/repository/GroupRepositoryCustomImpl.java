@@ -5,6 +5,7 @@ import com.project.api.metting.dto.request.MainMeetingListFilterDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.dto.response.MainMeetingListResponseDto;
 import com.project.api.metting.entity.*;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -32,6 +33,7 @@ import static com.project.api.metting.entity.QGroup.group;
 public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     private final JPAQueryFactory factory;
     private final GroupUsersRepository groupUsersRepository;
+    private final GroupRepository groupRepository;
 
 
     //    main meetingList DTO
@@ -47,7 +49,6 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .where(groupUser.auth.eq(GroupAuth.HOST)
                 )
                 .fetch();
-
 
 
         return groups.stream().map(this::convertToMeetingListDto).collect(Collectors.toList());
@@ -76,7 +77,6 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .eq(group.maxNum);
 
 
-
         // 조건 결합
         BooleanExpression combinedCondition = conditions.and(registeredUserCountCondition);
 
@@ -103,6 +103,12 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         List<MainMeetingListResponseDto> meetingList = groups.stream()
                 .map(this::convertToMeetingListDto)
                 .collect(Collectors.toList());
+
+//        List<Group> groupsByUserEmail = groupRepository.findGroupsEntityByUserEmail(email);
+//
+//        meetingList.forEach(mainMeetingListResponseDto ->
+//                mainMeetingListResponseDto.getId() == groupsByUserEmail.forEach(group1 -> group1.getId()));
+//        groupsByUserEmail.forEach(group1 -> existsGroupMatchingHistoryByResponse(group1));
 
         return new PageImpl<>(meetingList, pageable, count);
     }
@@ -140,6 +146,8 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     }
 
 
+
+
     //GroupResponseDto - 마이페이지 내가 속한 그룹
     @Override
     public List<GroupResponseDto> findGroupsByUserEmail(String email) {
@@ -153,6 +161,19 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .fetch();
 
         return groups.stream().map(this::convertToGroupResponseDto).collect(Collectors.toList());
+    }
+    @Override
+    public List<Group> findGroupsEntityByUserEmail(String email) {
+        QGroup group = QGroup.group;
+        QGroupUser groupUser = QGroupUser.groupUser;
+
+        List<Group> groups = factory.selectFrom(group)
+                .join(group.groupUsers, groupUser)
+                .where(groupUser.user.email.eq(email)
+                        .and(groupUser.status.eq(GroupStatus.REGISTERED))) // status 필터링 추가)
+                .fetch();
+
+        return groups;
     }
 
     //    GroupResponseDto
@@ -184,7 +205,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     //    평균 나이 계산
     public int calculateAverageAge(Group group) {
         return (int) Math.round(group.getGroupUsers().stream()
-                        .filter(groupUser -> groupUser.getStatus() == GroupStatus.REGISTERED)
+                .filter(groupUser -> groupUser.getStatus() == GroupStatus.REGISTERED)
                 .mapToDouble(gr -> calculateAge(gr.getUser().getBirthDate()))
                 .average().orElse(0));
     }
@@ -199,9 +220,18 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     }
 
 
+    //  group 히스토리 조회
+    public boolean existsGroupMatchingHistoryByResponse(Group group) {
+        QGroup qGroup = QGroup.group;
+        QGroupMatchingHistory qGroupMatchingHistory = QGroupMatchingHistory.groupMatchingHistory;
 
-
-
-
+        // 결과가 존재하는지 유무 체크
+        return factory.selectOne()
+                .from(qGroup)
+                .join(qGroupMatchingHistory)
+                .on(qGroup.eq(qGroupMatchingHistory.responseGroup))
+                .where(qGroup.eq(group))  // group 객체를 직접 비교
+                .fetchFirst() != null;
+    }
 
 }

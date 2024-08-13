@@ -64,6 +64,7 @@ public class GroupMatchingService {
 
 // if(requestGroup.getMaxNum())
 
+
             // 히스토리 생성
             GroupMatchingHistory groupMatchingHistory = GroupMatchingHistory.builder()
                     .requestGroup(requestGroup)
