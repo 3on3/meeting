@@ -1,5 +1,6 @@
 package com.project.api.metting.repository;
 
+import com.project.api.metting.dto.response.GroupHistoryResponseDto;
 import com.project.api.metting.entity.Group;
 import com.project.api.metting.entity.GroupMatchingHistory;
 import com.project.api.metting.entity.GroupProcess;
@@ -16,8 +17,11 @@ public interface GroupMatchingHistoriesRepository extends JpaRepository<GroupMat
 
     boolean existsByResponseGroupAndRequestGroup(Group responseGroup, Group requestGroup);
     GroupMatchingHistory findByResponseGroupAndRequestGroup(Group responseGroup, Group requestGroup);
+//    List<GroupMatchingHistory> findAllByRequestGroup(Group group);
 
     GroupMatchingHistory findByResponseGroupAndProcess(Group group, GroupProcess process);
 
     GroupMatchingHistory findByRequestGroupAndProcess(Group group, GroupProcess process);
+
+    List<GroupMatchingHistory> findAllByRequestGroup(Group requestGroup);
 }

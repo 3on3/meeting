@@ -467,4 +467,17 @@ public class GroupService {
         groupRepository.save(findGroup);
     }
 
+    // 그룹 아이디로 그룹 리턴
+    public Group findGroupById(String groupId) {
+       return groupRepository.findById(groupId).orElseThrow(null);
+    }
+
+
+    public List<GroupUser> findGroupUserList(User user) {
+         return groupUsersRepository.findByUserAndStatus(user, GroupStatus.REGISTERED);
+    }
+
+
+
+
 }

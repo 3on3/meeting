@@ -6,11 +6,13 @@ import com.project.api.metting.dto.request.MyChatListRequestDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.dto.response.MainMeetingListResponseDto;
 import com.project.api.metting.entity.*;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +24,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.project.api.metting.entity.QGroup.group;
@@ -32,7 +35,8 @@ import static com.project.api.metting.entity.QGroup.group;
 @Slf4j
 public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     private final JPAQueryFactory factory;
-    private final GroupUsersRepository groupUsersRepository;
+//    private final GroupUsersRepository groupUsersRepository;
+//    private final GroupRepository groupRepository;
 
 
     //    main meetingList DTO
@@ -52,7 +56,6 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .where(groupUser.group.eq(group)
                         .and(groupUser.status.eq(GroupStatus.REGISTERED)))
                 .eq(group.maxNum);
-
 
 
         // 조건 결합
@@ -76,10 +79,10 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .groupBy(group.id)
                 .stream().count();
 
-
         List<MainMeetingListResponseDto> meetingList = groups.stream()
                 .map(this::convertToMeetingListDto)
                 .collect(Collectors.toList());
+
 
         return new PageImpl<>(meetingList, pageable, count);
 
@@ -105,7 +108,6 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .where(groupUser.group.eq(group)
                         .and(groupUser.status.eq(GroupStatus.REGISTERED)))
                 .eq(group.maxNum);
-
 
 
         // 조건 결합
@@ -135,9 +137,17 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .map(this::convertToMeetingListDto)
                 .collect(Collectors.toList());
 
+//        List<Group> groupsByUserEmail = groupRepository.findGroupsEntityByUserEmail(email);
+//
+//        meetingList.forEach(mainMeetingListResponseDto ->
+//                mainMeetingListResponseDto.getId() == groupsByUserEmail.forEach(group1 -> group1.getId()));
+//        groupsByUserEmail.forEach(group1 -> existsGroupMatchingHistoryByResponse(group1));
+
         return new PageImpl<>(meetingList, pageable, count);
     }
 
+
+//    private boolean existsHistoriesByGroups(Set<Group> groups) {}
 
     // main meetingList DTO
     public MainMeetingListResponseDto convertToMeetingListDto(Group group) {
@@ -186,6 +196,20 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         return groups.stream().map(this::convertToGroupResponseDto).collect(Collectors.toList());
     }
 
+    @Override
+    public List<Group> findGroupsEntityByUserEmail(String email) {
+        QGroup group = QGroup.group;
+        QGroupUser groupUser = QGroupUser.groupUser;
+
+        List<Group> groups = factory.selectFrom(group)
+                .join(group.groupUsers, groupUser)
+                .where(groupUser.user.email.eq(email)
+                        .and(groupUser.status.eq(GroupStatus.REGISTERED))) // status 필터링 추가)
+                .fetch();
+
+        return groups;
+    }
+
     //    GroupResponseDto
     public GroupResponseDto convertToGroupResponseDto(Group group) {
         int memberCount = (int) group.getGroupUsers().stream()
@@ -203,8 +227,11 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         return new GroupRequestDto(group, memberCount, calculateAverageAge(group), hostMajor(group));
     }
 
-    public void myChatListRequestDto(Group group, MyChatListRequestDto dto) {
-        dto.setAge(calculateAverageAge(group));
+
+    // 여기야
+    @Override
+    public Integer myChatListRequestDto(Group group) {
+        return calculateAverageAge(group);
     }
 
 
@@ -219,7 +246,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     //    평균 나이 계산
     public int calculateAverageAge(Group group) {
         return (int) Math.round(group.getGroupUsers().stream()
-                        .filter(groupUser -> groupUser.getStatus() == GroupStatus.REGISTERED)
+                .filter(groupUser -> groupUser.getStatus() == GroupStatus.REGISTERED)
                 .mapToDouble(gr -> calculateAge(gr.getUser().getBirthDate()))
                 .average().orElse(0));
     }
@@ -234,9 +261,18 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     }
 
 
+    //  group 히스토리 조회
+    public List<GroupMatchingHistory> groupsMatchingHistoryByResponse(Group group) {
+        QGroup qGroup = QGroup.group;
+        QGroupMatchingHistory qGroupMatchingHistory = QGroupMatchingHistory.groupMatchingHistory;
 
-
-
-
+        // 결과가 존재하는지 유무 체크
+        return factory.select(qGroupMatchingHistory)
+                .from(qGroup)
+                .join(qGroupMatchingHistory)
+                .on(qGroup.eq(qGroupMatchingHistory.responseGroup))
+                .where(qGroup.eq(group))  // group 객체를 직접 비교
+                .fetch();
+    }
 
 }
