@@ -1,8 +1,10 @@
 package com.project.api.metting.controller;
 
+import com.project.api.auth.TokenProvider;
 import com.project.api.metting.dto.request.ChatRequestDto;
 import com.project.api.metting.dto.request.ChatRoomRequestDto;
 import com.project.api.metting.dto.request.ChatUserRequestDto;
+import com.project.api.metting.dto.request.MyChatListRequestDto;
 import com.project.api.metting.dto.response.ChatRoomResponseDto;
 import com.project.api.metting.dto.response.ChatUserResponseDto;
 import com.project.api.metting.entity.ChatRoom;
@@ -13,6 +15,7 @@ import com.project.api.metting.service.GroupMatchingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -65,5 +68,15 @@ public class ChatRoomController {
         System.out.println("chatUserList = " + chatUserList);
 
         return ResponseEntity.ok().body(chatUserList);
+    }
+
+    @PostMapping("/myChatList")
+    public ResponseEntity<?> myChatList(@AuthenticationPrincipal TokenProvider.TokenUserInfo tokenUserInfo){
+
+        String userId = tokenUserInfo.getUserId();
+
+        List<MyChatListRequestDto> chatList = chatRoomService.findChatList(userId);
+
+        return ResponseEntity.ok().body(chatList);
     }
 }
