@@ -1,5 +1,6 @@
 package com.project.api.metting.repository;
 
+import com.project.api.metting.entity.Group;
 import com.project.api.metting.entity.GroupMatchingHistory;
 
 import java.util.List;
