@@ -424,7 +424,7 @@ public class GroupService {
         log.info("dto get group id - {}", dto.getGroupId());
 
         // 그룹과 유저를 기반으로 그룹 유저 조회
-        GroupUser groupUser = groupUsersRepository.findByGroupAndUserId(findGroup, tokenInfo.getUserId())
+        GroupUser groupUser = groupUsersRepository.findByGroupAndUserIdAndStatus(findGroup, tokenInfo.getUserId(), GroupStatus.REGISTERED)
                 .orElseThrow(() -> new IllegalStateException("해당 그룹에 가입되어 있지 않습니다."));
 
         // 탈퇴 처리
@@ -443,7 +443,7 @@ public class GroupService {
                 .orElseThrow(() -> new IllegalStateException("그룹을 찾을 수 없습니다."));
 
         // 그룹과 유저를 기반으로 그룹 유저 조회
-        GroupUser groupUser = groupUsersRepository.findByGroupAndUserId(findGroup, tokenUserInfo.getUserId())
+        GroupUser groupUser = groupUsersRepository.findByGroupAndUserIdAndStatus(findGroup, tokenUserInfo.getUserId(), GroupStatus.REGISTERED)
                 .orElseThrow(() -> new IllegalStateException("해당 그룹에 가입되어 있지 않습니다."));
 
         // 그룹 유저의 Auth를 조회해서 HOST인지 확인
