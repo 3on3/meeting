@@ -39,7 +39,6 @@ public class UserMyPageService {
     @Value("${univcert.api.key}")
     private String univCertApiKey;
 
-    @Value("${profile.image.upload.dir}") // 수정: 프로필 이미지 저장 경로를 외부 설정에서 가져오도록 수정
     private String profileImageUploadDir; // 프로필 이미지를 저장할 디렉토리 경로
 
     private final UserMyPageRepository userMyPageRepository;
