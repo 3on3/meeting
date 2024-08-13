@@ -10,6 +10,7 @@ import com.project.api.metting.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,13 +29,15 @@ public class ChatRoomService {
 
     private static final Logger log = LoggerFactory.getLogger(ChatRoomService.class);
     private final ChatRoomsRepository chatRoomsRepository;
+    @Lazy
     private final GroupRepository groupRepository;
     private final GroupUsersRepository groupUsersRepository;
     private final UserProfileRepository userProfileRepository;
     private final GroupMatchingHistoriesRepository groupMatchingHistoriesRepository;
     private final UserRepository userRepository;
-    private final GroupRepositoryCustomImpl groupRepositoryCustom;
-
+    private final GroupService groupService;
+    private final GroupMatchingService groupMatchingService;
+    private final UserService userService;
 
     /**
      * 매칭 후 채팅룸 생성 함수
@@ -44,10 +47,11 @@ public class ChatRoomService {
     @Transactional
     public ChatRoomResponseDto createChatRoom(ChatRoomRequestDto chatRoomRequestDto) {
         try {
-            Group findRequestGroup = groupRepository.findById(chatRoomRequestDto.getRequestGroupId()).orElseThrow(null);
-            Group findResponseGroup = groupRepository.findById(chatRoomRequestDto.getResponseGroupId()).orElseThrow(null);
 
-            GroupMatchingHistory history = groupMatchingHistoriesRepository.findByResponseGroupAndRequestGroup(findResponseGroup, findRequestGroup);
+            Group findRequestGroup = groupService.findGroupById(chatRoomRequestDto.getRequestGroupId());
+            Group findResponseGroup = groupService.findGroupById(chatRoomRequestDto.getResponseGroupId());
+
+            GroupMatchingHistory history = groupMatchingService.findByResponseGroupAndRequestGroup(findResponseGroup, findRequestGroup);
 
             // 같은 그룹 사이에 채팅방생성 isDeleted = 0이면 불가 isDeleted = 1 이면 새로운 채팅방.
             boolean isProcessMatched = history.getProcess().equals(GroupProcess.MATCHED);
@@ -129,32 +133,11 @@ public class ChatRoomService {
         return ChatRoomResponseDto.builder().id(chatRoom.getId()).name(chatRoom.getChatRoomName()).historyID(chatRoom.getGroupMatchingHistory().getId()).build();
     }
 
-
-//    public ChatRoomResponseDto findChatById(String id) {
-//        // Optional을 사용하여 채팅방을 조회합니다.
-//        Optional<ChatRoom> chatRoomOptional = chatRoomsRepository.findById(id);
-//
-//        // 채팅방이 존재하지 않는 경우 사용자 친화적인 메시지를 반환합니다.
-//        if (chatRoomOptional.isEmpty()) {
-//            // 채팅방을 찾을 수 없는 경우 사용자 친화적인 예외를 발생시킵니다.
-//            throw new RuntimeException("해당 ID로 채팅방을 찾을 수 없습니다: " + id);
-//        }
-//
-//        // 채팅방이 존재하는 경우, DTO로 변환하여 반환합니다.
-//        ChatRoom chatRoom = chatRoomOptional.get();
-//        return ChatRoomResponseDto.builder()
-//                .id(chatRoom.getId())
-//                .name(chatRoom.getChatRoomName())
-//                .historyID(chatRoom.getGroupMatchingHistory().getId())
-//                .build();
-//    }
-
-
     public List<MyChatListRequestDto> findChatList(String userId) {
 
-        User user = userRepository.findById(userId).orElseThrow();
+        User user = userService.findUser(userId);
 
-        List<GroupUser> groupUsers = groupUsersRepository.findByUserAndStatus(user, GroupStatus.REGISTERED);
+        List<GroupUser> groupUsers = groupService.findGroupUserList(user);
 
         System.out.println("groupUsers = " + groupUsers);
 
@@ -169,7 +152,7 @@ public class ChatRoomService {
         System.out.println("userGroups = " + userGroups);
 
         List<GroupMatchingHistory> matchingHistories = new ArrayList<>();
-        
+
         List<Group> matchingGroups = new ArrayList<>();
 
         for (Group userGroup : userGroups) {
@@ -186,7 +169,6 @@ public class ChatRoomService {
             }
         }
 
-        System.out.println("matchingHistories = " + matchingHistories);
 
         List<MyChatListRequestDto> myChatListRequestDtoList = new ArrayList<>();
 
@@ -198,6 +180,8 @@ public class ChatRoomService {
 
             User hostUser = userRepository.findById(groupUser.getUser().getId()).orElseThrow();
 
+            Integer averageAge = groupRepository.myChatListRequestDto(matchingGroups.get(i));
+
             MyChatListRequestDto myChatListRequestDto = MyChatListRequestDto.builder()
                     .chatRoomId(matchingHistories.get(i).getChatRoom().getId())
                     .groupName(matchingGroups.get(i).getGroupName())
@@ -205,10 +189,9 @@ public class ChatRoomService {
                     .maxNum(matchingGroups.get(i).getMaxNum())
                     .gender(matchingGroups.get(i).getGroupGender())
                     .major(hostUser.getMajor())
+                    .age(averageAge)
                     .build();
 
-            // 그룹의 평균나이 계산
-            groupRepositoryCustom.myChatListRequestDto(matchingGroups.get(i), myChatListRequestDto);
 
             myChatListRequestDtoList.add(myChatListRequestDto);
         }

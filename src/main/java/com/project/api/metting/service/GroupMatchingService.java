@@ -64,6 +64,7 @@ public class GroupMatchingService {
 
 // if(requestGroup.getMaxNum())
 
+
             // 히스토리 생성
             GroupMatchingHistory groupMatchingHistory = GroupMatchingHistory.builder()
                     .requestGroup(requestGroup)
@@ -146,5 +147,15 @@ public class GroupMatchingService {
                 .map(groupRepositoryCustomImpl::convertToGroupRequestDto)
                 .collect(Collectors.toList());
 
+    }
+
+
+    // 요청 그룹, 주최자 그룹으로 히스토리 조회
+    public GroupMatchingHistory findByResponseGroupAndRequestGroup(Group findResponseGroup,Group findRequestGroup){
+        return groupMatchingHistoriesRepository.findByResponseGroupAndRequestGroup(findResponseGroup, findRequestGroup);
+    }
+    // 요청 그룹아이디로 히스토리 조회
+    public List<GroupMatchingHistory> findByResponseGroup(Group findRequestGroup){
+        return groupMatchingHistoriesRepository.findAllByRequestGroup(findRequestGroup);
     }
 }
