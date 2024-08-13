@@ -63,6 +63,7 @@ public class Group {
     private Boolean isMatched = false; // 매칭 여부
 
 
+    @Setter
     @Column(name = "mt_group_is_deleted")
     @Builder.Default
     private Boolean isDeleted = false; // 매칭 여부

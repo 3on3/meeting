@@ -1,11 +1,14 @@
 package com.project.api.metting.controller;
 
+import com.project.api.metting.dto.request.AlarmRequestDto;
 import com.project.api.metting.dto.request.GroupMatchingRequestDto;
 import com.project.api.metting.dto.request.GroupRequestDto;
+import com.project.api.metting.dto.response.GroupMatchingAlarmResponseDto;
 import com.project.api.metting.dto.response.GroupMatchingResponseDto;
-import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.entity.GroupProcess;
+import com.project.api.metting.entity.User;
 import com.project.api.metting.service.GroupMatchingService;
+import com.project.api.metting.service.GroupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -22,6 +25,7 @@ import java.util.List;
 @CrossOrigin
 public class GroupMatchingController {
     private final GroupMatchingService groupMatchingService;
+    private final GroupService groupService;
 
     /**
      * 매칭 요청(신청자 역할)
@@ -72,5 +76,19 @@ public class GroupMatchingController {
         GroupProcess groupProcess = groupMatchingService.denyRequest(groupMatchingResponseDto);
 
         return ResponseEntity.ok().body(groupProcess);
+    }
+
+    @PostMapping("/alarm")
+    public ResponseEntity<?> alarm(@RequestBody GroupMatchingAlarmResponseDto groupMatchingAlarmResponseDto) {
+
+        User hostUser = groupService.findByGroupHost(groupMatchingAlarmResponseDto.getResponseGroupId());
+
+        if(hostUser == null) {
+            return ResponseEntity.badRequest().body("존재하지 않는 그룹입니다.");
+        }
+
+        AlarmRequestDto alarmRequestDto = new AlarmRequestDto();
+        alarmRequestDto.setEmail(hostUser.getEmail());
+        return ResponseEntity.ok().body(alarmRequestDto);
     }
 }
