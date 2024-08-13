@@ -41,7 +41,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
 
     //    main meetingList DTO
     @Override
-    public Page<MainMeetingListResponseDto> findGroupUsersByAllGroup(String email, Pageable pageable) {
+    public Page<MainMeetingListResponseDto> findGroupUsersByAllGroup(Pageable pageable) {
 
         QGroup group = QGroup.group;
         QGroupUser groupUser = QGroupUser.groupUser;
@@ -83,19 +83,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .map(this::convertToMeetingListDto)
                 .collect(Collectors.toList());
 
-        // ================= setExistMatchingHistory
-//        // 해당 사용자가 속한 그룹들을 가져옴
-//        List<Group> groupsByUserEmail = groupRepository.findGroupsEntityByUserEmail(email);
-//        // groupsByUserEmail 리스트의 ID들을 Set으로 변환
-//        Set<String> userGroupIds = groupsByUserEmail.stream()
-//                .map(Group::getId)
-//                .collect(Collectors.toSet());
-//        // groupUsersByAllGroup 리스트를 순회하며 ID를 비교하여 isExistMatchingHistory 설정
-//        for (MainMeetingListResponseDto dto : meetingList) {
-//            if (userGroupIds.contains(dto.getId())) {
-//                dto.setExistMatchingHistory(true);
-//            }
-//        }
+
         return new PageImpl<>(meetingList, pageable, count);
 
     }
@@ -158,6 +146,8 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         return new PageImpl<>(meetingList, pageable, count);
     }
 
+
+//    private boolean existsHistoriesByGroups(Set<Group> groups) {}
 
     // main meetingList DTO
     public MainMeetingListResponseDto convertToMeetingListDto(Group group) {

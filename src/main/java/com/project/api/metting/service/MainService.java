@@ -31,8 +31,21 @@ public class MainService {
 
 
         PageRequest pageable = PageRequest.of(pageNo - 1, 5);
-
-        return groupRepository.findGroupUsersByAllGroup(email, pageable);
+        Page<MainMeetingListResponseDto> mainMeetingListResponseDtos = groupRepository.findGroupUsersByAllGroup(pageable);
+        // ================= setExistMatchingHistory
+        // 해당 사용자가 속한 그룹들을 가져옴
+        List<Group> groupsByUserEmail = groupRepository.findGroupsEntityByUserEmail(email);
+        // groupsByUserEmail 리스트의 ID들을 Set으로 변환
+        Set<String> userGroupIds = groupsByUserEmail.stream()
+                .map(Group::getId)
+                .collect(Collectors.toSet());
+        // groupUsersByAllGroup 리스트를 순회하며 ID를 비교하여 isExistMatchingHistory 설정
+        for (MainMeetingListResponseDto dto : mainMeetingListResponseDtos) {
+            if (userGroupIds.contains(dto.getId())) {
+                dto.setExistMatchingHistory(true);
+            }
+        }
+        return mainMeetingListResponseDtos;
     }
 
 
