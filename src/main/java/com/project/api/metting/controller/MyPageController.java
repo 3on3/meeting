@@ -1,10 +1,7 @@
 package com.project.api.metting.controller;
 
 import com.project.api.auth.TokenProvider.TokenUserInfo;
-import com.project.api.metting.dto.request.ChangePasswordDto;
-import com.project.api.metting.dto.request.MatchedGroupRequestDto;
-import com.project.api.metting.dto.request.UserUpdateRequestDto;
-import com.project.api.metting.dto.request.RemoveUserDto;
+import com.project.api.metting.dto.request.*;
 import com.project.api.metting.dto.response.ChatRoomResponseDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.dto.response.UserMyPageDto;
@@ -148,7 +145,7 @@ public class MyPageController {
     }
 
     // 유저 비밀번호 변경
-    @PatchMapping("/check-pass")
+    @PatchMapping("/change-password")
     public ResponseEntity<?> changePassword(@AuthenticationPrincipal TokenUserInfo tokenInfo,
                                             @RequestBody ChangePasswordDto changePasswordDto) {
         try {
@@ -198,5 +195,30 @@ public class MyPageController {
     public ResponseEntity<?> getMyGroupsMatched(@AuthenticationPrincipal TokenUserInfo tokenInfo,@RequestBody MatchedGroupRequestDto matchedGroupRequestDto) {
         List<GroupResponseDto> groups = groupQueryService.getMatchedMyGroups(tokenInfo,matchedGroupRequestDto.getId());
         return ResponseEntity.ok().body(groups);
+    }
+
+    // 비밀번호 확인 엔드포인트
+    @PostMapping("/check-password")
+    public ResponseEntity<?> checkPassword(@RequestBody CheckPasswordRequestDto dto) {
+        boolean isPasswordCorrect = userMyPageService.checkPassword(dto.getEmail(), dto.getPassword());
+        System.out.println("isPasswordCorrect = " + isPasswordCorrect);
+        if (isPasswordCorrect) {
+            return ResponseEntity.ok().body("{\"success\": true}");
+        } else {
+            return ResponseEntity.status(401).body("{\"success\": false, \"message\": \"비밀번호가 일치하지 않습니다.\"}");
+        }
+    }
+
+    @PatchMapping("/update-phone")
+    public ResponseEntity<?> updatePhoneNumber(@AuthenticationPrincipal TokenUserInfo tokenInfo,
+                                               @RequestBody UpdatePhoneNumberDto dto) {
+        try {
+            userMyPageService.updatePhoneNumber(tokenInfo.getUserId(), dto);
+            return ResponseEntity.ok("전화번호가 성공적으로 변경되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("예상치 못한 오류가 발생했습니다.");
+        }
     }
 }
