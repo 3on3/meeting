@@ -21,4 +21,5 @@ public interface GroupMatchingHistoriesRepository extends JpaRepository<GroupMat
     GroupMatchingHistory findByRequestGroupAndProcess(Group group, GroupProcess process);
 
     List<GroupMatchingHistory> findAllByRequestGroup(Group requestGroup);
+    List<GroupMatchingHistory> findAllByResponseGroup(Group responseGroup);
 }
