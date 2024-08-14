@@ -49,6 +49,7 @@ public class ChatRoom {
 
     @Column(name = "mt_chat_room_is_deleted")
     @Builder.Default
+    @Setter
     private Boolean isDeleted = false;
 
     @OneToOne(fetch = FetchType.LAZY)
