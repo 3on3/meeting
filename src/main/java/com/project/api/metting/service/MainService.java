@@ -56,9 +56,9 @@ public class MainService {
         // mainMeetingListResponseDtos 리스트의 각 DTO에 대해 매칭 히스토리 존재 여부를 설정
         mainMeetingListResponseDtos.forEach(dto -> {
             if (userGroupIdsWithHistory.contains(dto.getId())) {
-                dto.setExistMatchingHistory(false);
-            } else {
                 dto.setExistMatchingHistory(true);
+            } else {
+                dto.setExistMatchingHistory(false);
             }
         });
 

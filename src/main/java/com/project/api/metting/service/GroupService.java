@@ -10,9 +10,7 @@ import com.project.api.metting.dto.response.InviteResultResponseDto;
 import com.project.api.metting.dto.response.InviteUsersViewResponseDto;
 import com.project.api.metting.dto.response.UserResponseDto;
 import com.project.api.metting.entity.*;
-import com.project.api.metting.repository.GroupRepository;
-import com.project.api.metting.repository.GroupUsersRepository;
-import com.project.api.metting.repository.UserRepository;
+import com.project.api.metting.repository.*;
 import com.project.api.metting.util.RandomUtil;
 import com.project.api.metting.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +41,8 @@ public class GroupService {
     private final UserRepository userRepository;
     private final GroupUsersRepository groupUsersRepository;
     private final RedisUtil redisUtil;
-
+    private final ChatRoomsRepository chatRoomsRepository;
+    private final GroupMatchingHistoriesRepository groupMatchingHistoriesRepository;
     @Value("${frontend.url}")
     private String frontendUrl;
 
@@ -66,8 +65,8 @@ public class GroupService {
                 .count();
 
         // 그룹 생성 제한 조건 검사
-        if (groupCount >= 3) {
-            throw new IllegalStateException("이미 세 개의 그룹에 참여 중입니다. 더 이상 그룹을 생성할 수 없습니다.");
+        if (groupCount >= 2) {
+            throw new IllegalStateException("이미 두 개의 그룹에 참여 중입니다. 더 이상 그룹을 생성할 수 없습니다.");
         }
 
         // Group 엔터티 생성
@@ -205,8 +204,8 @@ public class GroupService {
                 .count();
 
         // 그룹 생성 제한 조건 검사
-        if (groupCount >= 3) {
-            throw new IllegalStateException("이미 세 개의 그룹에 참여 중입니다. 더 이상 그룹에 참여신청이 불가능합니다.");
+        if (groupCount >= 2) {
+            throw new IllegalStateException("이미 두 개의 그룹에 참여 중입니다. 더 이상 그룹에 참여신청이 불가능합니다.");
         }
 
         log.info("groupId info - {}", groupId);
@@ -446,6 +445,24 @@ public class GroupService {
         GroupUser groupUser = groupUsersRepository.findByGroupAndUserIdAndStatus(findGroup, tokenUserInfo.getUserId(), GroupStatus.REGISTERED)
                 .orElseThrow(() -> new IllegalStateException("해당 그룹에 가입되어 있지 않습니다."));
 
+
+        // 그룹에 연결된 모든 매칭 히스토리의 상태를 CLOSED로 변경 (requestGroup 및 responseGroup 모두 검사)
+        List<GroupMatchingHistory> matchingHistories = groupMatchingHistoriesRepository.findByRequestGroupOrResponseGroup(findGroup, findGroup);
+        for (GroupMatchingHistory history : matchingHistories) {
+            history.setProcess(GroupProcess.CLOSED);
+            groupMatchingHistoriesRepository.save(history);
+
+            ChatRoom byGroupMatchingHistory = chatRoomsRepository.findByGroupMatchingHistory(history);
+            if (byGroupMatchingHistory != null) {
+                byGroupMatchingHistory.setIsDeleted(true);
+                chatRoomsRepository.save(byGroupMatchingHistory);
+            }
+        }
+
+
+
+
+
         // 그룹 유저의 Auth를 조회해서 HOST인지 확인
         String groupUserAuth = groupUser.getAuth().getDisplayName();
         if (!groupUserAuth.equals(GroupAuth.HOST.getDisplayName())) {
@@ -461,6 +478,7 @@ public class GroupService {
             gu.setStatus(GroupStatus.WITHDRAW);
             groupUsersRepository.save(gu);
         }
+
 
         // 그룹 삭제 처리
         findGroup.setIsDeleted(true);
