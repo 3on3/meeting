@@ -13,4 +13,5 @@ public class ChatUserRequestDto {
     private String userNickname;
     private String univ;
     private String major;
+    private String userId;
 }
