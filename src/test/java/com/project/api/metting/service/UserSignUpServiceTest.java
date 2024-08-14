@@ -26,8 +26,8 @@ class UserSignUpServiceTest {
     public void testRegisterUsers() {
         for (int i = 1; i <= 10; i++) {
             User user = User.builder()
-                    .email("testuser" + i + "@example.com")
-                    .password("password" + i)
+                    .email("test" + i + "@example.com")
+                    .password("pa" + i)
                     .name("Test User " + i)
                     .birthDate(new Date())
                     .phoneNumber("123-456-789" + i)

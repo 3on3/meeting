@@ -10,4 +10,5 @@ public interface ChatRoomsRepository extends JpaRepository<ChatRoom, String> {
 
    Optional<ChatRoom> findById(String roomId);
    ChatRoom findByGroupMatchingHistory(GroupMatchingHistory groupMatchingHistory);
+
 }
