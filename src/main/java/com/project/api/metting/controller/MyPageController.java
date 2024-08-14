@@ -59,8 +59,9 @@ public class MyPageController {
     public ResponseEntity<UserProfile> getUserProfile(@PathVariable String userId,
                                                       @AuthenticationPrincipal TokenUserInfo tokenInfo) {
         // 유저 ID로 프로필을 조회
-//        UserProfile userProfile = userMyPageService.getUserProfile(tokenInfo.getUserId());
-            UserProfile userProfile = userMyPageService.getUserProfile(userId);
+            UserProfile userProfile = userMyPageService.getUserProfile(tokenInfo.getUserId());
+
+            log.info("user profile - {}",userProfile);
 
         if (userProfile != null) {
             return new ResponseEntity<>(userProfile, HttpStatus.OK); // 프로필이 존재하면 반환
@@ -68,28 +69,29 @@ public class MyPageController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND); // 프로필이 없으면 404 반환
     }
 
-    // 특정 유저의 프로필 이미지를 반환하는 엔드포인트
-    @GetMapping("/profileImage/{userId}")
-    public ResponseEntity<byte[]> getUserProfileImage(@PathVariable String userId) {
-        // 유저 ID로 프로필을 조회
-        UserProfile userProfile = userMyPageService.getUserProfile(userId);
-
-        if (userProfile != null && userProfile.getProfileImg() != null) { // 프로필과 이미지 경로가 존재하면
-            byte[] image = loadProfileImage(userProfile.getProfileImg()); // 이미지 파일을 로드
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Content-Type", "image/jpeg");  // 이미지 타입을 설정 (필요시 변경)
-            return new ResponseEntity<>(image, headers, HttpStatus.OK); // 이미지와 함께 응답 반환
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND); // 이미지가 없으면 404 반환
-    }
+//    // 특정 유저의 프로필 이미지를 반환하는 엔드포인트
+//    @GetMapping("/profileImage/{userId}")
+//    public ResponseEntity<byte[]> getUserProfileImage(@PathVariable String userId) {
+//        // 유저 ID로 프로필을 조회
+//        UserProfile userProfile = userMyPageService.getUserProfile(userId);
+//
+//        if (userProfile != null && userProfile.getProfileImg() != null) { // 프로필과 이미지 경로가 존재하면
+//            byte[] image = loadProfileImage(userProfile.getProfileImg()); // 이미지 파일을 로드
+//            HttpHeaders headers = new HttpHeaders();
+//            headers.set("Content-Type", "image/jpeg");  // 이미지 타입을 설정 (필요시 변경)
+//            return new ResponseEntity<>(image, headers, HttpStatus.OK); // 이미지와 함께 응답 반환
+//        }
+//        return new ResponseEntity<>(HttpStatus.NOT_FOUND); // 이미지가 없으면 404 반환
+//    }
 
     // 특정 유저의 프로필 이미지 업데이트
     @PostMapping("/profileImage/update/{userId}")
-    public ResponseEntity<String> updateUserProfileImage(@PathVariable String userId,
+    public ResponseEntity<String> updateUserProfileImage(
+                                                         @AuthenticationPrincipal TokenUserInfo tokenInfo,
                                                          @RequestParam("file") MultipartFile file) {
         try {
             // 프로필 이미지를 업데이트
-            userMyPageService.updateUserProfileImage(userId, file);
+            userMyPageService.updateUserProfileImage(tokenInfo.getUserId(), file);
             return new ResponseEntity<>("Profile image updated successfully", HttpStatus.OK); // 성공 메시지 반환
         } catch (IOException e) {
             return new ResponseEntity<>("Failed to update profile image", HttpStatus.INTERNAL_SERVER_ERROR); // 에러 발생 시 에러 메시지 반환
@@ -138,11 +140,11 @@ public class MyPageController {
     }
 
     // 유저 정보 수정
-    @PutMapping("/userInfo/update")
+    @PutMapping("/userInfo/update/{userId}")
     public ResponseEntity<UserMyPageDto> updateUser(@AuthenticationPrincipal TokenUserInfo tokenInfo,
                                                     @RequestBody UserUpdateRequestDto updateDto) {
         UserMyPageDto updatedUser = userMyPageService.updateUserFields(tokenInfo.getUserId(), updateDto);
-        System.out.println("updatedUser =" + updatedUser);
+        log.info("updatedUser - {}",updatedUser);
         return ResponseEntity.ok(updatedUser);
     }
 
