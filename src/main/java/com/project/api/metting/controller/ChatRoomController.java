@@ -1,10 +1,7 @@
 package com.project.api.metting.controller;
 
 import com.project.api.auth.TokenProvider;
-import com.project.api.metting.dto.request.ChatRequestDto;
-import com.project.api.metting.dto.request.ChatRoomRequestDto;
-import com.project.api.metting.dto.request.ChatUserRequestDto;
-import com.project.api.metting.dto.request.MyChatListRequestDto;
+import com.project.api.metting.dto.request.*;
 import com.project.api.metting.dto.response.ChatRoomResponseDto;
 import com.project.api.metting.dto.response.ChatUserResponseDto;
 import com.project.api.metting.entity.ChatRoom;
@@ -63,7 +60,7 @@ public class ChatRoomController {
     @PostMapping("/chatUsers")
     public ResponseEntity<?> chatUsers (@RequestBody ChatUserResponseDto chatUserDto){
 
-        List<ChatUserRequestDto> chatUserList = chatRoomService.findChatUsers(chatUserDto);
+        FindChatUserRequestDto chatUserList = chatRoomService.findChatUsers(chatUserDto);
 
         System.out.println("chatUserList = " + chatUserList);
 
