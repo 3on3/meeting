@@ -1,9 +1,6 @@
 package com.project.api.metting.service;
 
-import com.project.api.metting.dto.request.ChatRequestDto;
-import com.project.api.metting.dto.request.ChatRoomRequestDto;
-import com.project.api.metting.dto.request.ChatUserRequestDto;
-import com.project.api.metting.dto.request.MyChatListRequestDto;
+import com.project.api.metting.dto.request.*;
 import com.project.api.metting.dto.response.ChatRoomResponseDto;
 import com.project.api.metting.entity.*;
 import com.project.api.metting.repository.*;
@@ -73,7 +70,7 @@ public class ChatRoomService {
 
     }
 
-    public List<ChatUserRequestDto> findChatUsers(ChatUserResponseDto chatUserResponseDto) {
+    public FindChatUserRequestDto findChatUsers(ChatUserResponseDto chatUserResponseDto) {
 
         // 채팅방 아이디로 채팅방 정보 가져오기
         ChatRoom chatRoom = chatRoomsRepository.findById(chatUserResponseDto.getChatroomId()).orElseThrow();
@@ -84,21 +81,37 @@ public class ChatRoomService {
 
         // 매칭 히스토리에서 리스폰, 리퀘스트 그룹 가져오기
         Group group1 = groupMatchingHistory.getResponseGroup();
+        String responseHostUserId = groupUsersRepository.findByGroupAndAuth(group1, GroupAuth.HOST).getUser().getId();
         Group group2 = groupMatchingHistory.getRequestGroup();
+        String requestHostUserId = groupUsersRepository.findByGroupAndAuth(group2, GroupAuth.HOST).getUser().getId();
 
         // 각 그룹에 존재하는 유저정보 가져오기
-        List<GroupUser> groupUsers = groupUsersRepository.findByGroup(group1);
-        List<GroupUser> groupUsers2 = groupUsersRepository.findByGroup(group2);
+        List<GroupUser> responseGroupUsers = groupUsersRepository.findByGroup(group1);
+        List<GroupUser> requestGroupUsers = groupUsersRepository.findByGroup(group2);
 
-        groupUsers.addAll(groupUsers2);
 
+        List<ChatUserRequestDto> responseChatUser = findChatUser(responseGroupUsers);
+        List<ChatUserRequestDto> requestChatUser = findChatUser(requestGroupUsers);
+
+        return FindChatUserRequestDto.builder()
+                .requestChatUser(requestChatUser)
+                .responseChatUser(responseChatUser)
+                .responseGroupName(group1.getGroupName())
+                .requestGroupName(group2.getGroupName())
+                .responseHostUserId(responseHostUserId)
+                .requestHostUserId(requestHostUserId)
+                .build();
+
+    }
+
+    public List<ChatUserRequestDto> findChatUser(List<GroupUser> groupUsers) {
         List<User> users = new ArrayList<>();
 
         for (GroupUser groupUser : groupUsers) {
             users.add(groupUser.getUser());
         }
 
-        List<ChatUserRequestDto> chatUserRequestDtoList = new ArrayList<>();
+        List<ChatUserRequestDto> chatUsers = new ArrayList<>();
 
         for (User user : users) {
             UserProfile userProfile = userProfileRepository.findByUser(user);
@@ -115,12 +128,14 @@ public class ChatRoomService {
                     .imgUrl(imgUrl)
                     .univ(user.getUnivName())
                     .major(user.getMajor())
+                    .userId(user.getId())
+                    .userNickname(user.getNickname())
                     .build();
 
-            chatUserRequestDtoList.add(chatUserRequestDto);
+            chatUsers.add(chatUserRequestDto);
         }
 
-        return chatUserRequestDtoList;
+        return chatUsers;
     }
 
     /**
