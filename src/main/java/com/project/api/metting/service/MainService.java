@@ -31,9 +31,9 @@ public class MainService {
 
 
     //    Group 전체 조회
-    public Page<MainMeetingListResponseDto> getMeetingList(String email, int pageNo) {
+    public Page<MainMeetingListResponseDto> getMeetingList(String email, int pageNo,String gender,String region,Integer personnel) {
         PageRequest pageable = PageRequest.of(pageNo - 1, 5);
-        Page<MainMeetingListResponseDto> mainMeetingListResponseDtos = groupRepository.findGroupUsersByAllGroup(pageable);
+        Page<MainMeetingListResponseDto> mainMeetingListResponseDtos = groupRepository.findGroupUsersByAllGroup(pageable,gender,region,personnel);
 
         // 해당 사용자가 속한 그룹들을 가져옴
         List<Group> groupsByUserEmail = groupRepository.findGroupsEntityByUserEmail(email);
