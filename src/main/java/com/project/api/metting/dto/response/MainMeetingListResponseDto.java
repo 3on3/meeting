@@ -1,10 +1,7 @@
 package com.project.api.metting.dto.response;
 
 
-import com.project.api.metting.entity.Gender;
-import com.project.api.metting.entity.Group;
-import com.project.api.metting.entity.GroupMatchingHistory;
-import com.project.api.metting.entity.Place;
+import com.project.api.metting.entity.*;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -45,7 +42,7 @@ public class MainMeetingListResponseDto {
 
     // 로그인한 유저 기준 해당 그룹과 히스토리가 있는지
     @Setter
-    private boolean isExistMatchingHistory;
+    private MatchingStatus matchingStatus = MatchingStatus.NONE;
 
 
 
@@ -59,23 +56,8 @@ public class MainMeetingListResponseDto {
         this.maxNum = group.getMaxNum();
         this.averageAge = averageAge;
         this.Major = hostMajor;
-//        this.memberCount = memberCount;
-//        this.isExistMatchingHistory = false;
+//
     }
 
-//    public MainMeetingListExistsHistoriesResponseDto(MainMeetingListResponseDto mainMeetingListResponseDto, boolean isExistMatchingHistory){
-//        this.id = mainMeetingListResponseDto.getId();
-//        this.groupName = mainMeetingListResponseDto.getGroupName();
-//        this.groupPlace = mainMeetingListResponseDto.getGroupPlace();
-//        this.groupGender = mainMeetingListResponseDto.getGroupGender();
-//        this.isMatched = mainMeetingListResponseDto.getIsMatched();
-//        this.maxNum = mainMeetingListResponseDto.getMaxNum();
-//        this.averageAge = mainMeetingListResponseDto.getAverageAge();
-//        this.Major = mainMeetingListResponseDto.getMajor();
-////        this.memberCount = memberCount;
-//        this.isExistMatchingHistory = isExistMatchingHistory;
-//
-//
-//    }
 
 }

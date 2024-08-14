@@ -5,6 +5,7 @@ import com.project.api.metting.dto.request.MainMeetingListFilterDto;
 import com.project.api.metting.dto.response.MainMeetingListResponseDto;
 import com.project.api.metting.entity.Group;
 import com.project.api.metting.entity.GroupMatchingHistory;
+import com.project.api.metting.entity.MatchingStatus;
 import com.project.api.metting.repository.GroupMatchingHistoriesRepository;
 import com.project.api.metting.repository.GroupRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,45 +37,61 @@ public class MainService {
         // 이미 매칭 신청 중인 그룹이예요.
         // 1. 해당 사용자가 속한 그룹들을 가져옴
         List<Group> groupsByUserEmail = groupRepository.findGroupsEntityByUserEmail(email);
-        log.info("groupsByUserEmail = {}", groupsByUserEmail);
+//        log.info("groupsByUserEmail = {}", groupsByUserEmail);
 
-        // 2. 사용가 속한 그룹의 아이디 셋 (history기준 requestId)
-        Set<String> userGroupIdsWithHistory = new HashSet<>();
-//        groupsByUserEmail.forEach(group -> userGroupIdsWithHistory.add(group.getId()));
+        setMatchingStatusRequesting(groupsByUserEmail,mainMeetingListResponseDtos);
+        setMatchingStatusResponse(groupsByUserEmail,mainMeetingListResponseDtos);
 
+        return mainMeetingListResponseDtos;
+    }
+
+    private void setMatchingStatusRequesting( List<Group> groupsByUserEmail, Page<MainMeetingListResponseDto>  mainMeetingListResponseDtos) {
         // 3. 로그인한 유저의 모든 히스토리를 담을 리스트
         List<GroupMatchingHistory> allRequestHistories = new ArrayList<>();
+
         // 4. 로그인한 유저가 매칭 신청한 모든 히스토리를 담을 리스트
         List<String> allResponseHistoriesId = new ArrayList<>();
 
         for (Group group : groupsByUserEmail) {
             // 5-1. 히스토리 중 리퀘스트 아이디가 일치하는 히스토리
             allRequestHistories.addAll(groupMatchingHistoriesRepository.findAllByRequestGroup(group)) ;
-//            log.info("groupMatchingHistoriesRepository.findAllByRequestGroup(group) = {}", groupMatchingHistoriesRepository.findAllByRequestGroup(group));
-//            log.info("allRequestHistories = {}", allRequestHistories);
             // 5-2. 로그인한 유저에게 매칭신청을 받은 그룹들 아이디
             List<String> collect = allRequestHistories.stream().map(groupMatchingHistory -> groupMatchingHistory.getResponseGroup().getId() ).collect(Collectors.toList());
-//            List<GroupHistoryResponseDto> groupHistories = histories.stream()
-//                    .map(GroupHistoryResponseDto::new)
-//                    디collect(Collectors.toList());
             allResponseHistoriesId.addAll(collect);
-//            log.info("collect = {}", collect);
-
         }
         log.info("allResponseHistoriesId = {}", allResponseHistoriesId);
-        // mainMeetingListResponseDtos 리스트의 각 DTO에 대해 매칭 히스토리 존재 여부를 설정
+
+        // 6. mainMeetingListResponseDtos 리스트의 각 DTO에 대해 매칭 히스토리 존재 여부를 설정
         mainMeetingListResponseDtos.forEach(dto -> {
-//            allResponseHistories.forEach(groupHistoryResponseDto -> hi);
             if (allResponseHistoriesId.contains(dto.getId())) {
-                dto.setExistMatchingHistory(true);
-            } else {
-                dto.setExistMatchingHistory(false);
+                dto.setMatchingStatus(MatchingStatus.REQUESITNG);
             }
         });
-
-        return mainMeetingListResponseDtos;
     }
+    private void setMatchingStatusResponse( List<Group> groupsByUserEmail, Page<MainMeetingListResponseDto>  mainMeetingListResponseDtos) {
 
+        // 3. 로그인한 유저의 모든 히스토리를 담을 리스트
+        List<GroupMatchingHistory> allResponseHistories = new ArrayList<>();
+
+        // 4. 로그인한 유저가 매칭 신청받은 모든 히스토리를 담을 리스트
+        List<String> allRequestHistoriesId = new ArrayList<>();
+
+        for (Group group : groupsByUserEmail) {
+            // 5-1. 히스토리 중 리퀘스트 아이디가 일치하는 히스토리
+            allResponseHistories.addAll(groupMatchingHistoriesRepository.findAllByResponseGroup(group)) ;
+            // 5-2. 로그인한 유저에게 매칭신청을 받은 그룹들 아이디
+            List<String> collect = allResponseHistories.stream().map(groupMatchingHistory -> groupMatchingHistory.getRequestGroup().getId() ).collect(Collectors.toList());
+            allRequestHistoriesId.addAll(collect);
+        }
+        log.info("allRequestHistoriesId = {}", allRequestHistoriesId);
+
+        // 6. mainMeetingListResponseDtos 리스트의 각 DTO에 대해 매칭 히스토리 존재 여부를 설정
+        mainMeetingListResponseDtos.forEach(dto -> {
+            if (allRequestHistoriesId.contains(dto.getId())) {
+                dto.setMatchingStatus(MatchingStatus.RESPONSE);
+            }
+        });
+    }
 
     //    group 필터링
     public Page<MainMeetingListResponseDto> postMeetingList(MainMeetingListFilterDto dto) {
