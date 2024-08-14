@@ -1,12 +1,9 @@
 package com.project.api.metting.repository;
 
-import com.project.api.metting.dto.response.GroupHistoryResponseDto;
 import com.project.api.metting.entity.Group;
 import com.project.api.metting.entity.GroupMatchingHistory;
 import com.project.api.metting.entity.GroupProcess;
-import com.project.api.metting.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
