@@ -63,8 +63,7 @@ public class MainService {
         }
         log.info("allResponseHistoriesId = {}", allResponseHistoriesId);
         // mainMeetingListResponseDtos 리스트의 각 DTO에 대해 매칭 히스토리 존재 여부를 설정
-        mainMeetingListResponseDtos.forEach(dto -> {
-//            allResponseHistories.forEach(groupHistoryResponseDto -> hi);
+        mainMeetingListResponseDtos.forEach(dto -> {;
             if (allResponseHistoriesId.contains(dto.getId())) {
                 dto.setExistMatchingHistory(true);
             } else {
