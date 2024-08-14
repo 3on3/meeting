@@ -74,11 +74,11 @@ public class GroupController {
 
         try {
         groupService.acceptJoinRequest(groupUserId, tokenInfo);
-            return ResponseEntity.ok("성공적으로 그룹에 가입신청을 완료하였습니다.");
+            return ResponseEntity.ok("그룹 가입 신청을 수락하였습니다.");
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("가입신청 수락에 실패하였습니다.. 다시 시도해주세요..");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("가입신청 수락에 실패하였습니다. 다시 시도해주세요.");
         }
     }
 
@@ -91,15 +91,21 @@ public class GroupController {
 
 
     @PostMapping("/join-requests/{groupUserId}/cancel")
-    public ResponseEntity<Void> rejectJoinRequest(@PathVariable String groupUserId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
-        groupService.cancelJoinRequest(groupUserId, tokenInfo);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> rejectJoinRequest(@PathVariable String groupUserId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+        try {
+            groupService.cancelJoinRequest(groupUserId, tokenInfo);
+            return ResponseEntity.ok("그룹 가입 신청을 거절하였습니다.");
+        }  catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("가입신청을 거절에 실패하였습니다.");
+        }
     }
 
     @PostMapping("/join/invite")
     public ResponseEntity<?> joinGroupWithInviteCode(@RequestParam String code, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
         if (code == null || code.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("해당 코드는 더 이상 존재하지 않습니다..");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("해당 코드는 더 이상 존재하지 않습니다.");
         }
         try {
             InviteResultResponseDto resultDto = groupService.joinGroupWithInviteCode(code, tokenInfo);
