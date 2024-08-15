@@ -3,6 +3,7 @@ package com.project.api.metting.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import org.aspectj.apache.bcel.classfile.Code;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;

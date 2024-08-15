@@ -27,7 +27,7 @@ public class UserVerification implements Serializable {
     @Column(name = "mt_user_verification_id")
     private String id;
 
-    @Id
+     @Id
     @Column(name = "email")
     private String email;
 

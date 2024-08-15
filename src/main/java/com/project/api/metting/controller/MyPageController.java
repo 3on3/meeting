@@ -1,10 +1,7 @@
 package com.project.api.metting.controller;
 
 import com.project.api.auth.TokenProvider.TokenUserInfo;
-import com.project.api.metting.dto.request.CertifyRequestDto;
-import com.project.api.metting.dto.request.ChangePasswordDto;
-import com.project.api.metting.dto.request.UserUpdateRequestDto;
-import com.project.api.metting.dto.request.RemoveUserDto;
+import com.project.api.metting.dto.request.*;
 import com.project.api.metting.dto.response.ChatRoomResponseDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.dto.response.UserMyPageDto;
@@ -20,7 +17,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.Valid;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -70,6 +66,8 @@ public class MyPageController {
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND); // 프로필이 없으면 404 반환
     }
+
+
 
 //    // 특정 유저의 프로필 이미지를 반환하는 엔드포인트
 //    @GetMapping("/profileImage/{userId}")
@@ -169,11 +167,31 @@ public class MyPageController {
     @GetMapping("/check-email")
     public ResponseEntity<?> checkEmail(String email) {
         boolean isDuplicate = userMyPageService.checkEmailDuplicate(email);
-
         //인증코드메일 발송
         userMyPageService.sendVerificationEmail(email);
-
         return ResponseEntity.ok().body(isDuplicate);
+    }
+
+    // 코드 검증
+    @PostMapping("/check/code")
+    public ResponseEntity<?> verifySendingCode(@AuthenticationPrincipal TokenUserInfo tokenInfo,
+                                               @RequestBody TemporaryVerficationDto verificationDto) {
+        boolean valid = userMyPageService.verifySendingCode(verificationDto);
+        if(valid) {
+            return ResponseEntity.status(302).body(valid);
+        }
+        return ResponseEntity.status(200).body(valid);
+    }
+
+    // 비밀번호 확인
+    @PostMapping("/check/password")
+    public ResponseEntity<?> verifyPassword(@AuthenticationPrincipal TokenUserInfo tokenInfo,
+                                            @RequestBody PasswordVerificationDto verificationDto) {
+        boolean valid = userMyPageService.verifyPassword(verificationDto);
+        if(valid) {
+            return ResponseEntity.status(302).body(valid);
+        }
+        return ResponseEntity.status(200).body(valid);
     }
 }
 
