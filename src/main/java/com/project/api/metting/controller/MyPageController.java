@@ -22,7 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-
+import java.util.Map;
 
 
 @RestController
@@ -150,11 +150,12 @@ public class MyPageController {
                                             @RequestBody ChangePasswordDto changePasswordDto) {
         try {
             userMyPageService.changePassword(tokenInfo.getUserId(), changePasswordDto);
-            return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
+            return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 변경되었습니다."));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("예상치 못한 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "예상치 못한 오류가 발생했습니다."));
         }
     }
 
@@ -213,12 +214,15 @@ public class MyPageController {
     public ResponseEntity<?> updatePhoneNumber(@AuthenticationPrincipal TokenUserInfo tokenInfo,
                                                @RequestBody UpdatePhoneNumberDto dto) {
         try {
-            userMyPageService.updatePhoneNumber(tokenInfo.getUserId(), dto);
-            return ResponseEntity.ok("전화번호가 성공적으로 변경되었습니다.");
+            userMyPageService.updatePhoneNumber(tokenInfo.getEmail(), dto);
+            return ResponseEntity.ok(Map.of("message", "전화번호가 성공적으로 변경되었습니다."));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            log.warn("전화번호 업데이트 실패: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("예상치 못한 오류가 발생했습니다.");
+            log.error("전화번호 업데이트 중 예상치 못한 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "예상치 못한 오류가 발생했습니다."));
         }
     }
 }
