@@ -197,10 +197,10 @@ public class ChatRoomService {
         for (int i = 0; i < matchingHistories.size(); i++) {
 
             // 상대방 그룹에 존재하는 멤버수
-            int groupMember = groupUsersRepository.findByGroup(matchingGroups.get(i)).size();
+            int groupMember = groupUsersRepository.findByGroupAndStatus(matchingGroups.get(i), GroupStatus.REGISTERED).size();
 
             // 채팅방에 존재하는 멤버수
-            int chatMemberCount = groupUsersRepository.findByGroup(userGroups.get(i)).size() + groupMember;
+            int chatMemberCount = groupUsersRepository.findByGroupAndStatus(userGroups.get(i), GroupStatus.REGISTERED).size() + groupMember;
 
             // 상대그룹의 HOST유저
             GroupUser groupUser = groupUsersRepository.findByGroupAndAuth(matchingGroups.get(i), GroupAuth.HOST);
