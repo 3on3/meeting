@@ -297,13 +297,18 @@ public class UserMyPageService {
     }
 
 
-    public void updatePhoneNumber(String userId, UpdatePhoneNumberDto dto) {
+    public void updatePhoneNumber(String email, UpdatePhoneNumberDto dto) {
         if (dto == null || dto.getPhoneNumber() == null) {
             throw new IllegalArgumentException("전화번호 데이터는 null일 수 없습니다");
         }
 
-        User user = userMyPageRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 ID로 사용자를 찾을 수 없습니다: " + userId));
+        boolean phoneExists = userMyPageRepository.existsByPhoneNumber(dto.getPhoneNumber());
+        if (phoneExists) {
+            throw new IllegalArgumentException("이미 존재하는 번호입니다.");
+        }
+
+        User user = userMyPageRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("해당 email로 사용자를 찾을 수 없습니다: " + email));
 
         user.setPhoneNumber(dto.getPhoneNumber());
         userMyPageRepository.save(user);
