@@ -18,8 +18,9 @@ public class MyChatListRequestDto {
     private String groupName;
     private String major;
     private Gender gender;
-    private Integer maxNum;
+    private Integer groupMemberCount;
     private Place groupPlace;
     @Setter
-    private int age;
+    private Integer age;
+    private Integer chatMemberCount;
 }
