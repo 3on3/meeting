@@ -7,27 +7,32 @@ import com.project.api.metting.dto.response.UserMyPageDto;
 import com.project.api.metting.entity.Membership;
 import com.project.api.metting.entity.User;
 import com.project.api.metting.entity.UserProfile;
+import com.project.api.metting.entity.UserVerification;
 import com.project.api.metting.repository.UserMyPageRepository;
 import com.project.api.metting.repository.UserProfileRepository;
 import com.project.api.metting.repository.UserRepository;
+import com.project.api.metting.repository.UserVerificationRepository;
 import com.univcert.api.UnivCert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.Period;
-import java.time.ZoneId;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.time.*;
 import java.util.*;
 import java.io.File;
 
@@ -36,17 +41,24 @@ import java.io.File;
 @RequiredArgsConstructor
 public class UserMyPageService {
 
-    @Value("${univcert.api.key}")
-    private String univCertApiKey;
+    @Value("${study.mail.host}")
+    private String mailHost;
+
+//    @Value("${univcert.api.key}")
+//    private String univCertApiKey;
 
     private String profileImageUploadDir; // 프로필 이미지를 저장할 디렉토리 경로
 
     private final UserMyPageRepository userMyPageRepository;
     private final UserProfileRepository userProfileRepository; // UserProfile 엔티티를 다루는 JPA 리포지토리
     private final UserRepository userRepository; // User 엔티티를 다루는 JPA 리포지토리
+
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final UserVerificationRepository userVerificationRepository;
 
+    // 이메일 전송 객체
+    private  final JavaMailSender mailSender;
 
     // 사용자 정보 가져오기
     public UserMyPageDto getUserInfo(String userEmail) {
@@ -114,7 +126,7 @@ public class UserMyPageService {
     }
 
     // 특정 유저의 프로필을 조회하는 메서드
-    public UserProfile getUserProfile (String userId){
+    public UserProfile getUserProfile(String userId) {
         // 유저 ID로 User 객체를 조회
         Optional<User> user = userRepository.findById(userId);
         // 조회한 User 객체와 연결된 UserProfile을 반환
@@ -179,7 +191,7 @@ public class UserMyPageService {
     }
 
 
-// 비밀번호 변경 로직
+    // 비밀번호 변경 로직
     public void changePassword(String userId, ChangePasswordDto changePasswordDto) {
 
         if (changePasswordDto == null) {
@@ -204,90 +216,205 @@ public class UserMyPageService {
     }
 
 
-/**
- * 회원 탈퇴를 위한 인증 코드를 사용자 이메일로 전송하는 메서드.
- * 인증 상태나 이전 요청과 관계없이 새로운 인증 코드를 생성하여 전송
- *
- * @param email 사용자 이메일
- */
-    public void sendRemovalVerificationCode(String email) {
-        User user = userMyPageRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("해당 이메일로 가입된 유저가 없습니다."));
 
-        String code = String.format("%06d", (int) (Math.random() * 1000000)); // 새 인증 코드 생성
-        saveVerificationCode(email, code); // 새 인증 코드 저장
+    public boolean checkEmailDuplicate(String email) {
+        boolean exists = userRepository.existsByEmail(email);
+        log.info("Checking email {} is duplicate : {}", email, exists);
+        return exists;
+    }
+
+    // 이메일 인증 코드 보내기
+    public void sendVerificationEmail(String email) {
+
+        // 검증 코드 생성하기
+        String code = generateVerificationCode();
+
+        // 이메일을 전송할 객체 생성
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
 
         try {
-            // UnivCert API를 통해 인증 코드 발송 요청
-            Map<String, Object> response = UnivCert.certify(univCertApiKey, email, user.getUnivName(), false);
+            MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
 
-            if (response != null && Boolean.TRUE.equals(response.get("success"))) {
-                log.info("새로운 인증 코드가 이메일로 전송되었습니다: {}", email);
-            } else if ("이미 완료된 요청입니다.".equals(response.get("message"))) {
-                log.warn("이미 완료된 요청: {}", email);
-                // 기존 요청이 완료되었어도 새 인증 코드를 전송하기 위한 이메일 전송 로직
-                emailService.sendEmail(email, "인증 코드", "귀하의 인증 코드는 " + code + "입니다.");
-                log.info("기존 요청이 완료되었으므로 새로운 인증 코드를 이메일로 전송했습니다: {}", email);
-            } else {
-                log.error("인증 코드 발송 실패: {}", email);
-                throw new IllegalStateException("인증 코드 발송에 실패했습니다.");
-            }
-        } catch (IOException e) {
-            log.error("인증 코드 발송 중 예외 발생: ", e);
-            throw new IllegalStateException("인증 코드 발송 중 오류가 발생했습니다.", e);
+            // 누구에게 이메일을 보낼 것인지
+            messageHelper.setTo(email);
+            // 이메일 제목 설정
+            messageHelper.setSubject("[인증메일] 회원탈퇴 인증 메일입니다.");
+            // 이메일 내용 설정
+            messageHelper.setText(
+                    "인증 코드: <b style=\"font-weight: 700; letter-spacing: 5px; font-size: 30px;\">" + code + "</b>"
+                    , true
+            );
+
+            // 전송자의 이메일 주소
+            messageHelper.setFrom(mailHost);
+
+            // 이메일 보내기
+            mailSender.send(mimeMessage);
+
+            log.info("{} 님에게 이메일 전송!", email);
+
         } catch (Exception e) {
-            log.error("예상치 못한 예외 발생: ", e);
-            throw new IllegalStateException("인증 코드 발송 중 예상치 못한 오류가 발생했습니다.", e);
+            throw new RuntimeException(e);
         }
     }
 
-    private void saveVerificationCode(String email, String code) {
-
-    }
-
-
-    /**
-     * 인증 코드와 비밀번호를 확인한 후 사용자를 탈퇴 처리하는 메서드
-     *
-     * @param user           사용자 이메일
-     * @param inputPassword    사용자 입력 비밀번호
-     *
-
-     */
-
-    private void verifyUserPassword(User user, String inputPassword) {
-        if (!passwordEncoder.matches(inputPassword, user.getPassword())) {
-            log.error("비밀번호가 일치하지 않습니다: {}", user.getEmail());
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-        }
-    }
-
-    @Transactional
-    public void removeUserWithVerification(String email, int verificationCode, String inputPassword) {
-        User user = userMyPageRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("해당 이메일로 가입된 유저가 없습니다."));
-
-        try {
-            Map<String, Object> response = UnivCert.certifyCode(univCertApiKey, email, user.getUnivName(), verificationCode);
-
-            if (response != null && Boolean.TRUE.equals(response.get("success"))) {
-                log.info("인증 코드가 확인되었습니다: {}", email);
-
-                verifyUserPassword(user, inputPassword);
-
-                user.setEmail(null);
-                user.setPassword(null);
-                user.setIsWithdrawn(true);
-
-                userMyPageRepository.save(user);
-                log.info("회원 탈퇴 처리 완료: {}", email);
-            } else {
-                log.error("인증 코드가 유효하지 않습니다: {}", email);
-                throw new IllegalArgumentException("인증 코드가 유효하지 않습니다.");
-            }
-        } catch (IOException e) {
-            log.error("인증 코드 검증 중 예외 발생: ", e);
-            throw new IllegalStateException("인증 코드 검증 중 오류가 발생했습니다.");
-        }
+    // 검증 코드 생성 로직 1000~9999 사이의 4자리 숫자
+    private String generateVerificationCode() {
+        return String.valueOf((int) (Math.random() * 9000 + 1000));
     }
 }
+
+
+
+
+
+
+//    // 이메일 인증 코드 Redis 저장 시 사용할 키의 접두사입니다.
+//    private static final String AUTH_CODE_PREFIX = "AuthCode ";
+//
+//    // 회원 관련 데이터를 처리하는 리포지토리입니다.
+//    private final MemberRepository memberRepository;
+//
+//    // 이메일 발송을 처리하는 서비스입니다.
+//    private final MailService mailService;
+//
+//    // Redis에 데이터를 저장하고 가져오는 작업을 처리하는 서비스입니다.
+//    private final RedisService redisService;
+//
+//    // 이메일 인증 코드의 유효 기간을 밀리초 단위로 저장합니다. application.properties 또는 application.yml 파일에서 주입받습니다.
+//    @Value("${spring.mail.auth-code-expiration-millis}")
+//    private long authCodeExpirationMillis;
+//
+//    // 기타 메서드들이 있을 것으로 예상되어 '...'로 표시하였습니다.
+//
+//    /**
+//     * 주어진 이메일 주소로 인증 코드를 생성하여 발송하는 메서드입니다.
+//     * @param toEmail 인증 코드를 발송할 이메일 주소
+//     */
+//    public void sendCodeToEmail(String toEmail) {
+//        // 이메일 중복 여부를 확인합니다. 이미 존재하는 이메일이면 예외가 발생합니다.
+//        this.checkDuplicatedEmail(toEmail);
+//        // 이메일 제목을 설정합니다.
+//        String title = "Travel with me 이메일 인증 번호";
+//        // 6자리 인증 코드를 생성합니다.
+//        String authCode = this.createCode();
+//        // 메일 서비스를 통해 이메일을 발송합니다.
+//        mailService.sendEmail(toEmail, title, authCode);
+//        // 생성된 인증 코드를 Redis에 저장합니다. 키는 "AuthCode " + 이메일 주소로 설정합니다.
+//        redisService.setValues(AUTH_CODE_PREFIX + toEmail,
+//                authCode, Duration.ofMillis(this.authCodeExpirationMillis));
+//    }
+//
+//    /**
+//     * 주어진 이메일 주소가 이미 회원가입된 상태인지 확인하는 메서드입니다.
+//     * @param email 확인할 이메일 주소
+//     */
+//    private void checkDuplicatedEmail(String email) {
+//        // 이메일로 회원을 조회합니다.
+//        Optional<User> user = UserRepository.findByEmail(email);
+//        // 회원이 존재하면 예외를 발생시킵니다.
+//        if (user.isPresent()) {
+//            log.debug("MemberServiceImpl.checkDuplicatedEmail exception occur email: {}", email);
+//            throw new BusinessLogicException(ExceptionCode.MEMBER_EXISTS);
+//        }
+//    }
+//
+//    /**
+//     * 6자리의 랜덤 인증 코드를 생성하는 메서드입니다.
+//     * @return 생성된 인증 코드
+//     */
+//    private String createCode() {
+//        int length = 6; // 생성할 인증 코드의 길이입니다.
+//        try {
+//            // 보안이 강화된 난수 생성기를 사용합니다.
+//            Random random = SecureRandom.getInstanceStrong();
+//            StringBuilder builder = new StringBuilder();
+//            // 설정된 길이만큼의 숫자를 생성하여 인증 코드를 만듭니다.
+//            for (int i = 0; i < length; i++) {
+//                builder.append(random.nextInt(10));
+//            }
+//            return builder.toString(); // 생성된 인증 코드를 반환합니다.
+//        } catch (NoSuchAlgorithmException e) {
+//            log.debug("MemberService.createCode() exception occur");
+//            throw new BusinessLogicException(ExceptionCode.NO_SUCH_ALGORITHM);
+//        }
+//    }
+//
+//    /**
+//     * 사용자가 입력한 인증 코드를 검증하는 메서드입니다.
+//     * @param email    검증할 이메일 주소
+//     * @param authCode 사용자가 입력한 인증 코드
+//     * @return 인증 결과를 담은 EmailVerificationResult 객체
+//     */
+//    public EmailVerificationResult verifiedCode(String email, String authCode) {
+//        // 이메일 중복 여부를 다시 확인합니다. (이메일이 이미 존재하면 검증이 불필요)
+//        this.checkDuplicatedEmail(email);
+//        // Redis에서 저장된 인증 코드를 가져옵니다.
+//        String redisAuthCode = redisService.getValues(AUTH_CODE_PREFIX + email);
+//        // 인증 코드가 존재하고, 사용자가 입력한 코드와 일치하는지 확인합니다.
+//        boolean authResult = redisService.checkExistsValue(redisAuthCode) && redisAuthCode.equals(authCode);
+//
+//        // 인증 결과를 EmailVerificationResult 객체로 반환합니다.
+//        return EmailVerificationResult.of(authResult);
+//    }
+
+
+//    /**
+//     * 회원 탈퇴를 위한 인증 코드를 사용자 이메일로 전송하는 메서드.
+//     */
+//
+//    public void requestWithdrawal(RemoveUserDto emailRequestDto) {
+//        // 1. 입력된 이메일이 가입된 이메일인지 확인
+//        String email = emailRequestDto.getEmail();
+//        User user = userRepository.findByEmail(email)
+//                .orElseThrow(() -> new IllegalArgumentException("이메일이 잘못되었습니다."));
+//
+//        // 2. 기존 인증 코드가 있으면 삭제 또는 업데이트
+//        Optional<UserVerification> existingVerification = Optional.ofNullable(userVerificationRepository.findByEmail(email));
+//        existingVerification.ifPresent(userVerificationRepository::delete);
+//
+//        // 3. 새로운 인증 코드 생성 및 저장
+//        String verificationCode = UUID.randomUUID().toString();
+//        UserVerification userVerification = UserVerification.builder()
+//                .id(UUID.randomUUID().toString())
+//                .email(email)
+//                .verificationCode(verificationCode)
+//                .expiryDate(LocalDateTime.now().plusMinutes(3)) // 인증 코드 유효 시간 설정
+//                .user(user)
+//                .build();
+//
+//        userVerificationRepository.save(userVerification);
+//
+//        // 4. 인증 코드 이메일 발송
+//        emailService.sendVerificationEmail(email, verificationCode);
+//    }
+//
+//
+//    public void verifyCode(RemoveUserDto verificationCodeDto) {
+//        // 4. 입력된 인증 코드와 저장된 코드 확인
+//        String email = verificationCodeDto.getEmail();
+//        String code = verificationCodeDto.getCode();
+//
+//        UserVerification userVerification = userVerificationRepository.findByEmail(email);
+//
+//        if (userVerification != null && userVerification.getVerificationCode().equals(code)
+//                && userVerification.getExpiryDate().isAfter(LocalDateTime.now())) {
+//        } else {
+//            throw new IllegalArgumentException("인증 코드가 잘못되었거나 만료되었습니다.");
+//        }
+//    }
+//
+//    public void withdrawUser(RemoveUserDto withdrawRequestDto) {
+//        // 5. 비밀번호 확인 및 회원 탈퇴 처리
+//        String email = withdrawRequestDto.getEmail();
+//        String password = withdrawRequestDto.getPassword();
+//
+//        User user = userRepository.findByEmail(email)
+//                .orElseThrow(() -> new IllegalArgumentException("이메일이 잘못되었습니다."));
+//
+//        if (passwordEncoder.matches(password, user.getPassword())) {
+//            userRepository.delete(user);
+//        } else {
+//            throw new IllegalArgumentException("비밀번호가 잘못되었습니다.");
+//        }
+//    }

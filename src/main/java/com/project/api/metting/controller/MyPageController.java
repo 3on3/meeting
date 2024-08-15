@@ -1,6 +1,7 @@
 package com.project.api.metting.controller;
 
 import com.project.api.auth.TokenProvider.TokenUserInfo;
+import com.project.api.metting.dto.request.CertifyRequestDto;
 import com.project.api.metting.dto.request.ChangePasswordDto;
 import com.project.api.metting.dto.request.UserUpdateRequestDto;
 import com.project.api.metting.dto.request.RemoveUserDto;
@@ -13,12 +14,13 @@ import com.project.api.metting.service.GroupQueryService;
 import com.project.api.metting.service.UserMyPageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.validation.Valid;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -59,9 +61,9 @@ public class MyPageController {
     public ResponseEntity<UserProfile> getUserProfile(@PathVariable String userId,
                                                       @AuthenticationPrincipal TokenUserInfo tokenInfo) {
         // 유저 ID로 프로필을 조회
-            UserProfile userProfile = userMyPageService.getUserProfile(tokenInfo.getUserId());
+        UserProfile userProfile = userMyPageService.getUserProfile(tokenInfo.getUserId());
 
-            log.info("user profile - {}",userProfile);
+        log.info("user profile - {}", userProfile);
 
         if (userProfile != null) {
             return new ResponseEntity<>(userProfile, HttpStatus.OK); // 프로필이 존재하면 반환
@@ -87,8 +89,8 @@ public class MyPageController {
     // 특정 유저의 프로필 이미지 업데이트
     @PostMapping("/profileImage/update/{userId}")
     public ResponseEntity<String> updateUserProfileImage(
-                                                         @AuthenticationPrincipal TokenUserInfo tokenInfo,
-                                                         @RequestParam("file") MultipartFile file) {
+            @AuthenticationPrincipal TokenUserInfo tokenInfo,
+            @RequestParam("file") MultipartFile file) {
         try {
             // 프로필 이미지를 업데이트
             userMyPageService.updateUserProfileImage(tokenInfo.getUserId(), file);
@@ -124,6 +126,7 @@ public class MyPageController {
     }
 
 // - 기본 정보 조회 (프로필 이미지 제외)
+
     /**
      * 로그인한 사용자의 프로필 정보 반환
      *
@@ -144,7 +147,7 @@ public class MyPageController {
     public ResponseEntity<UserMyPageDto> updateUser(@AuthenticationPrincipal TokenUserInfo tokenInfo,
                                                     @RequestBody UserUpdateRequestDto updateDto) {
         UserMyPageDto updatedUser = userMyPageService.updateUserFields(tokenInfo.getUserId(), updateDto);
-        log.info("updatedUser - {}",updatedUser);
+        log.info("updatedUser - {}", updatedUser);
         return ResponseEntity.ok(updatedUser);
     }
 
@@ -162,34 +165,15 @@ public class MyPageController {
         }
     }
 
-    /**
-     * 회원 탈퇴와 관련된 모든 작업을 처리하는 엔드포인트.
-     *
-     * @param dto 사용자 요청 데이터를 담은 RemoveUserDto
-     * @return 작업 결과를 나타내는 응답
-     */
-    @PostMapping("/removeUser")
-    public ResponseEntity<?> handleRemoveUser(@RequestBody RemoveUserDto dto) {
-        try {
-            // action에 따라 작업을 구분하여 처리
-            switch (dto.getAction()) {
-                case "sendCode":
-                    // 인증 코드 전송 로직
-                    userMyPageService.sendRemovalVerificationCode(dto.getEmail());
-                    return ResponseEntity.ok("인증 코드가 이메일로 전송되었습니다.");
+    // 이메일 중복확인 API
+    @GetMapping("/check-email")
+    public ResponseEntity<?> checkEmail(String email) {
+        boolean isDuplicate = userMyPageService.checkEmailDuplicate(email);
 
-                case "removeUser":
-                    // 회원 탈퇴 로직
-                    userMyPageService.removeUserWithVerification(dto.getEmail(), dto.getCode(), dto.getPassword());
-                    return ResponseEntity.ok("회원 탈퇴가 성공적으로 완료되었습니다.");
+        //인증코드메일 발송
+        userMyPageService.sendVerificationEmail(email);
 
-                default:
-                    return ResponseEntity.badRequest().body("잘못된 요청입니다.");
-            }
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+        return ResponseEntity.ok().body(isDuplicate);
     }
 }
+
