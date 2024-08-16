@@ -86,8 +86,8 @@ public class ChatRoomService {
         String requestHostUserId = groupUsersRepository.findByGroupAndAuth(group2, GroupAuth.HOST).getUser().getId();
 
         // 각 그룹에 존재하는 유저정보 가져오기
-        List<GroupUser> responseGroupUsers = groupUsersRepository.findByGroup(group1);
-        List<GroupUser> requestGroupUsers = groupUsersRepository.findByGroup(group2);
+        List<GroupUser> responseGroupUsers = groupUsersRepository.findByGroupAndStatus(group1, GroupStatus.REGISTERED);
+        List<GroupUser> requestGroupUsers = groupUsersRepository.findByGroupAndStatus(group2, GroupStatus.REGISTERED);
 
 
         List<ChatUserRequestDto> responseChatUser = findChatUser(responseGroupUsers);
@@ -150,12 +150,15 @@ public class ChatRoomService {
 
     public List<MyChatListRequestDto> findChatList(String userId) {
 
+        // 로그인한 유저 정보 가져오기
         User user = userService.findUser(userId);
 
+        // 로그인한 유저가 그룹가입기록 조회(GroupStatus가 REGISTERED 인것만)
         List<GroupUser> groupUsers = groupService.findGroupUserList(user);
 
         System.out.println("groupUsers = " + groupUsers);
 
+        // 그룹가입기록 조회를 이용하여 그룹 가져오기 (그룹이 삭제되지 않은것만)
         List<Group> userGroups = new ArrayList<>();
 
         for (GroupUser groupUser : groupUsers) {
@@ -168,8 +171,11 @@ public class ChatRoomService {
 
         List<GroupMatchingHistory> matchingHistories = new ArrayList<>();
 
+        // 상대 그룹정보를 담기위한 그룹 리스트
         List<Group> matchingGroups = new ArrayList<>();
 
+        // 유저가 가입한 그룹을 이용하여 GroupMatchingHistory를 가져오기 (Process가 MATCHED인것만)
+        // 유저 그룹이 response그룹에 들어있으면 request그룹을 저장한다. (상대방 그룹의 정보를 채팅리스트에 넣기 위해서)
         for (Group userGroup : userGroups) {
             GroupMatchingHistory responseHistory = groupMatchingHistoriesRepository.findByResponseGroupAndProcess(userGroup, GroupProcess.MATCHED);
             GroupMatchingHistory requestHistory = groupMatchingHistoriesRepository.findByRequestGroupAndProcess(userGroup, GroupProcess.MATCHED);
@@ -187,13 +193,20 @@ public class ChatRoomService {
 
         List<MyChatListRequestDto> myChatListRequestDtoList = new ArrayList<>();
 
+        // 유저의 그룹 매칭 히스토리를 DTO로 변환
         for (int i = 0; i < matchingHistories.size(); i++) {
 
+            // 상대방 그룹에 존재하는 멤버수
+            int groupMember = groupUsersRepository.findByGroupAndStatus(matchingGroups.get(i), GroupStatus.REGISTERED).size();
 
+            // 채팅방에 존재하는 멤버수
+            int chatMemberCount = groupUsersRepository.findByGroupAndStatus(userGroups.get(i), GroupStatus.REGISTERED).size() + groupMember;
 
+            // 상대그룹의 HOST유저
             GroupUser groupUser = groupUsersRepository.findByGroupAndAuth(matchingGroups.get(i), GroupAuth.HOST);
 
-            User hostUser = userRepository.findById(groupUser.getUser().getId()).orElseThrow();
+            // 상대그룹의 HOST유저의 유저정보
+            User hostUser = groupUser.getUser();
 
             Integer averageAge = groupRepository.myChatListRequestDto(matchingGroups.get(i));
 
@@ -201,10 +214,11 @@ public class ChatRoomService {
                     .chatRoomId(matchingHistories.get(i).getChatRoom().getId())
                     .groupName(matchingGroups.get(i).getGroupName())
                     .groupPlace(matchingGroups.get(i).getGroupPlace())
-                    .maxNum(matchingGroups.get(i).getMaxNum())
+                    .groupMemberCount(groupMember)
                     .gender(matchingGroups.get(i).getGroupGender())
                     .major(hostUser.getMajor())
                     .age(averageAge)
+                    .chatMemberCount(chatMemberCount)
                     .build();
 
 
