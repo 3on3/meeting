@@ -39,6 +39,8 @@ public class MainService {
         List<Group> groupsByUserEmail = groupRepository.findGroupsEntityByUserEmail(email);
 //        log.info("groupsByUserEmail = {}", groupsByUserEmail);
 
+
+
         setMatchingStatusRequesting(groupsByUserEmail,mainMeetingListResponseDtos);
         setMatchingStatusResponse(groupsByUserEmail,mainMeetingListResponseDtos);
 
@@ -77,9 +79,9 @@ public class MainService {
         List<String> allRequestHistoriesId = new ArrayList<>();
 
         for (Group group : groupsByUserEmail) {
-            // 5-1. 히스토리 중 리퀘스트 아이디가 일치하는 히스토리
+            // 5-1. 히스토리 중 리스폰스 아이디가 일치하는 히스토리
             allResponseHistories.addAll(groupMatchingHistoriesRepository.findAllByResponseGroup(group)) ;
-            // 5-2. 로그인한 유저에게 매칭신청을 받은 그룹들 아이디
+            // 5-2. 로그인한 유저에게 매칭신청을 한 그룹들 아이디
             List<String> collect = allResponseHistories.stream().map(groupMatchingHistory -> groupMatchingHistory.getRequestGroup().getId() ).collect(Collectors.toList());
             allRequestHistoriesId.addAll(collect);
         }
@@ -92,7 +94,6 @@ public class MainService {
             }
         });
     }
-
     //    group 필터링
     public Page<MainMeetingListResponseDto> postMeetingList(MainMeetingListFilterDto dto) {
 
