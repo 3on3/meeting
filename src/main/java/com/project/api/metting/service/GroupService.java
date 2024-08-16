@@ -5,10 +5,7 @@ import com.project.api.metting.dto.request.GroupCreateDto;
 import com.project.api.metting.dto.request.GroupDeleteRequestDto;
 import com.project.api.metting.dto.request.GroupJoinRequestDto;
 import com.project.api.metting.dto.request.GroupWithdrawRequestDto;
-import com.project.api.metting.dto.response.GroupUsersViewListResponseDto;
-import com.project.api.metting.dto.response.InviteResultResponseDto;
-import com.project.api.metting.dto.response.InviteUsersViewResponseDto;
-import com.project.api.metting.dto.response.UserResponseDto;
+import com.project.api.metting.dto.response.*;
 import com.project.api.metting.entity.*;
 import com.project.api.metting.repository.*;
 import com.project.api.metting.util.RandomUtil;
@@ -99,9 +96,9 @@ public class GroupService {
 
         // 초대 코드 생성 및 저장
         try {
-            String inviteCode = generateGroupInviteCode(group.getId());
+            InviteCodeResponseDto inviteCode = generateGroupInviteCode(group.getId());
             log.info("log info invite code - {}", inviteCode);
-            group.setCode(inviteCode);
+            group.setCode(inviteCode.getInviteLink());
 
             // 업데이트된 그룹 저장
             groupRepository.save(group);
@@ -117,26 +114,40 @@ public class GroupService {
      * @return - 생성된 초대 코드
      */
     @Transactional
-    public String generateGroupInviteCode(String groupId) {
+    public InviteCodeResponseDto generateGroupInviteCode(String groupId) {
+        Group findGroup = groupRepository.findById(groupId).orElseThrow(() -> new IllegalStateException("그룹을 찾을 수 없습니다."));
         validateExistGroup(groupId);
         log.info("Generating invite link for group ID: {}", groupId);
+        long remainingTime = 0;
 
+        // 그룹 ID 기반으로 기존 초대 코드 조회
         final Optional<String> existingCode = redisUtil.getData(INVITE_LINK_PREFIX + groupId, String.class);
         log.info("Existing invite code: {}", existingCode.orElse("No existing invite code"));
 
         String inviteCode;
         if (existingCode.isEmpty()) {
+            // 초대 코드가 없으면 새로운 초대 코드 생성
             inviteCode = RandomUtil.generateRandomCode('0', 'z', 50);
             log.info("Generated random code: {}", inviteCode);
-            redisUtil.setDataExpire(INVITE_LINK_PREFIX + inviteCode, groupId, RedisUtil.toTomorrow() * 1000);
+            // 그룹 ID와 초대 코드를 연관시켜 저장
+            redisUtil.setDataExpire(INVITE_LINK_PREFIX + groupId, inviteCode, RedisUtil.toTomorrow() * 1000);
             log.info("Invite code set in Redis with expiration: {}", inviteCode);
+
+
         } else {
+            // 기존 초대 코드가 있으면 그것을 사용
             inviteCode = existingCode.get();
         }
 
+        // 남은 TTL(초 단위) 조회
+        remainingTime = redisUtil.getExpire(INVITE_LINK_PREFIX + groupId);
+
+        // 초대 링크 생성
         String inviteLink = "http://localhost:3000/group/join/invite?code=" + inviteCode;
         log.info("Generated invite link: {}", inviteLink);
-        return inviteLink;
+        findGroup.setCode(inviteLink);
+        // 초대 링크와 남은 유효 시간 반환
+        return new InviteCodeResponseDto(inviteLink, remainingTime);
     }
 
     private void validateExistGroup(String groupId) {
