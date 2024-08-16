@@ -96,8 +96,9 @@ public class RegisterController {
     }
 
     // 전화번호 중복 확인 API
-    @PostMapping("/check-phone-number")
-    public ResponseEntity<?> checkPhoneNumber(@RequestBody String phoneNumber) {
+    @GetMapping("/check-phone-number")
+    public ResponseEntity<?> checkPhoneNumber(@RequestParam String phoneNumber) {
+        log.info("Checking phone number: {}", phoneNumber);
         boolean isDuplicate = userSignUpService.checkPhoneNumberDuplicate(phoneNumber);
         return ResponseEntity.ok(isDuplicate); // boolean 값 반환
     }

@@ -1,6 +1,7 @@
 package com.project.api.metting.service;
 
 import com.project.api.metting.dto.request.ChangePasswordDto;
+import com.project.api.metting.dto.request.UpdatePhoneNumberDto;
 import com.project.api.metting.dto.request.UserUpdateRequestDto;
 import com.project.api.metting.dto.request.RemoveUserDto;
 import com.project.api.metting.dto.response.UserMyPageDto;
@@ -179,19 +180,14 @@ public class UserMyPageService {
     }
 
 
-// 비밀번호 변경 로직
+    // 비밀번호 변경 로직
     public void changePassword(String userId, ChangePasswordDto changePasswordDto) {
-
         if (changePasswordDto == null) {
             throw new IllegalArgumentException("비밀번호 변경 데이터는 null일 수 없습니다");
         }
 
         User user = userMyPageRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 ID로 사용자를 찾을 수 없습니다: " + userId));
-
-        if (!passwordEncoder.matches(changePasswordDto.getCurrentPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("현재 비밀번호가 올바르지 않습니다.");
-        }
 
         if (changePasswordDto.getNewPassword() == null ||
                 changePasswordDto.getConfirmNewPassword() == null ||
@@ -289,5 +285,32 @@ public class UserMyPageService {
             log.error("인증 코드 검증 중 예외 발생: ", e);
             throw new IllegalStateException("인증 코드 검증 중 오류가 발생했습니다.");
         }
+    }
+
+    // 비밀번호 확인 메서드
+    public boolean checkPassword(String email, String rawPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+
+        // 입력한 비밀번호와 DB의 암호화된 비밀번호를 비교
+        return passwordEncoder.matches(rawPassword, user.getPassword());
+    }
+
+
+    public void updatePhoneNumber(String email, UpdatePhoneNumberDto dto) {
+        if (dto == null || dto.getPhoneNumber() == null) {
+            throw new IllegalArgumentException("전화번호 데이터는 null일 수 없습니다");
+        }
+
+        boolean phoneExists = userMyPageRepository.existsByPhoneNumber(dto.getPhoneNumber());
+        if (phoneExists) {
+            throw new IllegalArgumentException("이미 존재하는 번호입니다.");
+        }
+
+        User user = userMyPageRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("해당 email로 사용자를 찾을 수 없습니다: " + email));
+
+        user.setPhoneNumber(dto.getPhoneNumber());
+        userMyPageRepository.save(user);
     }
 }
