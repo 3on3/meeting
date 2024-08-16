@@ -35,11 +35,17 @@ public class UserSignInService {
         User userInfo = userRepository
                 .findByEmail(dto.getEmail())
                 .orElseThrow(
-                        () -> new LoginFailException("가입된 회원이 아닙니다.")
+                        () -> new LoginFailException("User not found")
                 );
+
+        // 탈퇴 여부 확인
+        if (userInfo.isWithdrawn()) {
+            throw new LoginFailException("Account has been withdrawn");
+        }
+
         // 패스워드를 설정하지 않은 회원
         if (userInfo.getPassword() == null) {
-            throw new LoginFailException("회원가입이 중단된 회원입니다. 다시 가입해주세요.");
+            throw new LoginFailException("User not found");
         }
 
         // 패스워드 검증
@@ -47,7 +53,7 @@ public class UserSignInService {
         String encodedPassword = userInfo.getPassword();
 
         if (!encoder.matches(inputPassword, encodedPassword)) {
-            throw new LoginFailException("비밀번호가 틀렸습니다.");
+            throw new LoginFailException("Invalid password");
         }
 
         // 로그인 성공시
@@ -67,6 +73,7 @@ public class UserSignInService {
                 .major(userInfo.getMajor())
                 .gender(userInfo.getGender())
                 .nickname(userInfo.getNickname())
+                .isWithdrawn(userInfo.isWithdrawn())
                 .build();
 
         // 자동로그인이라면?

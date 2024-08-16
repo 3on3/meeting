@@ -3,6 +3,7 @@ package com.project.api.metting.dto.response;
 import com.project.api.metting.entity.User;
 import lombok.*;
 
+import java.util.List;
 import java.util.Objects;
 
 @Getter
@@ -14,5 +15,7 @@ import java.util.Objects;
 public class MainWebSocketResponseDto {
     private String type;
     private LoginResponseDto loginUser;
-    private User user;
+    private String email;
+    private String responseGroupId;
+
 }

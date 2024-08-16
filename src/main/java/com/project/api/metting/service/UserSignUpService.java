@@ -114,6 +114,20 @@ public class UserSignUpService {
         }
     }
 
+    // 닉네임 중복 확인
+    public boolean checkNicknameDuplicate(String nickname) {
+        boolean exists = userRepository.existsByNickname(nickname);
+        log.info("Checking nickname {} is duplicate: {}", nickname, exists);
+        return exists;
+    }
+
+    // 전화번호 중복 확인
+    public boolean checkPhoneNumberDuplicate(String phoneNumber) {
+        boolean exists = userRepository.existsByPhoneNumber(phoneNumber);
+        log.info("Checking phone number {} is duplicate: {}", phoneNumber, exists);
+        return exists;
+    }
+
 //    private void generateAndCreateCode(String email, User user) {
 //        // 2. 이메일 인증코드 발송
 //        String code = sendVerificationEmail(email);
@@ -191,14 +205,24 @@ public class UserSignUpService {
                 return false;
             }
 
-            String univName = user.getUnivName(); // univName 가져오기
+            String univName = user.getUnivName();
             if (univName == null) {
                 log.error("University name not found for user: {}", email);
                 return false;
             }
 
+            // 인증 코드 확인
             Map<String, Object> response = UnivCert.certifyCode(univCertApiKey, email, univName, code);
-            return response != null && Boolean.TRUE.equals(response.get("success"));
+
+            // 서버 응답 확인
+            if (response != null && Boolean.TRUE.equals(response.get("success"))) {
+                log.info("Verification succeeded for email: {}", email);
+                return true;  // 인증 성공
+            } else {
+                String message = response != null ? (String) response.get("message") : "Unknown error occurred";
+                log.error("Verification failed for email: {}. Reason: {}", email, message);
+                return false;  // 인증 실패
+            }
         } catch (IOException e) {
             log.error("Exception while verifying code: ", e);
             return false;

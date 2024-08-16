@@ -1,10 +1,11 @@
 package com.project.api.metting.controller;
 
 import com.project.api.metting.dto.request.GroupCreateDto;
+import com.project.api.metting.dto.request.GroupDeleteRequestDto;
 import com.project.api.metting.dto.request.GroupJoinRequestDto;
 import com.project.api.metting.dto.request.GroupWithdrawRequestDto;
+import com.project.api.metting.dto.response.InviteResultResponseDto;
 import com.project.api.metting.dto.response.InviteUsersViewResponseDto;
-import com.project.api.metting.entity.GroupUser;
 import com.project.api.metting.service.GroupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +15,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 import static com.project.api.auth.TokenProvider.TokenUserInfo;
 
@@ -50,6 +50,19 @@ public class GroupController {
         }
     }
 
+
+    @PostMapping("/delete")
+    public ResponseEntity<?> GroupDelete(@RequestBody GroupDeleteRequestDto dto, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+        try {
+            groupService.groupDelete(dto, tokenInfo);
+            return ResponseEntity.ok().body("그룹 삭제가 완료 되었습니다.");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("그룹 참여 신청에 실패하였습니다. 다시 시도해주세요.");
+        }
+    }
+
     @GetMapping("/invite/{groupId}")
     public ResponseEntity<?> getGroup(@PathVariable String groupId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
         List<InviteUsersViewResponseDto> joinRequests = groupService.getJoinRequests(groupId, tokenInfo);
@@ -57,40 +70,50 @@ public class GroupController {
     }
 
     @PostMapping("/join-requests/{groupUserId}/accept")
-    public ResponseEntity<Void> acceptJoinRequest(@PathVariable String groupUserId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
-        System.out.println("groupUserId = " + groupUserId);
+    public ResponseEntity<String> acceptJoinRequest(@PathVariable String groupUserId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+
+        try {
         groupService.acceptJoinRequest(groupUserId, tokenInfo);
-        return ResponseEntity.ok().build();
+            return ResponseEntity.ok("그룹 가입 신청을 수락하였습니다.");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("가입신청 수락에 실패하였습니다. 다시 시도해주세요.");
+        }
     }
 
 
     @PostMapping("/withdraw")
-    public ResponseEntity<?> withDrawGroup(@RequestBody GroupWithdrawRequestDto groupId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
-        System.out.println("groupUserId = " + groupId);
-        groupService.groupWithDraw(groupId, tokenInfo);
-        return ResponseEntity.ok().body("성공적으로 그룹에서 탈퇴하였습니다.");
-    }
-
-
-
-    @PostMapping("/join-requests/{groupUserId}/cancel")
-    public ResponseEntity<Void> rejectJoinRequest(@PathVariable String groupUserId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
-        groupService.cancelJoinRequest(groupUserId, tokenInfo);
+    public ResponseEntity<Void> groupWithDraw(@RequestBody GroupWithdrawRequestDto dto, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+        groupService.groupWithDraw(dto, tokenInfo);
         return ResponseEntity.ok().build();
     }
 
+
+    @PostMapping("/join-requests/{groupUserId}/cancel")
+    public ResponseEntity<?> rejectJoinRequest(@PathVariable String groupUserId, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+        try {
+            groupService.cancelJoinRequest(groupUserId, tokenInfo);
+            return ResponseEntity.ok("그룹 가입 신청을 거절하였습니다.");
+        }  catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("가입신청을 거절에 실패하였습니다.");
+        }
+    }
+
     @PostMapping("/join/invite")
-    public ResponseEntity<String> joinGroupWithInviteCode(@RequestParam String code, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+    public ResponseEntity<?> joinGroupWithInviteCode(@RequestParam String code, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
         if (code == null || code.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("해당 코드는 더 이상 존재하지 않습니다..");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("해당 코드는 더 이상 존재하지 않습니다.");
         }
         try {
-            groupService.joinGroupWithInviteCode(code, tokenInfo);
-            return ResponseEntity.ok("성공적으로 그룹에 가입신청을 완료하였습니다.");
+            InviteResultResponseDto resultDto = groupService.joinGroupWithInviteCode(code, tokenInfo);
+            return ResponseEntity.ok(resultDto);
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("가입신청에 실패하였습니다. 다시 시도해주세요..");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("가입신청에 실패하였습니다. 다시 시도해주세요.");
         }
     }
 

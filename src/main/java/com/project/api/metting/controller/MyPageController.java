@@ -2,6 +2,9 @@ package com.project.api.metting.controller;
 
 import com.project.api.auth.TokenProvider.TokenUserInfo;
 import com.project.api.metting.dto.request.*;
+import com.project.api.metting.dto.request.ChangePasswordDto;
+import com.project.api.metting.dto.request.MatchedGroupRequestDto;
+import com.project.api.metting.dto.request.UserUpdateRequestDto;
 import com.project.api.metting.dto.response.ChatRoomResponseDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.dto.response.UserMyPageDto;
@@ -11,12 +14,12 @@ import com.project.api.metting.service.GroupQueryService;
 import com.project.api.metting.service.UserMyPageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -192,6 +195,14 @@ public class MyPageController {
             return ResponseEntity.status(302).body(valid);
         }
         return ResponseEntity.status(200).body(valid);
+    }
+
+
+    // 내가 속한 그룹 조회
+    @PostMapping("/mygroup-matched")
+    public ResponseEntity<?> getMyGroupsMatched(@AuthenticationPrincipal TokenUserInfo tokenInfo,@RequestBody MatchedGroupRequestDto matchedGroupRequestDto) {
+        List<GroupResponseDto> groups = groupQueryService.getMatchedMyGroups(tokenInfo,matchedGroupRequestDto.getId());
+        return ResponseEntity.ok().body(groups);
     }
 }
 
