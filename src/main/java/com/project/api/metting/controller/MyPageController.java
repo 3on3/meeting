@@ -144,7 +144,7 @@ public class MyPageController {
     }
 
     // 유저 정보 수정
-    @PutMapping("/userInfo/update/{userId}")
+    @PutMapping("/userInfo/update")
     public ResponseEntity<UserMyPageDto> updateUser(@AuthenticationPrincipal TokenUserInfo tokenInfo,
                                                     @RequestBody UserUpdateRequestDto updateDto) {
         UserMyPageDto updatedUser = userMyPageService.updateUserFields(tokenInfo.getUserId(), updateDto);

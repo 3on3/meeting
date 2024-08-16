@@ -12,6 +12,8 @@ import lombok.*;
 @Builder
 public class UserUpdateRequestDto {
 
+    private String email; // 이메일
+
     //    @JsonProperty("product_img")
     private String profileImg; // 프로필 이미지 경로
 
