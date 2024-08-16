@@ -14,9 +14,10 @@ public interface GroupMatchingHistoriesRepository extends JpaRepository<GroupMat
 
     boolean existsByResponseGroupAndRequestGroup(Group responseGroup, Group requestGroup);
     GroupMatchingHistory findByResponseGroupAndRequestGroup(Group responseGroup, Group requestGroup);
-//    List<GroupMatchingHistory> findAllByRequestGroup(Group group);
 
     GroupMatchingHistory findByResponseGroupAndProcess(Group group, GroupProcess process);
+    boolean existsByResponseGroupAndProcess(Group group, GroupProcess process);
+    boolean existsByRequestGroupAndProcess(Group group, GroupProcess process);
 
     GroupMatchingHistory findByRequestGroupAndProcess(Group group, GroupProcess process);
 

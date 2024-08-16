@@ -61,8 +61,13 @@ public class GroupMatchingService {
             if(!requestGroup.getGroupPlace().equals(responseGroup.getGroupPlace()) ){
                 throw new GroupMatchingFailException("희망지역이 다릅니다.", HttpStatus.BAD_REQUEST);
             }
+            // 5. 이미 다른 그룹과 매칭된 그룹일 경우
+            boolean isMatchedByResponse = groupMatchingHistoriesRepository.existsByResponseGroupAndProcess(responseGroup, GroupProcess.MATCHED);
+            boolean isMatchedByRequest = groupMatchingHistoriesRepository.existsByRequestGroupAndProcess(responseGroup, GroupProcess.MATCHED);
+            if(isMatchedByResponse || isMatchedByRequest){
+                throw new GroupMatchingFailException("이미 다른 그룹과 매칭된 그룹입니다.", HttpStatus.CONFLICT);
+            }
 
-// if(requestGroup.getMaxNum())
 
 
             // 히스토리 생성
