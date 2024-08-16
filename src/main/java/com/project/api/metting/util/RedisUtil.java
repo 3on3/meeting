@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.requireNonNull;
 
@@ -64,5 +65,9 @@ public class RedisUtil {
     public void flushAll() {
         log.info("Flushing all data from Redis");
         requireNonNull(redisTemplate.getConnectionFactory()).getConnection().serverCommands().flushAll();
+    }
+
+    public long getExpire(String key) {
+        return redisTemplate.getExpire(key, TimeUnit.SECONDS); // 초 단위 TTL 조회
     }
 }
