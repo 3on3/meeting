@@ -41,7 +41,7 @@ public class UserMyPageService {
     // 이메일 전송 객체
     private  final JavaMailSender mailSender;
 
-    // 사용자 정보 가져오기
+    // 유저 정보 가져오기
     public UserMyPageDto getUserInfo(String userEmail) {
         User user = userMyPageRepository.findById(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
@@ -78,7 +78,7 @@ public class UserMyPageService {
      * @return convertToUserMyPageDto 객체를 담은 Optional
      */
 
-    // 사용자 정보를 업데이트하는 메서드
+    // 유저 정보 업데이트
     public UserMyPageDto updateUserFields(String userId, UserUpdateRequestDto updateDto) {
         log.info("Updating user fields for user ID: {}", userId);
         // 사용자 조회
@@ -105,7 +105,7 @@ public class UserMyPageService {
         return convertToUserMyPageDto(user);
     }
 
-    // 특정 유저의 프로필을 조회하는 메서드
+    // - 프로필 이미지 조회
     public UserProfile getUserProfile(String userId) {
         // 유저 ID로 User 객체를 조회
         Optional<User> user = userRepository.findById(userId);
@@ -113,7 +113,7 @@ public class UserMyPageService {
         return user.map(userProfileRepository::findByUser).orElse(null);
     }
 
-    // 특정 유저의 프로필 이미지를 업데이트하는 메서드
+    // - 프로필 이미지를 업데이트
     public void updateUserProfileImage(String userId, MultipartFile file) throws IOException {
         // 유저 ID로 User 객체를 조회
         Optional<User> user = userRepository.findById(userId);
@@ -127,7 +127,6 @@ public class UserMyPageService {
             }
         }
     }
-
 
     // 프로필 이미지를 저장하고, 저장된 파일 경로를 반환하는 메서드
     private String saveProfileImage(MultipartFile file) throws IOException {
@@ -170,7 +169,7 @@ public class UserMyPageService {
     }
 
 
-    // 비밀번호 변경 로직
+    // - 비밀번호 변경 로직
     public void changePassword(String userId, ChangePasswordDto changePasswordDto) {
 
         if (changePasswordDto == null) {
@@ -195,16 +194,16 @@ public class UserMyPageService {
     }
 
 
-
+    // - 이메일 중복 확인
     public boolean checkEmailDuplicate(String email) {
-        //레포지토리에 이메일이 존재하는지 여부(T/F)
+
         boolean exists = userRepository.existsByEmail(email);
         log.info("Checking email {} is duplicate : {}", email, exists);
         return userRepository.existsByEmail(email);// 이메일이 존재하면 true 리턴
     }
 
 
-    // 이메일 인증 코드 보내기
+    // - 이메일 인증 코드 보내기
     @Transactional
     public void sendVerificationEmail(String email) {
         // 검증 코드 생성하기
@@ -255,28 +254,25 @@ public class UserMyPageService {
 
         // 이메일을 통해 회원정보를 탐색
         User user = userRepository.findByEmail(email)
-                .orElse(null);
-
+                                    .orElse(null);
         if (user != null) {
             // 인증코드가 있는지 탐색
             UserVerification ev = userVerificationRepository.findByUser(user)
                                 .orElse(null);
-
             // 인증코드가 있고 만료시간이 지나지 않았고 코드번호가 일치할 경우
-            if (
-                    ev != null
+            if (ev != null
                             && ev.getExpiryDate().isAfter(LocalDateTime.now())
                             && code.equals(ev.getVerificationCode())
             ) {
                 return true;
             }
-
         }
         return false;
     }
 
     public boolean verifySendingCode(TemporaryVerficationDto verficationDto) {
-        TemporaryVerification verification = temporaryVerificationRepository.findByEmail(verficationDto.getEmail());
+        TemporaryVerification verification = temporaryVerificationRepository
+                                            .findByEmail(verficationDto.getEmail());
         if(verification.getCode().equals(verficationDto.getCode())) {
             return true;
         }

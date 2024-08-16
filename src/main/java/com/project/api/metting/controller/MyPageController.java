@@ -166,6 +166,8 @@ public class MyPageController {
         }
     }
 
+// 회원탈퇴
+
     // 이메일 중복확인 API
     @GetMapping("/check-email")
     public ResponseEntity<?> checkEmail(String email) {
