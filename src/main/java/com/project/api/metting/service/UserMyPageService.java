@@ -280,10 +280,23 @@ public class UserMyPageService {
     }
 
     public boolean verifyPassword(PasswordVerificationDto verificationDto) {
-        User user = userRepository.findByEmail(verificationDto.getEmail()).orElseThrow();
-        if(user.getPassword().equals(verificationDto.getPassword())) {
+        // 이메일로 사용자 조회
+        User user = userRepository.findByEmail(verificationDto.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+
+        // 입력된 비밀번호와 저장된 비밀번호 해시값 비교
+        if (passwordEncoder.matches(verificationDto.getPassword(), user.getPassword())) {
             return true;
         }
         return false;
     }
+
+
+//    public boolean verifyPassword(PasswordVerificationDto verificationDto) {
+//        User user = userRepository.findByEmail(verificationDto.getEmail()).orElseThrow();
+//        if(user.getPassword().equals(verificationDto.getPassword())) {
+//            return true;
+//        }
+//        return false;
+//    }
 }
