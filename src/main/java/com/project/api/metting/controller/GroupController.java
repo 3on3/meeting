@@ -4,6 +4,7 @@ import com.project.api.metting.dto.request.GroupCreateDto;
 import com.project.api.metting.dto.request.GroupDeleteRequestDto;
 import com.project.api.metting.dto.request.GroupJoinRequestDto;
 import com.project.api.metting.dto.request.GroupWithdrawRequestDto;
+import com.project.api.metting.dto.response.InviteCodeResponseDto;
 import com.project.api.metting.dto.response.InviteResultResponseDto;
 import com.project.api.metting.dto.response.InviteUsersViewResponseDto;
 import com.project.api.metting.service.GroupService;
@@ -128,4 +129,12 @@ public class GroupController {
     public ResponseEntity<?> getGroupList(@PathVariable String groupUserId, @AuthenticationPrincipal TokenUserInfo tokenUserInfo) {
         return groupService.getGroupUsers(groupUserId, tokenUserInfo);
     }
+
+
+    @PostMapping("/inviteCodeGenerate")
+    public ResponseEntity<?> inviteCodeSelect(@RequestBody GroupDeleteRequestDto dto, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+        InviteCodeResponseDto inviteCodeResponseDto = groupService.generateGroupInviteCode(dto.getGroupId());
+        return ResponseEntity.ok().body(inviteCodeResponseDto);
+    }
+
 }
