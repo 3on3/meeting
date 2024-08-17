@@ -1,34 +1,25 @@
 package com.project.api.metting.service;
 
-import com.project.api.metting.dto.request.ChangePasswordDto;
-import com.project.api.metting.dto.request.UpdatePhoneNumberDto;
-import com.project.api.metting.dto.request.UserUpdateRequestDto;
-import com.project.api.metting.dto.request.RemoveUserDto;
+import com.project.api.metting.dto.request.*;
 import com.project.api.metting.dto.response.UserMyPageDto;
-import com.project.api.metting.entity.Membership;
-import com.project.api.metting.entity.User;
-import com.project.api.metting.entity.UserProfile;
-import com.project.api.metting.repository.UserMyPageRepository;
-import com.project.api.metting.repository.UserProfileRepository;
-import com.project.api.metting.repository.UserRepository;
-import com.univcert.api.UnivCert;
+import com.project.api.metting.entity.*;
+import com.project.api.metting.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-
+import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.Period;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.*;
 import java.io.File;
 
@@ -37,19 +28,20 @@ import java.io.File;
 @RequiredArgsConstructor
 public class UserMyPageService {
 
-    @Value("${univcert.api.key}")
-    private String univCertApiKey;
-
+    @Value("${study.mail.host}")
+    private String mailHost;
     private String profileImageUploadDir; // 프로필 이미지를 저장할 디렉토리 경로
-
     private final UserMyPageRepository userMyPageRepository;
     private final UserProfileRepository userProfileRepository; // UserProfile 엔티티를 다루는 JPA 리포지토리
     private final UserRepository userRepository; // User 엔티티를 다루는 JPA 리포지토리
     private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
+    private final UserVerificationRepository userVerificationRepository;
+    private final TemporaryVerificationRepository temporaryVerificationRepository;
 
+    // 이메일 전송 객체
+    private  final JavaMailSender mailSender;
 
-    // 사용자 정보 가져오기
+    // 유저 정보 가져오기
     public UserMyPageDto getUserInfo(String userEmail) {
         User user = userMyPageRepository.findById(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
@@ -86,7 +78,7 @@ public class UserMyPageService {
      * @return convertToUserMyPageDto 객체를 담은 Optional
      */
 
-    // 사용자 정보를 업데이트하는 메서드
+    // 유저 정보 업데이트
     public UserMyPageDto updateUserFields(String userId, UserUpdateRequestDto updateDto) {
         log.info("Updating user fields for user ID: {}", userId);
         // 사용자 조회
@@ -109,20 +101,19 @@ public class UserMyPageService {
             user.setMajor(updateDto.getMajor());
         }
 
-
         userMyPageRepository.save(user);
         return convertToUserMyPageDto(user);
     }
 
-    // 특정 유저의 프로필을 조회하는 메서드
-    public UserProfile getUserProfile (String userId){
+    // - 프로필 이미지 조회
+    public UserProfile getUserProfile(String userId) {
         // 유저 ID로 User 객체를 조회
         Optional<User> user = userRepository.findById(userId);
         // 조회한 User 객체와 연결된 UserProfile을 반환
         return user.map(userProfileRepository::findByUser).orElse(null);
     }
 
-    // 특정 유저의 프로필 이미지를 업데이트하는 메서드
+    // - 프로필 이미지를 업데이트
     public void updateUserProfileImage(String userId, MultipartFile file) throws IOException {
         // 유저 ID로 User 객체를 조회
         Optional<User> user = userRepository.findById(userId);
@@ -133,11 +124,9 @@ public class UserMyPageService {
                 String filePath = saveProfileImage(file);  // 수정: 파일 시스템에 저장 로직 추가
                 userProfile.setProfileImg(filePath); // 프로필 이미지 경로를 설정
                 userProfileRepository.save(userProfile); // 변경된 프로필을 저장
-
             }
         }
     }
-
 
     // 프로필 이미지를 저장하고, 저장된 파일 경로를 반환하는 메서드
     private String saveProfileImage(MultipartFile file) throws IOException {
@@ -180,14 +169,19 @@ public class UserMyPageService {
     }
 
 
-    // 비밀번호 변경 로직
+    // - 비밀번호 변경 로직
     public void changePassword(String userId, ChangePasswordDto changePasswordDto) {
+
         if (changePasswordDto == null) {
             throw new IllegalArgumentException("비밀번호 변경 데이터는 null일 수 없습니다");
         }
 
         User user = userMyPageRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 ID로 사용자를 찾을 수 없습니다: " + userId));
+
+        if (!passwordEncoder.matches(changePasswordDto.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 올바르지 않습니다.");
+        }
 
         if (changePasswordDto.getNewPassword() == null ||
                 changePasswordDto.getConfirmNewPassword() == null ||
@@ -200,117 +194,109 @@ public class UserMyPageService {
     }
 
 
-/**
- * 회원 탈퇴를 위한 인증 코드를 사용자 이메일로 전송하는 메서드.
- * 인증 상태나 이전 요청과 관계없이 새로운 인증 코드를 생성하여 전송
- *
- * @param email 사용자 이메일
- */
-    public void sendRemovalVerificationCode(String email) {
-        User user = userMyPageRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("해당 이메일로 가입된 유저가 없습니다."));
+    // - 이메일 중복 확인
+    public boolean checkEmailDuplicate(String email) {
 
-        String code = String.format("%06d", (int) (Math.random() * 1000000)); // 새 인증 코드 생성
-        saveVerificationCode(email, code); // 새 인증 코드 저장
-
-        try {
-            // UnivCert API를 통해 인증 코드 발송 요청
-            Map<String, Object> response = UnivCert.certify(univCertApiKey, email, user.getUnivName(), false);
-
-            if (response != null && Boolean.TRUE.equals(response.get("success"))) {
-                log.info("새로운 인증 코드가 이메일로 전송되었습니다: {}", email);
-            } else if ("이미 완료된 요청입니다.".equals(response.get("message"))) {
-                log.warn("이미 완료된 요청: {}", email);
-                // 기존 요청이 완료되었어도 새 인증 코드를 전송하기 위한 이메일 전송 로직
-                emailService.sendEmail(email, "인증 코드", "귀하의 인증 코드는 " + code + "입니다.");
-                log.info("기존 요청이 완료되었으므로 새로운 인증 코드를 이메일로 전송했습니다: {}", email);
-            } else {
-                log.error("인증 코드 발송 실패: {}", email);
-                throw new IllegalStateException("인증 코드 발송에 실패했습니다.");
-            }
-        } catch (IOException e) {
-            log.error("인증 코드 발송 중 예외 발생: ", e);
-            throw new IllegalStateException("인증 코드 발송 중 오류가 발생했습니다.", e);
-        } catch (Exception e) {
-            log.error("예상치 못한 예외 발생: ", e);
-            throw new IllegalStateException("인증 코드 발송 중 예상치 못한 오류가 발생했습니다.", e);
-        }
-    }
-
-    private void saveVerificationCode(String email, String code) {
-
+        boolean exists = userRepository.existsByEmail(email);
+        log.info("Checking email {} is duplicate : {}", email, exists);
+        return userRepository.existsByEmail(email);// 이메일이 존재하면 true 리턴
     }
 
 
-    /**
-     * 인증 코드와 비밀번호를 확인한 후 사용자를 탈퇴 처리하는 메서드
-     *
-     * @param user           사용자 이메일
-     * @param inputPassword    사용자 입력 비밀번호
-     *
-
-     */
-
-    private void verifyUserPassword(User user, String inputPassword) {
-        if (!passwordEncoder.matches(inputPassword, user.getPassword())) {
-            log.error("비밀번호가 일치하지 않습니다: {}", user.getEmail());
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-        }
-    }
-
+    // - 이메일 인증 코드 보내기
     @Transactional
-    public void removeUserWithVerification(String email, int verificationCode, String inputPassword) {
-        User user = userMyPageRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("해당 이메일로 가입된 유저가 없습니다."));
+    public void sendVerificationEmail(String email) {
+        // 검증 코드 생성하기
+        String code = generateVerificationCode();
+        TemporaryVerification temporaryVerification = TemporaryVerification.builder()
+                .email(email)
+                .code(code)
+                .build();
+
+        temporaryVerificationRepository.save(temporaryVerification);
+
+        // 이메일을 전송할 객체 생성
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
 
         try {
-            Map<String, Object> response = UnivCert.certifyCode(univCertApiKey, email, user.getUnivName(), verificationCode);
+            MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
 
-            if (response != null && Boolean.TRUE.equals(response.get("success"))) {
-                log.info("인증 코드가 확인되었습니다: {}", email);
+            // 누구에게 이메일을 보낼 것인지
+            messageHelper.setTo(email);
+            // 이메일 제목 설정
+            messageHelper.setSubject("[인증메일] 회원탈퇴 인증 메일입니다.");
+            // 이메일 내용 설정
+            messageHelper.setText(
+                    "인증 코드: <b style=\"font-weight: 700; letter-spacing: 5px; font-size: 30px;\">" + code + "</b>"
+                    , true
+            );
 
-                verifyUserPassword(user, inputPassword);
+            // 전송자의 이메일 주소
+            messageHelper.setFrom(mailHost);
 
-                user.setEmail(null);
-                user.setPassword(null);
-                user.setIsWithdrawn(true);
+            // 이메일 보내기
+            mailSender.send(mimeMessage);
 
-                userMyPageRepository.save(user);
-                log.info("회원 탈퇴 처리 완료: {}", email);
-            } else {
-                log.error("인증 코드가 유효하지 않습니다: {}", email);
-                throw new IllegalArgumentException("인증 코드가 유효하지 않습니다.");
-            }
-        } catch (IOException e) {
-            log.error("인증 코드 검증 중 예외 발생: ", e);
-            throw new IllegalStateException("인증 코드 검증 중 오류가 발생했습니다.");
+            log.info("{} 님에게 이메일 전송!", email);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
-    // 비밀번호 확인 메서드
-    public boolean checkPassword(String email, String rawPassword) {
+    // 검증 코드 생성 로직 1000~9999 사이의 4자리 숫자
+    private String generateVerificationCode() {
+        return String.valueOf((int) (Math.random() * 9000 + 1000));
+    }
+
+    // 인증코드 체크 : 인증코드가 있고 만료시간이 지나지 않았고 코드번호가 일치하는 경우
+    public boolean isMatchCode(String email, String code) {
+
+        // 이메일을 통해 회원정보를 탐색
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+                .orElse(null);
+        if (user != null) {
+            // 인증코드가 있는지 탐색
+            UserVerification ev = userVerificationRepository.findByUser(user)
+                    .orElse(null);
+            // 인증코드가 있고 만료시간이 지나지 않았고 코드번호가 일치할 경우
+            if (ev != null
+                    && ev.getExpiryDate().isAfter(LocalDateTime.now())
+                    && code.equals(ev.getVerificationCode())
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-        // 입력한 비밀번호와 DB의 암호화된 비밀번호를 비교
-        return passwordEncoder.matches(rawPassword, user.getPassword());
+    public boolean verifySendingCode(TemporaryVerficationDto verficationDto) {
+        TemporaryVerification verification = temporaryVerificationRepository
+                .findByEmail(verficationDto.getEmail());
+        if(verification.getCode().equals(verficationDto.getCode())) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean verifyPassword(PasswordVerificationDto verificationDto) {
+        // 이메일로 사용자 조회
+        User user = userRepository.findByEmail(verificationDto.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+
+        // 입력된 비밀번호와 저장된 비밀번호 해시값 비교
+        if (passwordEncoder.matches(verificationDto.getPassword(), user.getPassword())) {
+            return true;
+        }
+        return false;
     }
 
 
-    public void updatePhoneNumber(String email, UpdatePhoneNumberDto dto) {
-        if (dto == null || dto.getPhoneNumber() == null) {
-            throw new IllegalArgumentException("전화번호 데이터는 null일 수 없습니다");
-        }
-
-        boolean phoneExists = userMyPageRepository.existsByPhoneNumber(dto.getPhoneNumber());
-        if (phoneExists) {
-            throw new IllegalArgumentException("이미 존재하는 번호입니다.");
-        }
-
-        User user = userMyPageRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("해당 email로 사용자를 찾을 수 없습니다: " + email));
-
-        user.setPhoneNumber(dto.getPhoneNumber());
-        userMyPageRepository.save(user);
-    }
+//    public boolean verifyPassword(PasswordVerificationDto verificationDto) {
+//        User user = userRepository.findByEmail(verificationDto.getEmail()).orElseThrow();
+//        if(user.getPassword().equals(verificationDto.getPassword())) {
+//            return true;
+//        }
+//        return false;
+//    }
 }
