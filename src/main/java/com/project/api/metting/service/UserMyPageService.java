@@ -100,6 +100,20 @@ public class UserMyPageService {
         if (updateDto.getMajor() != null) {
             user.setMajor(updateDto.getMajor());
         }
+        if (updateDto.getProfileIntroduce() != null) {
+            UserProfile userProfile = user.getUserProfile();
+
+            if (userProfile == null) {
+                // UserProfile 객체가 없는 경우 새로 생성
+                userProfile = new UserProfile();
+            }
+
+            // profileIntroduce 값을 설정
+            userProfile.setProfileIntroduce(updateDto.getProfileIntroduce());
+
+            // User 객체에 UserProfile 설정
+            user.setUserProfile(userProfile);
+        }
 
         userMyPageRepository.save(user);
         return convertToUserMyPageDto(user);
