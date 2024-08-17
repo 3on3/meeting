@@ -30,7 +30,7 @@ public class MainService {
 
     //    Group 전체 조회
     public Page<MainMeetingListResponseDto> getMeetingList(String email, int pageNo,String gender,String region,Integer personnel) {
-        PageRequest pageable = PageRequest.of(pageNo - 1, 5);
+        PageRequest pageable = PageRequest.of(pageNo - 1, 4);
         Page<MainMeetingListResponseDto> mainMeetingListResponseDtos = groupRepository.findGroupUsersByAllGroup(pageable,gender,region,personnel);
 
 
