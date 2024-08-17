@@ -19,3 +19,5 @@ public class TemporaryVerficationDto {
         this.code = code;   // 전달받은 code 값을 해당 필드에 할당
     }
 }
+
+

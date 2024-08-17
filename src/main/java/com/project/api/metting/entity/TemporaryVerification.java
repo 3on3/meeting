@@ -23,7 +23,8 @@ public class TemporaryVerification {
     @Column(name = "temporary_verification_id")
     private String id; // 고유 아이디 (UUID로 자동 생성)
 
-    @Column(name = "mt_user_temporary_verification_email", nullable = false, unique = true)
+    //, unique = true
+    @Column(name = "mt_user_temporary_verification_email", nullable = false)
     private String email; // 이메일 (필수, 유일)
 
     @Column(name = "mt_user_temporary_verification_code", nullable = false)

@@ -24,8 +24,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 
 
 @RestController
@@ -169,12 +171,30 @@ public class MyPageController {
 // 회원탈퇴
 
     // 이메일 중복확인 API
+
+//    @GetMapping("/check-email")
+//    public ResponseEntity<?> checkEmail(String email) {
+//        boolean isDuplicate = userMyPageService.checkEmailDuplicate(email);
+//        //인증코드메일 발송
+//        userMyPageService.sendVerificationEmail(email);
+//        return ResponseEntity.ok().body(isDuplicate);
+//    }
+
     @GetMapping("/check-email")
-    public ResponseEntity<?> checkEmail(String email) {
-        boolean isDuplicate = userMyPageService.checkEmailDuplicate(email);
-        //인증코드메일 발송
-        userMyPageService.sendVerificationEmail(email);
-        return ResponseEntity.ok().body(isDuplicate);
+    public ResponseEntity<Map<String, Boolean>> checkEmail(@RequestParam String email) {
+        try {
+            boolean isDuplicate = userMyPageService.checkEmailDuplicate(email);
+            userMyPageService.sendVerificationEmail(email);
+
+            Map<String, Boolean> response = new HashMap<>();
+            response.put("isDuplicate", isDuplicate);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            // 로그를 남기거나 사용자에게 오류를 반환
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", true));
+        }
     }
 
     // 코드 검증
@@ -182,11 +202,25 @@ public class MyPageController {
     public ResponseEntity<?> verifySendingCode(@AuthenticationPrincipal TokenUserInfo tokenInfo,
                                                @RequestBody TemporaryVerficationDto verificationDto) {
         boolean valid = userMyPageService.verifySendingCode(verificationDto);
-        if(valid) {
-            return ResponseEntity.status(302).body(valid);
+        if (valid) {
+            // 인증 성공 시 200 상태 코드와 성공 메시지 반환
+            return ResponseEntity.status(200).body("Verification successful");
         }
-        return ResponseEntity.status(200).body(valid);
+        // 인증 실패 시 400 상태 코드와 실패 메시지 반환
+        return ResponseEntity.status(400).body("Verification code is incorrect");
     }
+
+
+//    // 코드 검증
+//    @PostMapping("/check/code")
+//    public ResponseEntity<?> verifySendingCode(@AuthenticationPrincipal TokenUserInfo tokenInfo,
+//                                               @RequestBody TemporaryVerficationDto verificationDto) {
+//        boolean valid = userMyPageService.verifySendingCode(verificationDto);
+//        if(valid) {
+//            return ResponseEntity.status(302).body(valid);
+//        }
+//        return ResponseEntity.status(200).body(valid);
+//    }
 
     // 비밀번호 확인
     @PostMapping("/check/password")
