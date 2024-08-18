@@ -37,14 +37,58 @@ public class UserMyPageService {
     private final PasswordEncoder passwordEncoder;
     private final UserVerificationRepository userVerificationRepository;
     private final TemporaryVerificationRepository temporaryVerificationRepository;
-
     // 이메일 전송 객체
     private  final JavaMailSender mailSender;
+
+    private final AwsS3Service s3Service;
+
+
+    /**
+     * 파일 업로드 처리
+     * @param profileImage - 클라이언트가 전송한 파일 바이너리 객체
+     * @param userId - 사용자 ID
+     * @return - 업로드된 파일의 URL
+     */
+    public String uploadProfileImage(MultipartFile profileImage, String userId) throws IOException {
+
+        // 파일명을 유니크하게 변경
+        String uniqueFileName = UUID.randomUUID() + "_" + profileImage.getOriginalFilename();
+
+        // 파일을 S3 버킷에 저장
+        String url = s3Service.uploadToS3Bucket(profileImage.getBytes(), uniqueFileName);
+        log.info("Uploaded file URL: {}", url);
+
+        // 사용자 찾기
+        User findUser = userRepository.findById(userId).orElseThrow(() -> new IOException("User not found"));
+
+        // UserProfile 찾기
+        UserProfile userProfile = userProfileRepository.findByUserId(findUser.getId());
+
+        if (userProfile == null) {
+            // UserProfile이 없으면 새로 생성
+            userProfile = UserProfile.builder()
+                    .user(findUser)
+                    .profileImg(url)  // 초기 프로필 이미지 설정
+                    .build();
+            log.info("Created new UserProfile: {}", userProfile);
+        } else {
+            // UserProfile이 존재하면 업데이트
+            userProfile.setProfileImg(url);
+            log.info("Updated UserProfile: {}", userProfile);
+        }
+
+        // UserProfile 저장
+        userProfileRepository.save(userProfile);
+
+        return url;
+    }
+
+    //================================================
 
     // 유저 정보 가져오기
     public UserMyPageDto getUserInfo(String userEmail) {
         User user = userMyPageRepository.findById(userEmail)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                                        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         log.info("User information retrieved successfully for email: {}", userEmail);
         return convertToDto(user);
     }
@@ -52,7 +96,7 @@ public class UserMyPageService {
     private UserMyPageDto convertToDto(User user) {
         log.info("Converting user entity to DTO for user: {}", user.getNickname());
 
-        return UserMyPageDto.builder()
+         return UserMyPageDto.builder()
                 .profileIntroduce(user.getUserProfile() != null && user.getUserProfile().getProfileIntroduce() != null
                         ? user.getUserProfile().getProfileIntroduce()
                         : "소개가 없습니다.")
@@ -123,6 +167,8 @@ public class UserMyPageService {
     public UserProfile getUserProfile(String userId) {
         // 유저 ID로 User 객체를 조회
         Optional<User> user = userRepository.findById(userId);
+        System.out.println("user================================ : " + user);
+
         // 조회한 User 객체와 연결된 UserProfile을 반환
         return user.map(userProfileRepository::findByUser).orElse(null);
     }
