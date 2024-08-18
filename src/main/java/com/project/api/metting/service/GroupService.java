@@ -1,10 +1,7 @@
 package com.project.api.metting.service;
 
 import com.project.api.auth.TokenProvider.TokenUserInfo;
-import com.project.api.metting.dto.request.GroupCreateDto;
-import com.project.api.metting.dto.request.GroupDeleteRequestDto;
-import com.project.api.metting.dto.request.GroupJoinRequestDto;
-import com.project.api.metting.dto.request.GroupWithdrawRequestDto;
+import com.project.api.metting.dto.request.*;
 import com.project.api.metting.dto.response.*;
 import com.project.api.metting.entity.*;
 import com.project.api.metting.repository.*;
@@ -40,6 +37,7 @@ public class GroupService {
     private final RedisUtil redisUtil;
     private final ChatRoomsRepository chatRoomsRepository;
     private final GroupMatchingHistoriesRepository groupMatchingHistoriesRepository;
+    private final UserProfileRepository userProfileRepository;
     @Value("${frontend.url}")
     private String frontendUrl;
 
@@ -115,37 +113,36 @@ public class GroupService {
      */
     @Transactional
     public InviteCodeResponseDto generateGroupInviteCode(String groupId) {
-        Group findGroup = groupRepository.findById(groupId).orElseThrow(() -> new IllegalStateException("그룹을 찾을 수 없습니다."));
+        Group findGroup = groupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalStateException("그룹을 찾을 수 없습니다."));
         validateExistGroup(groupId);
-        log.info("Generating invite link for group ID: {}", groupId);
         long remainingTime = 0;
 
         // 그룹 ID 기반으로 기존 초대 코드 조회
         final Optional<String> existingCode = redisUtil.getData(INVITE_LINK_PREFIX + groupId, String.class);
-        log.info("Existing invite code: {}", existingCode.orElse("No existing invite code"));
 
         String inviteCode;
         if (existingCode.isEmpty()) {
             // 초대 코드가 없으면 새로운 초대 코드 생성
             inviteCode = RandomUtil.generateRandomCode('0', 'z', 50);
             log.info("Generated random code: {}", inviteCode);
-            // 그룹 ID와 초대 코드를 연관시켜 저장
-            redisUtil.setDataExpire(INVITE_LINK_PREFIX + groupId, inviteCode, RedisUtil.toTomorrow() * 1000);
-            log.info("Invite code set in Redis with expiration: {}", inviteCode);
 
-
+            // 초대 코드를 키로 그룹 ID를 저장하고, groupId를 키로 초대 코드를 저장
+            redisUtil.setDataExpire(INVITE_LINK_PREFIX + inviteCode, groupId, RedisUtil.toTomorrow() * 1000);
+            redisUtil.setDataExpire(INVITE_LINK_PREFIX + groupId, inviteCode, RedisUtil.toTomorrow() * 1000);  // 초대 코드를 groupId에 연결
         } else {
             // 기존 초대 코드가 있으면 그것을 사용
             inviteCode = existingCode.get();
         }
 
         // 남은 TTL(초 단위) 조회
-        remainingTime = redisUtil.getExpire(INVITE_LINK_PREFIX + groupId);
+        remainingTime = redisUtil.getExpire(INVITE_LINK_PREFIX + inviteCode);
+        log.info("invite code remainingTime - {}", remainingTime);
 
         // 초대 링크 생성
         String inviteLink = "http://localhost:3000/group/join/invite?code=" + inviteCode;
-        log.info("Generated invite link: {}", inviteLink);
         findGroup.setCode(inviteLink);
+
         // 초대 링크와 남은 유효 시간 반환
         return new InviteCodeResponseDto(inviteLink, remainingTime);
     }
@@ -205,10 +202,13 @@ public class GroupService {
      */
     public InviteResultResponseDto joinGroupWithInviteCode(String inviteCode, TokenUserInfo tokenInfo) {
         log.info("Attempting to join group with invite code: {}", inviteCode);
+
+        // 초대 코드를 키로 그룹 ID 조회
         String groupId = redisUtil.getData(INVITE_LINK_PREFIX + inviteCode, String.class)
                 .orElseThrow(() -> new IllegalStateException("더 이상 존재하지 않는 가입 코드입니다. 다시 확인해주세요."));
 
         User loginUser = userRepository.findByEmail(tokenInfo.getEmail()).orElseThrow();
+
         // 유저가 이미 참여한 그룹의 개수 확인
         long groupCount = loginUser.getGroupUsers().stream()
                 .filter(groupUser -> groupUser.getStatus() == GroupStatus.REGISTERED)
@@ -222,13 +222,11 @@ public class GroupService {
         log.info("groupId info - {}", groupId);
         Group findGroup = groupRepository.findById(groupId).orElseThrow(IllegalStateException::new);
 
-
         User findUser = userRepository.findById(tokenInfo.getUserId()).orElseThrow(IllegalStateException::new);
 
         if (findGroup.getGroupGender() != findUser.getGender()) {
-            throw new IllegalStateException("해당 그룹은 " +findGroup.getGroupGender()+ "성만 입장가능한 그룹입니다.");
+            throw new IllegalStateException("해당 그룹은 " + findGroup.getGroupGender() + "성만 입장가능한 그룹입니다.");
         }
-
 
         User user = userRepository.findByEmail(tokenInfo.getEmail())
                 .orElseThrow(() -> new IllegalStateException("해당 유저를 찾을 수 없습니다."));
@@ -264,7 +262,6 @@ public class GroupService {
                 .build();
         return dto;
     }
-
     /**
      * 그룹 가입 신청 목록 조회 메서드
      *
@@ -347,9 +344,22 @@ public class GroupService {
         GroupUser findGroupHost = groupUsersRepository.findByGroupAndAuth(group, GroupAuth.HOST);
         log.info("find group users list - {}", groupUsers);
 
-        List<UserResponseDto> users = groupUsers.stream()
-                .map(groupUser -> new UserResponseDto(groupUser.getUser()))
-                .collect(Collectors.toList());
+
+        // UserProfile을 함께 조회해서 UserResponseDto에 담기
+        List<UserResponseDto> users = groupUsers.stream().map(groupUser -> {
+            User user = groupUser.getUser();
+
+            // UserProfile 정보 찾기
+            UserProfile userProfile = userProfileRepository.findByUser(user);
+
+            String profileImg = (userProfile != null) ? userProfile.getProfileImg() : "";
+            // UserResponseDto로 유저 정보 반환 (닉네임, 프로필, 가입일 포함)
+            return new UserResponseDto(user, groupUser.getJoinedAt(), profileImg);
+        }).collect(Collectors.toList());
+
+//        List<UserResponseDto> users = groupUsers.stream()
+//                .map(groupUser -> new UserResponseDto(groupUser.getUser(), groupUser.getJoinedAt()))
+//                .collect(Collectors.toList());
 
         // 멤버의 평균 나이 계산
         int averageAge = (int) groupUsers.stream()
@@ -471,9 +481,6 @@ public class GroupService {
         }
 
 
-
-
-
         // 그룹 유저의 Auth를 조회해서 HOST인지 확인
         String groupUserAuth = groupUser.getAuth().getDisplayName();
         if (!groupUserAuth.equals(GroupAuth.HOST.getDisplayName())) {
@@ -486,7 +493,7 @@ public class GroupService {
         // 모든 그룹 유저의 상태를 WITHDRAW로 업데이트
         for (GroupUser gu : groupUsers) {
             if (gu.getStatus() != GroupStatus.CANCELLED)
-            gu.setStatus(GroupStatus.WITHDRAW);
+                gu.setStatus(GroupStatus.WITHDRAW);
             groupUsersRepository.save(gu);
         }
 
@@ -498,15 +505,52 @@ public class GroupService {
 
     // 그룹 아이디로 그룹 리턴
     public Group findGroupById(String groupId) {
-       return groupRepository.findById(groupId).orElseThrow(null);
+        return groupRepository.findById(groupId).orElseThrow(null);
     }
 
 
     public List<GroupUser> findGroupUserList(User user) {
-         return groupUsersRepository.findByUserAndStatus(user, GroupStatus.REGISTERED);
+        return groupUsersRepository.findByUserAndStatus(user, GroupStatus.REGISTERED);
     }
 
+    /**
+     * 그룹에서 유저를 추방하는 메서드
+     *
+     * @param dto           - 그룹의 Id와 유저의 Id
+     * @param tokenUserInfo - 현재 로그인한 호스트의 정보
+     */
+    @Transactional
+    public void deleteUserByHost(GroupExileDto dto, TokenUserInfo tokenUserInfo) {
+        // 그룹 조회
+        Group group = groupRepository.findById(dto.getGroupId())
+                .orElseThrow(() -> new IllegalStateException("해당 그룹을 찾을 수 없습니다."));
 
+        log.info("dto info - {}", dto.getUserId());
+
+        // 요청한 유저가 그룹의 호스트인지 확인
+        GroupUser hostUser = groupUsersRepository.findByGroupAndUserIdAndStatus(group, tokenUserInfo.getUserId(), GroupStatus.REGISTERED)
+                .orElseThrow(() -> new IllegalStateException("그룹 호스트가 아닙니다. 권한이 없습니다."));
+
+        // 호스트 본인이 본인을 추방하려고 하는지 확인
+        if (dto.getUserId().equals(tokenUserInfo.getUserId())) {
+            throw new IllegalStateException("호스트 본인은 자신을 추방할 수 없습니다.");
+        }
+
+        // 추방할 유저 조회
+        GroupUser targetGroupUser = groupUsersRepository.findByGroupAndUserIdAndStatus(group, dto.getUserId(), GroupStatus.REGISTERED)
+                .orElseThrow(() -> new IllegalStateException("해당 유저는 그룹에 등록된 상태가 아닙니다."));
+
+        // 추방할 유저가 이미 WITHDRAW 상태가 아닌지 확인
+        if (targetGroupUser.getStatus() == GroupStatus.WITHDRAW || targetGroupUser.getStatus() == GroupStatus.CANCELLED) {
+            throw new IllegalStateException("이미 그룹에서 추방된 유저입니다.");
+        }
+
+        // 추방 처리: 상태를 WITHDRAW로 업데이트
+        targetGroupUser.setStatus(GroupStatus.WITHDRAW);
+        groupUsersRepository.save(targetGroupUser);
+
+        log.info("User with ID {} has been expelled from the group {}", targetGroupUser.getUser().getEmail(), group.getGroupName());
+    }
 
 
 }
