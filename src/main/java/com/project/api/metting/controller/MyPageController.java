@@ -49,7 +49,7 @@ public class MyPageController {
 
 // - 프로필 이미지 조회
 
-    @GetMapping("/profile")
+    @GetMapping("/profileImage")
     public ResponseEntity<?> getProfile(
             @AuthenticationPrincipal TokenProvider.TokenUserInfo tokenUserInfo) {
 
@@ -65,7 +65,7 @@ public class MyPageController {
     }
 
     // 파일 업로드 처리
-    @PostMapping("/image/upload")
+    @PostMapping("/profileImage/upload")
     public ResponseEntity<?> upload(
             @RequestPart(value = "profileImage") MultipartFile uploadFile,
             @AuthenticationPrincipal TokenUserInfo tokenInfo
