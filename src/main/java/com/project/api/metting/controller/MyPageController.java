@@ -199,12 +199,12 @@ public class MyPageController {
         return ResponseEntity.ok().body(groups);
     }
 
-//    // 내가 속한 그룹 조회
-//    @GetMapping("/mygroup")
-//    public ResponseEntity<?> getMyGroups(@AuthenticationPrincipal TokenUserInfo tokenInfo) {
-//        List<GroupResponseDto> groups = groupQueryService.getGroupsByUserEmail(tokenInfo.getEmail());
-//        return ResponseEntity.ok(groups);
-//    }
+    // 내가 속한 그룹 조회
+    @GetMapping("/mygroup")
+    public ResponseEntity<?> getMyGroups(@AuthenticationPrincipal TokenUserInfo tokenInfo) {
+        List<GroupResponseDto> groups = groupQueryService.getGroupsByUserEmail(tokenInfo.getEmail());
+        return ResponseEntity.ok(groups);
+    }
 
     // 내가 속한 채팅 조회
     @GetMapping("/mychat")
