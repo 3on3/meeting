@@ -76,4 +76,19 @@ public class ChatRoomController {
 
         return ResponseEntity.ok().body(chatList);
     }
+
+    @PostMapping("/deleteChat")
+    public ResponseEntity<?> deleteChat(@RequestBody ChatUserResponseDto chatUserResponseDto, @AuthenticationPrincipal TokenProvider.TokenUserInfo tokenUserInfo){
+
+        String userId = tokenUserInfo.getUserId();
+
+        boolean isDeleted = chatRoomService.deleteChatRoom(chatUserResponseDto, userId);
+
+        if(isDeleted){
+            return ResponseEntity.ok().body(null);
+        } else {
+            return ResponseEntity.ok().body(null);
+        }
+    }
+
 }
