@@ -2,6 +2,9 @@ package com.project.api.metting.controller;
 
 import com.project.api.auth.TokenProvider.TokenUserInfo;
 import com.project.api.metting.dto.request.*;
+import com.project.api.metting.dto.request.ChangePasswordDto;
+import com.project.api.metting.dto.request.MatchedGroupRequestDto;
+import com.project.api.metting.dto.request.UserUpdateRequestDto;
 import com.project.api.metting.dto.response.ChatRoomResponseDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.dto.response.UserMyPageDto;
@@ -21,6 +24,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,8 +62,9 @@ public class MyPageController {
     public ResponseEntity<UserProfile> getUserProfile(@PathVariable String userId,
                                                       @AuthenticationPrincipal TokenUserInfo tokenInfo) {
         // 유저 ID로 프로필을 조회
-//        UserProfile userProfile = userMyPageService.getUserProfile(tokenInfo.getUserId());
-            UserProfile userProfile = userMyPageService.getUserProfile(userId);
+        UserProfile userProfile = userMyPageService.getUserProfile(tokenInfo.getUserId());
+
+        log.info("user profile - {}", userProfile);
 
         if (userProfile != null) {
             return new ResponseEntity<>(userProfile, HttpStatus.OK); // 프로필이 존재하면 반환
@@ -66,28 +72,31 @@ public class MyPageController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND); // 프로필이 없으면 404 반환
     }
 
-    // 특정 유저의 프로필 이미지를 반환하는 엔드포인트
-    @GetMapping("/profileImage/{userId}")
-    public ResponseEntity<byte[]> getUserProfileImage(@PathVariable String userId) {
-        // 유저 ID로 프로필을 조회
-        UserProfile userProfile = userMyPageService.getUserProfile(userId);
 
-        if (userProfile != null && userProfile.getProfileImg() != null) { // 프로필과 이미지 경로가 존재하면
-            byte[] image = loadProfileImage(userProfile.getProfileImg()); // 이미지 파일을 로드
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Content-Type", "image/jpeg");  // 이미지 타입을 설정 (필요시 변경)
-            return new ResponseEntity<>(image, headers, HttpStatus.OK); // 이미지와 함께 응답 반환
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND); // 이미지가 없으면 404 반환
-    }
+
+//    // 특정 유저의 프로필 이미지를 반환하는 엔드포인트
+//    @GetMapping("/profileImage/{userId}")
+//    public ResponseEntity<byte[]> getUserProfileImage(@PathVariable String userId) {
+//        // 유저 ID로 프로필을 조회
+//        UserProfile userProfile = userMyPageService.getUserProfile(userId);
+//
+//        if (userProfile != null && userProfile.getProfileImg() != null) { // 프로필과 이미지 경로가 존재하면
+//            byte[] image = loadProfileImage(userProfile.getProfileImg()); // 이미지 파일을 로드
+//            HttpHeaders headers = new HttpHeaders();
+//            headers.set("Content-Type", "image/jpeg");  // 이미지 타입을 설정 (필요시 변경)
+//            return new ResponseEntity<>(image, headers, HttpStatus.OK); // 이미지와 함께 응답 반환
+//        }
+//        return new ResponseEntity<>(HttpStatus.NOT_FOUND); // 이미지가 없으면 404 반환
+//    }
 
     // 특정 유저의 프로필 이미지 업데이트
     @PostMapping("/profileImage/update/{userId}")
-    public ResponseEntity<String> updateUserProfileImage(@PathVariable String userId,
-                                                         @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> updateUserProfileImage(
+            @AuthenticationPrincipal TokenUserInfo tokenInfo,
+            @RequestParam("file") MultipartFile file) {
         try {
             // 프로필 이미지를 업데이트
-            userMyPageService.updateUserProfileImage(userId, file);
+            userMyPageService.updateUserProfileImage(tokenInfo.getUserId(), file);
             return new ResponseEntity<>("Profile image updated successfully", HttpStatus.OK); // 성공 메시지 반환
         } catch (IOException e) {
             return new ResponseEntity<>("Failed to update profile image", HttpStatus.INTERNAL_SERVER_ERROR); // 에러 발생 시 에러 메시지 반환
@@ -120,6 +129,7 @@ public class MyPageController {
     }
 
 // - 기본 정보 조회 (프로필 이미지 제외)
+
     /**
      * 로그인한 사용자의 프로필 정보 반환
      *
@@ -140,54 +150,87 @@ public class MyPageController {
     public ResponseEntity<UserMyPageDto> updateUser(@AuthenticationPrincipal TokenUserInfo tokenInfo,
                                                     @RequestBody UserUpdateRequestDto updateDto) {
         UserMyPageDto updatedUser = userMyPageService.updateUserFields(tokenInfo.getUserId(), updateDto);
-        System.out.println("updatedUser =" + updatedUser);
+        log.info("updatedUser - {}", updatedUser);
         return ResponseEntity.ok(updatedUser);
     }
 
     // 유저 비밀번호 변경
-    @PatchMapping("/change-password")
+    @PatchMapping("/check-pass")
     public ResponseEntity<?> changePassword(@AuthenticationPrincipal TokenUserInfo tokenInfo,
                                             @RequestBody ChangePasswordDto changePasswordDto) {
         try {
             userMyPageService.changePassword(tokenInfo.getUserId(), changePasswordDto);
-            return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 변경되었습니다."));
+            return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "예상치 못한 오류가 발생했습니다."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("예상치 못한 오류가 발생했습니다.");
         }
     }
 
-    /**
-     * 회원 탈퇴와 관련된 모든 작업을 처리하는 엔드포인트.
-     *
-     * @param dto 사용자 요청 데이터를 담은 RemoveUserDto
-     * @return 작업 결과를 나타내는 응답
-     */
-    @PostMapping("/removeUser")
-    public ResponseEntity<?> handleRemoveUser(@RequestBody RemoveUserDto dto) {
+// 회원탈퇴
+
+    // 이메일 중복확인 API
+
+//    @GetMapping("/check-email")
+//    public ResponseEntity<?> checkEmail(String email) {
+//        boolean isDuplicate = userMyPageService.checkEmailDuplicate(email);
+//        //인증코드메일 발송
+//        userMyPageService.sendVerificationEmail(email);
+//        return ResponseEntity.ok().body(isDuplicate);
+//    }
+
+    @GetMapping("/check-email")
+    public ResponseEntity<Map<String, Boolean>> checkEmail(@RequestParam String email) {
         try {
-            // action에 따라 작업을 구분하여 처리
-            switch (dto.getAction()) {
-                case "sendCode":
-                    // 인증 코드 전송 로직
-                    userMyPageService.sendRemovalVerificationCode(dto.getEmail());
-                    return ResponseEntity.ok("인증 코드가 이메일로 전송되었습니다.");
+            boolean isDuplicate = userMyPageService.checkEmailDuplicate(email);
+            userMyPageService.sendVerificationEmail(email);
 
-                case "removeUser":
-                    // 회원 탈퇴 로직
-                    userMyPageService.removeUserWithVerification(dto.getEmail(), dto.getCode(), dto.getPassword());
-                    return ResponseEntity.ok("회원 탈퇴가 성공적으로 완료되었습니다.");
+            Map<String, Boolean> response = new HashMap<>();
+            response.put("isDuplicate", isDuplicate);
 
-                default:
-                    return ResponseEntity.badRequest().body("잘못된 요청입니다.");
-            }
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            // 로그를 남기거나 사용자에게 오류를 반환
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", true));
         }
+    }
+
+    // 코드 검증
+    @PostMapping("/check/code")
+    public ResponseEntity<?> verifySendingCode(@AuthenticationPrincipal TokenUserInfo tokenInfo,
+                                               @RequestBody TemporaryVerficationDto verificationDto) {
+        boolean valid = userMyPageService.verifySendingCode(verificationDto);
+        if (valid) {
+            // 인증 성공 시 200 상태 코드와 성공 메시지 반환
+            return ResponseEntity.status(200).body("Verification successful");
+        }
+        // 인증 실패 시 400 상태 코드와 실패 메시지 반환
+        return ResponseEntity.status(400).body("Verification code is incorrect");
+    }
+
+
+//    // 코드 검증
+//    @PostMapping("/check/code")
+//    public ResponseEntity<?> verifySendingCode(@AuthenticationPrincipal TokenUserInfo tokenInfo,
+//                                               @RequestBody TemporaryVerficationDto verificationDto) {
+//        boolean valid = userMyPageService.verifySendingCode(verificationDto);
+//        if(valid) {
+//            return ResponseEntity.status(302).body(valid);
+//        }
+//        return ResponseEntity.status(200).body(valid);
+//    }
+
+    // 비밀번호 확인
+    @PostMapping("/check/password")
+    public ResponseEntity<?> verifyPassword(@AuthenticationPrincipal TokenUserInfo tokenInfo,
+                                            @RequestBody PasswordVerificationDto verificationDto) {
+        boolean valid = userMyPageService.verifyPassword(verificationDto);
+        if(valid) {
+            return ResponseEntity.status(302).body(valid);
+        }
+        return ResponseEntity.status(200).body(valid);
     }
 
 
@@ -196,33 +239,5 @@ public class MyPageController {
     public ResponseEntity<?> getMyGroupsMatched(@AuthenticationPrincipal TokenUserInfo tokenInfo,@RequestBody MatchedGroupRequestDto matchedGroupRequestDto) {
         List<GroupResponseDto> groups = groupQueryService.getMatchedMyGroups(tokenInfo,matchedGroupRequestDto.getId());
         return ResponseEntity.ok().body(groups);
-    }
-
-    // 비밀번호 확인 엔드포인트
-    @PostMapping("/check-password")
-    public ResponseEntity<?> checkPassword(@RequestBody CheckPasswordRequestDto dto) {
-        boolean isPasswordCorrect = userMyPageService.checkPassword(dto.getEmail(), dto.getPassword());
-        System.out.println("isPasswordCorrect = " + isPasswordCorrect);
-        if (isPasswordCorrect) {
-            return ResponseEntity.ok().body("{\"success\": true}");
-        } else {
-            return ResponseEntity.status(401).body("{\"success\": false, \"message\": \"비밀번호가 일치하지 않습니다.\"}");
-        }
-    }
-
-    @PatchMapping("/update-phone")
-    public ResponseEntity<?> updatePhoneNumber(@AuthenticationPrincipal TokenUserInfo tokenInfo,
-                                               @RequestBody UpdatePhoneNumberDto dto) {
-        try {
-            userMyPageService.updatePhoneNumber(tokenInfo.getEmail(), dto);
-            return ResponseEntity.ok(Map.of("message", "전화번호가 성공적으로 변경되었습니다."));
-        } catch (IllegalArgumentException e) {
-            log.warn("전화번호 업데이트 실패: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
-        } catch (Exception e) {
-            log.error("전화번호 업데이트 중 예상치 못한 오류 발생", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "예상치 못한 오류가 발생했습니다."));
-        }
     }
 }
