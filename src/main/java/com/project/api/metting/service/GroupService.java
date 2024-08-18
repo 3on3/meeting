@@ -127,8 +127,9 @@ public class GroupService {
             inviteCode = RandomUtil.generateRandomCode('0', 'z', 50);
             log.info("Generated random code: {}", inviteCode);
 
-            // 초대 코드를 키로 그룹 ID를 저장
+            // 초대 코드를 키로 그룹 ID를 저장하고, groupId를 키로 초대 코드를 저장
             redisUtil.setDataExpire(INVITE_LINK_PREFIX + inviteCode, groupId, RedisUtil.toTomorrow() * 1000);
+            redisUtil.setDataExpire(INVITE_LINK_PREFIX + groupId, inviteCode, RedisUtil.toTomorrow() * 1000);  // 초대 코드를 groupId에 연결
         } else {
             // 기존 초대 코드가 있으면 그것을 사용
             inviteCode = existingCode.get();
@@ -136,6 +137,7 @@ public class GroupService {
 
         // 남은 TTL(초 단위) 조회
         remainingTime = redisUtil.getExpire(INVITE_LINK_PREFIX + inviteCode);
+        log.info("invite code remainingTime - {}", remainingTime);
 
         // 초대 링크 생성
         String inviteLink = "http://localhost:3000/group/join/invite?code=" + inviteCode;
