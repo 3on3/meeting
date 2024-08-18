@@ -1,9 +1,6 @@
 package com.project.api.metting.controller;
 
-import com.project.api.metting.dto.request.GroupCreateDto;
-import com.project.api.metting.dto.request.GroupDeleteRequestDto;
-import com.project.api.metting.dto.request.GroupJoinRequestDto;
-import com.project.api.metting.dto.request.GroupWithdrawRequestDto;
+import com.project.api.metting.dto.request.*;
 import com.project.api.metting.dto.response.InviteCodeResponseDto;
 import com.project.api.metting.dto.response.InviteResultResponseDto;
 import com.project.api.metting.dto.response.InviteUsersViewResponseDto;
@@ -103,6 +100,19 @@ public class GroupController {
         }
     }
 
+    @PostMapping("/exile")
+    public ResponseEntity<?> exileUser(@RequestBody GroupExileDto dto, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+        log.info("dto info 123 - {}", dto.getGroupId());
+        try {
+            groupService.deleteUserByHost(dto, tokenInfo);
+            return ResponseEntity.ok("성공적으로 그룹에서 추방하였습니다.");
+        }  catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("유저 추방에 실패하였습니다.");
+        }
+    }
+
     @PostMapping("/join/invite")
     public ResponseEntity<?> joinGroupWithInviteCode(@RequestParam String code, @AuthenticationPrincipal TokenUserInfo tokenInfo) {
         if (code == null || code.isEmpty()) {
@@ -117,6 +127,8 @@ public class GroupController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("가입신청에 실패하였습니다. 다시 시도해주세요.");
         }
     }
+
+
 
 
     /**
