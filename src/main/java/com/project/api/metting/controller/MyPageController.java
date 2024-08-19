@@ -23,6 +23,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.validation.constraints.Email;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -138,11 +140,12 @@ public class MyPageController {
 //        return ResponseEntity.ok().body(isDuplicate);
 //    }
 
-    @GetMapping("/check-email")
-    public ResponseEntity<Map<String, Boolean>> checkEmail(@RequestParam String email) {
+    @PostMapping("/check-email")
+    public ResponseEntity<?> checkEmail(@RequestBody EmailCheckDto emailCheckDto) {
         try {
-            boolean isDuplicate = userMyPageService.checkEmailDuplicate(email);
-            userMyPageService.sendVerificationEmail(email);
+            boolean isDuplicate = userMyPageService.checkEmailDuplicate(emailCheckDto.getEmail());
+            System.out.println(isDuplicate);
+            userMyPageService.sendVerificationEmail(emailCheckDto.getEmail());
 
             Map<String, Boolean> response = new HashMap<>();
             response.put("isDuplicate", isDuplicate);
