@@ -42,13 +42,12 @@ public class MainMeetingListResponseDto {
 
     // 로그인한 유저 기준 해당 그룹과 히스토리가 있는지
     @Setter
-    @Builder.Default
     private MatchingStatus matchingStatus = MatchingStatus.NONE;
 
 
 
 //    ,int memberCount 보류
-    public MainMeetingListResponseDto(Group group, int averageAge,String hostMajor){
+    public MainMeetingListResponseDto(Group group, int averageAge, String hostMajor){
         this.id = group.getId();
         this.groupName = group.getGroupName();
         this.groupPlace = group.getGroupPlace();
