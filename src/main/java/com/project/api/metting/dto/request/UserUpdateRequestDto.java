@@ -26,5 +26,7 @@ public class UserUpdateRequestDto {
 
     private String major; // 전공
 
+    private String profileImage;
+
 
 }
