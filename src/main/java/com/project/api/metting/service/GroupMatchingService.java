@@ -88,11 +88,11 @@ public class GroupMatchingService {
                     .build();
 
             // 히스토리 저장
-            groupMatchingHistoriesRepository.save(groupMatchingHistory);
+            GroupMatchingHistory savedHistory = groupMatchingHistoriesRepository.save(groupMatchingHistory);
 
             // 알람 테이블에도 추가
             Alarm alarm = Alarm.builder()
-                    .groupMatchingHistory(groupMatchingHistory)
+                    .groupMatchingHistory(savedHistory)
                     .build();
 
             alarmRepository.save(alarm);
