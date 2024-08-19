@@ -75,6 +75,7 @@ public class UserSignInService {
                 .nickname(userInfo.getNickname())
                 .isWithdrawn(userInfo.isWithdrawn())
                 .password(userInfo.getPassword())
+                .profileImg(String.valueOf(userInfo.getUserProfile()))
                 .build();
 
         // 자동로그인이라면?
