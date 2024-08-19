@@ -81,9 +81,9 @@ public class ChatRoomService {
 
         // 매칭 히스토리에서 리스폰, 리퀘스트 그룹 가져오기
         Group group1 = groupMatchingHistory.getResponseGroup();
-        String responseHostUserId = groupUsersRepository.findByGroupAndAuth(group1, GroupAuth.HOST).getUser().getId();
+        User responseHostUser = groupUsersRepository.findByGroupAndAuth(group1, GroupAuth.HOST).getUser();
         Group group2 = groupMatchingHistory.getRequestGroup();
-        String requestHostUserId = groupUsersRepository.findByGroupAndAuth(group2, GroupAuth.HOST).getUser().getId();
+        User requestHostUser = groupUsersRepository.findByGroupAndAuth(group2, GroupAuth.HOST).getUser();
 
         // 각 그룹에 존재하는 유저정보 가져오기
         List<GroupUser> responseGroupUsers = groupUsersRepository.findByGroupAndStatus(group1, GroupStatus.REGISTERED);
@@ -98,8 +98,10 @@ public class ChatRoomService {
                 .responseChatUser(responseChatUser)
                 .responseGroupName(group1.getGroupName())
                 .requestGroupName(group2.getGroupName())
-                .responseHostUserId(responseHostUserId)
-                .requestHostUserId(requestHostUserId)
+                .responseHostUserId(responseHostUser.getId())
+                .requestHostUserId(requestHostUser.getId())
+                .requestHostUserEmail(requestHostUser.getEmail())
+                .responseHostUserEmail(responseHostUser.getEmail())
                 .build();
 
     }
@@ -231,4 +233,76 @@ public class ChatRoomService {
         return myChatListRequestDtoList;
 
     }
+
+    public boolean deleteChatRoom(ChatUserResponseDto chatUserResponseDto, String userId) {
+
+        // chatRoomId로 채팅방을 찾아 채팅방을 삭제 상태로 변경
+        ChatRoom targetChatRoom = chatRoomsRepository.findById(chatUserResponseDto.getChatroomId()).orElseThrow(null);
+        if(targetChatRoom == null || targetChatRoom.getIsDeleted() ) return false;
+
+        GroupMatchingHistory groupMatchingHistory = targetChatRoom.getGroupMatchingHistory();
+
+        Group requsetGroup = groupMatchingHistory.getRequestGroup();
+
+        Group responseGroup = groupMatchingHistory.getResponseGroup();
+
+        GroupUser requestGroupUser = groupUsersRepository.findByGroupAndUserIdAndStatus(requsetGroup, userId, GroupStatus.REGISTERED).orElse(null);
+        GroupUser responseGroupUser = groupUsersRepository.findByGroupAndUserIdAndStatus(responseGroup, userId, GroupStatus.REGISTERED).orElse(null);
+
+        // 삭제 버튼을 누른 유저가 HOST가 아니라면 작동 X
+        if (requestGroupUser == null && responseGroupUser == null) {
+            return false;
+        }
+
+        if (requestGroupUser != null && requestGroupUser.getAuth() != GroupAuth.HOST) {
+            return false;
+        }
+
+        if (responseGroupUser != null && responseGroupUser.getAuth() != GroupAuth.HOST) {
+            return false;
+        }
+
+        targetChatRoom.setIsDeleted(true);
+
+        chatRoomsRepository.save(targetChatRoom);
+
+        // 그룹 매칭 히스토리를 찾아 GroupProcess를 CLOSED로 변경
+
+        groupMatchingHistory.setProcess(GroupProcess.CLOSED);
+
+        groupMatchingHistoriesRepository.save(groupMatchingHistory);
+
+        // 채팅에 참여하던 각 그룹도 닫기
+
+        requsetGroup.setIsDeleted(true);
+
+        groupRepository.save(requsetGroup);
+
+
+        responseGroup.setIsDeleted(true);
+
+        groupRepository.save(responseGroup);
+
+        // groupUser 에도 정보 업데이트
+
+        List<GroupUser> requestGroupUserList = groupUsersRepository.findByGroupAndStatus(requsetGroup, GroupStatus.REGISTERED);
+
+        List<GroupUser> responseGroupUserList = groupUsersRepository.findByGroupAndStatus(responseGroup, GroupStatus.REGISTERED);
+
+        for (GroupUser groupUser : responseGroupUserList) {
+            groupUser.setStatus(GroupStatus.WITHDRAW);
+
+            groupUsersRepository.save(groupUser);
+        }
+
+        for (GroupUser groupUser : requestGroupUserList) {
+            groupUser.setStatus(GroupStatus.WITHDRAW);
+
+            groupUsersRepository.save(groupUser);
+        }
+
+        return true;
+
+    }
+
 }
