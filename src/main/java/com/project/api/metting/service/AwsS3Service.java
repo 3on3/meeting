@@ -17,23 +17,22 @@ import java.time.LocalDate;
 @Slf4j
 public class AwsS3Service {
 
-    // s3버킷을 제어하는 객체
     private S3Client s3;
 
-    // 인증 정보
     @Value("${aws.credentials.accessKey}")
     private String accessKey;
+
     @Value("${aws.credentials.secretKey}")
     private String secretKey;
+
     @Value("${aws.region}")
     private String region;
+
     @Value("${aws.bucketName}")
     private String bucketName;
 
-    // AWS S3에 접근하여 인증
-    @PostConstruct // 본 서비스객체가 생성될 때 단 1번 실행
+    @PostConstruct
     private void initAmazonS3() {
-        // 액세스키와 비밀키로 사용자 인증
         AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
 
         this.s3 = S3Client.builder()
@@ -51,9 +50,9 @@ public class AwsS3Service {
     public String uploadToS3Bucket(byte[] uploadFile, String fileName) {
 
         // 현재 날짜를 기반으로 폴더 생성
-        // 2024-07-22 => 2024/07/22
         String datePath = LocalDate.now().toString().replace("-", "/");
 
+        // 저장할 경로와 파일명을 결합
         String fullPath = datePath + "/" + fileName;
 
         // 업로드 수행
@@ -66,7 +65,7 @@ public class AwsS3Service {
 
         // 업로드된 경로 URL을 반환
         return s3.utilities()
-                .getUrl(b -> b.bucket(bucketName).key(fileName))
+                .getUrl(b -> b.bucket(bucketName).key(fullPath)) // fullPath를 사용하여 URL 생성
                 .toString();
     }
 }
