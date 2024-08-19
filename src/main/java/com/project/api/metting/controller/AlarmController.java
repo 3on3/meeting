@@ -2,11 +2,13 @@ package com.project.api.metting.controller;
 
 import com.project.api.auth.TokenProvider;
 import com.project.api.metting.dto.request.AlarmListRequestDto;
+import com.project.api.metting.dto.response.AlarmResponseDto;
 import com.project.api.metting.entity.Alarm;
 import com.project.api.metting.service.AlarmService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,5 +35,13 @@ public class AlarmController {
         }
 
         return ResponseEntity.ok().body(alarmList);
+    }
+
+    @PostMapping("/check")
+    public ResponseEntity<?> checkAlarm(@RequestBody AlarmResponseDto alarmResponseDto) {
+
+        alarmService.checkAlarm(alarmResponseDto);
+
+        return ResponseEntity.ok().body(null);
     }
 }
