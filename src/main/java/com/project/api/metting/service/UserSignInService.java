@@ -4,10 +4,13 @@ import com.project.api.auth.TokenProvider;
 import com.project.api.exception.LoginFailException;
 import com.project.api.metting.dto.request.LoginRequestDto;
 import com.project.api.metting.dto.response.LoginResponseDto;
+import com.project.api.metting.entity.Membership;
 import com.project.api.metting.entity.User;
+import com.project.api.metting.repository.UserMembershipRepositoryCustom;
 import com.project.api.metting.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +24,9 @@ import java.time.Instant;
 public class UserSignInService {
 
     private final UserRepository userRepository;
+
+    @Qualifier("userMembershipRepositoryCustomImpl")
+    private final UserMembershipRepositoryCustom userMembershipRepositoryCustom;
 
     //토큰 생성 객체
     private final TokenProvider tokenProvider;
@@ -62,6 +68,9 @@ public class UserSignInService {
         // 토큰 생성
         String token = tokenProvider.createToken(userInfo);
 
+//        Membership membershipAuth = userMembershipRepositoryCustom.membershipAuthFind(userInfo.getEmail());
+
+
         LoginResponseDto responseDto = LoginResponseDto.builder()
                 .email(userInfo.getEmail())
                 .auth(userInfo.getAuth().toString())
@@ -75,7 +84,10 @@ public class UserSignInService {
                 .nickname(userInfo.getNickname())
                 .isWithdrawn(userInfo.isWithdrawn())
                 .password(userInfo.getPassword())
+                .membershipAuth(userInfo.getMembership())
                 .build();
+
+        log.info("로그인 토큰 전달하기",responseDto);
 
         // 자동로그인이라면?
         // -> 리프레쉬 토큰 생성
