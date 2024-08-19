@@ -46,20 +46,24 @@ public class GroupMatchingService {
             Group responseGroup = groupRepository.findById(groupMatchingRequestDto.getResponseGroupId()).orElse(null);
 
             // [신청 불가 요건]
-            GroupMatchingHistory byResponseGroupAndRequestGroup = groupMatchingHistoriesRepository.findByResponseGroupAndRequestGroup(responseGroup, requestGroup);
-            GroupMatchingHistory byResponseGroupAndRequestGroup1 = groupMatchingHistoriesRepository.findByResponseGroupAndRequestGroup(requestGroup, responseGroup);
-            // 1-1. 이미 매칭 신청
-            if(byResponseGroupAndRequestGroup.getProcess() == GroupProcess.INVITING || byResponseGroupAndRequestGroup1.getProcess() == GroupProcess.INVITING){
-                throw new GroupMatchingFailException("이미 매칭 신청한 그룹입니다.", HttpStatus.CONFLICT);
+            boolean exist = groupMatchingHistoriesRepository.existsByResponseGroupAndRequestGroup(responseGroup, requestGroup) || groupMatchingHistoriesRepository.existsByResponseGroupAndRequestGroup(requestGroup, responseGroup);
+            if(exist){
+                GroupMatchingHistory byResponseGroupAndRequestGroup = groupMatchingHistoriesRepository.findByResponseGroupAndRequestGroup(responseGroup, requestGroup);
+                GroupMatchingHistory byResponseGroupAndRequestGroup1 = groupMatchingHistoriesRepository.findByResponseGroupAndRequestGroup(requestGroup, responseGroup);
+                // 1-1. 이미 매칭 신청
+                if(byResponseGroupAndRequestGroup.getProcess() == GroupProcess.INVITING || byResponseGroupAndRequestGroup1.getProcess() == GroupProcess.INVITING){
+                    throw new GroupMatchingFailException("이미 매칭 신청한 그룹입니다.", HttpStatus.CONFLICT);
+                }
+                // 1-2. 매칭된 경우
+                if(byResponseGroupAndRequestGroup.getProcess() == GroupProcess.MATCHED || byResponseGroupAndRequestGroup1.getProcess() == GroupProcess.MATCHED){
+                    throw new GroupMatchingFailException("이미 매칭된 그룹입니다.", HttpStatus.CONFLICT);
+                }
+                // 1-3. 매칭 거절된경우
+                if(byResponseGroupAndRequestGroup.getProcess() == GroupProcess.DENIED|| byResponseGroupAndRequestGroup1.getProcess() == GroupProcess.DENIED){
+                    throw new GroupMatchingFailException("이미 매칭 거절된 그룹입니다.", HttpStatus.CONFLICT);
+                }
             }
-            // 1-2. 매칭된 경우
-            if(byResponseGroupAndRequestGroup.getProcess() == GroupProcess.MATCHED || byResponseGroupAndRequestGroup1.getProcess() == GroupProcess.MATCHED){
-                throw new GroupMatchingFailException("이미 매칭된 그룹입니다.", HttpStatus.CONFLICT);
-            }
-            // 1-3. 매칭 거절된경우
-            if(byResponseGroupAndRequestGroup.getProcess() == GroupProcess.DENIED|| byResponseGroupAndRequestGroup1.getProcess() == GroupProcess.DENIED){
-                throw new GroupMatchingFailException("이미 매칭 거절된 그룹입니다.", HttpStatus.CONFLICT);
-            }
+
             // 2. 인원 수 다를 경우
             if(requestGroup.getMaxNum() != responseGroup.getMaxNum()){
                 throw new GroupMatchingFailException("인원 수가 다릅니다.", HttpStatus.BAD_REQUEST);
