@@ -115,16 +115,17 @@ public class MyPageController {
     }
 
     // 유저 비밀번호 변경
-    @PatchMapping("/check-pass")
+    @PatchMapping("/change-password")
     public ResponseEntity<?> changePassword(@AuthenticationPrincipal TokenUserInfo tokenInfo,
                                             @RequestBody ChangePasswordDto changePasswordDto) {
         try {
             userMyPageService.changePassword(tokenInfo.getUserId(), changePasswordDto);
-            return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
+            // JSON 형식으로 응답
+            return ResponseEntity.ok(Collections.singletonMap("message", "비밀번호가 성공적으로 변경되었습니다."));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Collections.singletonMap("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("예상치 못한 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "예상치 못한 오류가 발생했습니다."));
         }
     }
 
@@ -214,5 +215,33 @@ public class MyPageController {
     public ResponseEntity<?> getMyChat(@AuthenticationPrincipal TokenUserInfo tokenInfo) {
         ChatRoomResponseDto chatRoomList = chatRoomService.findChatById(tokenInfo.getUserId());
         return ResponseEntity.ok(chatRoomList);
+    }
+
+    // 비밀번호 확인 엔드포인트
+    @PostMapping("/check-password")
+    public ResponseEntity<?> checkPassword(@RequestBody CheckPasswordRequestDto dto) {
+        boolean isPasswordCorrect = userMyPageService.checkPassword(dto.getEmail(), dto.getPassword());
+        System.out.println("isPasswordCorrect = " + isPasswordCorrect);
+        if (isPasswordCorrect) {
+            return ResponseEntity.ok().body("{\"success\": true}");
+        } else {
+            return ResponseEntity.status(401).body("{\"success\": false, \"message\": \"비밀번호가 일치하지 않습니다.\"}");
+        }
+    }
+
+    @PatchMapping("/update-phone")
+    public ResponseEntity<?> updatePhoneNumber(@AuthenticationPrincipal TokenUserInfo tokenInfo,
+                                               @RequestBody UpdatePhoneNumberDto dto) {
+        try {
+            userMyPageService.updatePhoneNumber(tokenInfo.getEmail(), dto);
+            return ResponseEntity.ok(Map.of("message", "전화번호가 성공적으로 변경되었습니다."));
+        } catch (IllegalArgumentException e) {
+            log.warn("전화번호 업데이트 실패: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            log.error("전화번호 업데이트 중 예상치 못한 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "예상치 못한 오류가 발생했습니다."));
+        }
     }
 }
