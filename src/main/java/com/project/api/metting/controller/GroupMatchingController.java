@@ -36,7 +36,7 @@ public class GroupMatchingController {
      * @return - 요청 처리 body
      */
     @PostMapping("/createRequest")
-    public ResponseEntity<?> createRequest(@RequestBody GroupMatchingRequestDto groupMatchingRequestDto) {
+    public ResponseEntity<?> createRequest(@AuthenticationPrincipal TokenUserInfo tokenUserInfo,@RequestBody GroupMatchingRequestDto groupMatchingRequestDto) {
         // 1. 히스토리 생성 요청
         groupMatchingService.createHistory(groupMatchingRequestDto);
 
@@ -63,7 +63,7 @@ public class GroupMatchingController {
      * @return - 성공 메세지
      */
     @PostMapping("/response-accept")
-    public ResponseEntity<?> responseAccept(@RequestBody GroupMatchingResponseDto groupMatchingResponseDto) {
+    public ResponseEntity<?> responseAccept(@AuthenticationPrincipal TokenUserInfo tokenUserInfo,@RequestBody GroupMatchingResponseDto groupMatchingResponseDto) {
         GroupProcess groupProcess = groupMatchingService.acceptRequest(groupMatchingResponseDto);
 
         return ResponseEntity.ok().body(groupProcess);
@@ -75,7 +75,7 @@ public class GroupMatchingController {
      * @return - 실패 메세지
      */
     @PostMapping("/response-deny")
-    public ResponseEntity<?> responseDeny(@RequestBody GroupMatchingResponseDto groupMatchingResponseDto) {
+    public ResponseEntity<?> responseDeny(@AuthenticationPrincipal TokenUserInfo tokenUserInfo,@RequestBody GroupMatchingResponseDto groupMatchingResponseDto) {
         GroupProcess groupProcess = groupMatchingService.denyRequest(groupMatchingResponseDto);
 
         return ResponseEntity.ok().body(groupProcess);
