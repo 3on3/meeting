@@ -43,12 +43,8 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests() //요청 별로 인가 설정
-                // /events/* -> 뒤에 딱 하나만
-                // /events/** -> 여러개
-                .antMatchers(HttpMethod.DELETE,"/events/*").hasAuthority("ADMIN")
-                .antMatchers(HttpMethod.PUT, "/auth/promote").hasAuthority("COMMON")
                 //아래의 요청은 모두 허용
-                .antMatchers("/**", "/signup/**", "/file/**", "/testChat/**", "/group/**", "/group/matching/**").permitAll()
+                .antMatchers("/signup/**","login", "intro").permitAll()
                 //나머지 인증은 전부 인증(로그인) 후 진행해라.
                 .anyRequest().authenticated() //인가 설정 on
         ;
