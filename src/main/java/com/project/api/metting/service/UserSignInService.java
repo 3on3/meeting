@@ -8,6 +8,7 @@ import com.project.api.metting.entity.User;
 import com.project.api.metting.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ import java.time.Instant;
 public class UserSignInService {
 
     private final UserRepository userRepository;
+
 
     //토큰 생성 객체
     private final TokenProvider tokenProvider;
@@ -75,8 +77,11 @@ public class UserSignInService {
                 .nickname(userInfo.getNickname())
                 .isWithdrawn(userInfo.isWithdrawn())
                 .password(userInfo.getPassword())
+                .membershipAuth(userInfo.getMembership())
                 .profileImg(String.valueOf(userInfo.getUserProfile()))
                 .build();
+
+        log.info("로그인 토큰 전달하기",responseDto);
 
         // 자동로그인이라면?
         // -> 리프레쉬 토큰 생성

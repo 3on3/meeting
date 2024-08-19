@@ -1,6 +1,7 @@
 package com.project.api.metting.dto.response;
 
 import com.project.api.metting.entity.Gender;
+import com.project.api.metting.entity.Membership;
 import lombok.*;
 
 @Getter
@@ -26,4 +27,5 @@ public class LoginResponseDto {
     private String profileImg; // 프로필 이미지
     private boolean isWithdrawn; // 탈퇴 여부
     private String password;
+    private Membership membershipAuth; //멤버십 권한(GENERAL, PREMIUM)
 }
