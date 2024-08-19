@@ -8,13 +8,11 @@ import com.project.api.metting.dto.request.GroupMatchingRequestDto;
 import com.project.api.metting.dto.request.GroupRequestDto;
 import com.project.api.metting.dto.response.GroupMatchingResponseDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
+import com.project.api.metting.entity.Alarm;
 import com.project.api.metting.entity.Group;
 import com.project.api.metting.entity.GroupMatchingHistory;
 import com.project.api.metting.entity.GroupProcess;
-import com.project.api.metting.repository.GroupMatchingHistoriesCustomImpl;
-import com.project.api.metting.repository.GroupMatchingHistoriesRepository;
-import com.project.api.metting.repository.GroupRepository;
-import com.project.api.metting.repository.GroupRepositoryCustomImpl;
+import com.project.api.metting.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -34,6 +32,7 @@ public class GroupMatchingService {
     private  final GroupRepository groupRepository;
     private final GroupMatchingHistoriesCustomImpl groupMatchingHistoriesCustomImpl;
     private final GroupRepositoryCustomImpl groupRepositoryCustomImpl;
+    private final AlarmRepository alarmRepository;
 
     /**
      * 그룹 - 그룹 채팅 신청 버튼 클릭시 히스토리 생성하는 함수
@@ -78,6 +77,14 @@ public class GroupMatchingService {
 
             // 히스토리 저장
             groupMatchingHistoriesRepository.save(groupMatchingHistory);
+
+            // 알람 테이블에도 추가
+            Alarm alarm = Alarm.builder()
+                    .groupMatchingHistory(groupMatchingHistory)
+                    .build();
+
+            alarmRepository.save(alarm);
+
         } catch (Exception e){
             throw new GroupMatchingFailException("예외 발생: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
