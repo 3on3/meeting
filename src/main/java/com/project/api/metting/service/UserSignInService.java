@@ -78,6 +78,7 @@ public class UserSignInService {
                 .isWithdrawn(userInfo.isWithdrawn())
                 .password(userInfo.getPassword())
                 .membershipAuth(userInfo.getMembership())
+                .profileImg(String.valueOf(userInfo.getUserProfile()))
                 .build();
 
         log.info("로그인 토큰 전달하기",responseDto);

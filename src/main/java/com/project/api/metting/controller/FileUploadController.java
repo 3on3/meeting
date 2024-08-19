@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @Slf4j
@@ -33,10 +35,8 @@ public class FileUploadController {
             @RequestPart(value = "profileImage") MultipartFile uploadFile,
             @AuthenticationPrincipal TokenUserInfo tokenInfo
     ) {
-
         log.info("profileImage: {}", uploadFile.getOriginalFilename());
 
-        // 파일을 업로드
         String fileUrl = "";
         try {
             fileUrl = uploadService.uploadProfileImage(uploadFile, tokenInfo.getUserId());
@@ -45,7 +45,8 @@ public class FileUploadController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
 
-        return ResponseEntity.ok().body(fileUrl);
+        Map<String, String> response = new HashMap<>();
+        response.put("profileImgUrl", fileUrl);
+        return ResponseEntity.ok().body(response);
     }
 }
-

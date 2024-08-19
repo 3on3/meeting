@@ -42,6 +42,7 @@ public class MainMeetingListResponseDto {
 
     // 로그인한 유저 기준 해당 그룹과 히스토리가 있는지
     @Setter
+    @Builder.Default
     private MatchingStatus matchingStatus = MatchingStatus.NONE;
 
 
