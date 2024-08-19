@@ -1,5 +1,7 @@
 package com.project.api.metting.controller;
 
+import com.project.api.auth.TokenProvider;
+import com.project.api.auth.TokenProvider.TokenUserInfo;
 import com.project.api.metting.dto.request.AlarmRequestDto;
 import com.project.api.metting.dto.request.GroupMatchingRequestDto;
 import com.project.api.metting.dto.request.GroupRequestDto;
@@ -13,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,7 +51,7 @@ public class GroupMatchingController {
      */
     @GetMapping("/response")
     @Transactional(readOnly = true)
-    public ResponseEntity<List<GroupRequestDto>> matchingResponse(@RequestParam String groupId) {
+    public ResponseEntity<List<GroupRequestDto>> matchingResponse(@AuthenticationPrincipal TokenUserInfo tokenUserInfo, @RequestParam String groupId) {
         List<GroupRequestDto> groupResponseDtoList = groupMatchingService.viewRequestList(groupId);
 
         return ResponseEntity.ok().body(groupResponseDtoList);
