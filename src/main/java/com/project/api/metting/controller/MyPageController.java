@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.constraints.Email;
 import java.io.IOException;
@@ -50,11 +51,9 @@ public class MyPageController {
 
 
 // - 프로필 이미지 조회
-
     @GetMapping("/profileImage")
     public ResponseEntity<?> getProfile(
             @AuthenticationPrincipal TokenProvider.TokenUserInfo tokenUserInfo) {
-
         try {
             UserProfile userProfile = userMyPageService.getUserProfile(tokenUserInfo.getUserId());
             log.info("profile img info - {}", userProfile.getProfileImg());
@@ -66,26 +65,63 @@ public class MyPageController {
         }
     }
 
-    // 파일 업로드 처리
     @PostMapping("/profileImage/upload")
-    public ResponseEntity<?> upload(
+    public ResponseEntity<String> upload(
             @RequestPart(value = "profileImage") MultipartFile uploadFile,
             @AuthenticationPrincipal TokenUserInfo tokenInfo
     ) {
-
         log.info("profileImage: {}", uploadFile.getOriginalFilename());
 
-        // 파일을 업로드
         String fileUrl = "";
         try {
+            // 파일 업로드 후 URL 생성
             fileUrl = uploadService.uploadProfileImage(uploadFile, tokenInfo.getUserId());
+
+            // 서버의 도메인 정보를 포함하여 절대 경로를 생성 (이미 절대 경로인 경우 변환하지 않음)
+            String absoluteUrl = fileUrl.startsWith("http") ? fileUrl :
+                    ServletUriComponentsBuilder.fromCurrentContextPath()
+                            .path("/uploads/")
+                            .path(fileUrl)
+                            .toUriString();
+
+            log.info("Absolute file URL: {}", absoluteUrl);
+
+            return ResponseEntity.ok(absoluteUrl); // 절대 경로로 반환
         } catch (IOException e) {
-            log.warn("파일 업로드에 실패했습니다.");
+            log.warn("파일 업로드에 실패했습니다.", e);
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        return ResponseEntity.ok().body(fileUrl);
     }
+
+
+
+
+
+
+
+
+
+
+//    // 파일 업로드 처리 (변경)
+//    @PostMapping("/profileImage/upload")
+//    public ResponseEntity<?> upload(
+//            @RequestPart(value = "profileImage") MultipartFile uploadFile,
+//            @AuthenticationPrincipal TokenUserInfo tokenInfo
+//    ) {
+//
+//        log.info("profileImage: {}", uploadFile.getOriginalFilename());
+//
+//        // 파일을 업로드
+//        String fileUrl = "";
+//        try {
+//            fileUrl = uploadService.uploadProfileImage(uploadFile, tokenInfo.getUserId());
+//        } catch (IOException e) {
+//            log.warn("파일 업로드에 실패했습니다.");
+//            return ResponseEntity.badRequest().body(e.getMessage());
+//        }
+//
+//        return ResponseEntity.ok().body(fileUrl);
+//    }
 
 
 // - 기본 정보 조회 (프로필 이미지 제외)
