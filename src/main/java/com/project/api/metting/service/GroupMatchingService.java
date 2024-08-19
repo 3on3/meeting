@@ -46,21 +46,29 @@ public class GroupMatchingService {
             Group responseGroup = groupRepository.findById(groupMatchingRequestDto.getResponseGroupId()).orElse(null);
 
             // [신청 불가 요건]
-            // 1. 이미 매칭 신청 중인 경우, 2. 매칭 히스토리 denied 상태일 경우
-            boolean exists = groupMatchingHistoriesRepository.existsByResponseGroupAndRequestGroup(responseGroup, requestGroup)
-                    || groupMatchingHistoriesRepository.existsByResponseGroupAndRequestGroup(requestGroup, responseGroup);
-            if(exists){
-                throw new GroupMatchingFailException("이미 신청한 그룹입니다.", HttpStatus.CONFLICT);
+            GroupMatchingHistory byResponseGroupAndRequestGroup = groupMatchingHistoriesRepository.findByResponseGroupAndRequestGroup(responseGroup, requestGroup);
+            GroupMatchingHistory byResponseGroupAndRequestGroup1 = groupMatchingHistoriesRepository.findByResponseGroupAndRequestGroup(requestGroup, responseGroup);
+            // 1-1. 이미 매칭 신청
+            if(byResponseGroupAndRequestGroup.getProcess() == GroupProcess.INVITING || byResponseGroupAndRequestGroup1.getProcess() == GroupProcess.INVITING){
+                throw new GroupMatchingFailException("이미 매칭 신청한 그룹입니다.", HttpStatus.CONFLICT);
             }
-            // 3. 인원 수 다를 경우
+            // 1-2. 매칭된 경우
+            if(byResponseGroupAndRequestGroup.getProcess() == GroupProcess.MATCHED || byResponseGroupAndRequestGroup1.getProcess() == GroupProcess.MATCHED){
+                throw new GroupMatchingFailException("이미 매칭된 그룹입니다.", HttpStatus.CONFLICT);
+            }
+            // 1-3. 매칭 거절된경우
+            if(byResponseGroupAndRequestGroup.getProcess() == GroupProcess.DENIED|| byResponseGroupAndRequestGroup1.getProcess() == GroupProcess.DENIED){
+                throw new GroupMatchingFailException("이미 매칭 거절된 그룹입니다.", HttpStatus.CONFLICT);
+            }
+            // 2. 인원 수 다를 경우
             if(requestGroup.getMaxNum() != responseGroup.getMaxNum()){
                 throw new GroupMatchingFailException("인원 수가 다릅니다.", HttpStatus.BAD_REQUEST);
             }
-            // 4. 지역 다를 경우
+            // 3. 지역 다를 경우
             if(!requestGroup.getGroupPlace().equals(responseGroup.getGroupPlace()) ){
                 throw new GroupMatchingFailException("희망지역이 다릅니다.", HttpStatus.BAD_REQUEST);
             }
-            // 5. 이미 다른 그룹과 매칭된 그룹일 경우
+            // 4. 이미 다른 그룹과 매칭된 그룹일 경우
             boolean isMatchedByResponse = groupMatchingHistoriesRepository.existsByResponseGroupAndProcess(responseGroup, GroupProcess.MATCHED);
             boolean isMatchedByRequest = groupMatchingHistoriesRepository.existsByRequestGroupAndProcess(responseGroup, GroupProcess.MATCHED);
             if(isMatchedByResponse || isMatchedByRequest){
