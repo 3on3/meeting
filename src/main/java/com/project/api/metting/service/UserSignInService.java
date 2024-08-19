@@ -4,9 +4,7 @@ import com.project.api.auth.TokenProvider;
 import com.project.api.exception.LoginFailException;
 import com.project.api.metting.dto.request.LoginRequestDto;
 import com.project.api.metting.dto.response.LoginResponseDto;
-import com.project.api.metting.entity.Membership;
 import com.project.api.metting.entity.User;
-import com.project.api.metting.repository.UserMembershipRepositoryCustom;
 import com.project.api.metting.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +23,6 @@ public class UserSignInService {
 
     private final UserRepository userRepository;
 
-    @Qualifier("userMembershipRepositoryCustomImpl")
-    private final UserMembershipRepositoryCustom userMembershipRepositoryCustom;
 
     //토큰 생성 객체
     private final TokenProvider tokenProvider;
@@ -67,9 +63,6 @@ public class UserSignInService {
 
         // 토큰 생성
         String token = tokenProvider.createToken(userInfo);
-
-//        Membership membershipAuth = userMembershipRepositoryCustom.membershipAuthFind(userInfo.getEmail());
-
 
         LoginResponseDto responseDto = LoginResponseDto.builder()
                 .email(userInfo.getEmail())
