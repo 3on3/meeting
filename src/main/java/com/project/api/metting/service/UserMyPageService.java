@@ -39,7 +39,6 @@ public class UserMyPageService {
     private final UserRepository userRepository; // User 엔티티를 다루는 JPA 리포지토리
     private final PasswordEncoder passwordEncoder;
     private final UserVerificationRepository userVerificationRepository;
-    private final TemporaryVerificationRepository temporaryVerificationRepository;
     // 이메일 전송 객체
     private final JavaMailSender mailSender;
 
