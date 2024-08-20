@@ -14,4 +14,5 @@ import lombok.*;
 public class ChatWebSocketResponseDto {
     private String type;
     private ChatMessageRequestDto message;
+    private String chatroomId;
 }
