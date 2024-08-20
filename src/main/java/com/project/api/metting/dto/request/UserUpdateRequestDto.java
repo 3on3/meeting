@@ -12,10 +12,10 @@ import lombok.*;
 @Builder
 public class UserUpdateRequestDto {
 
-    //    @JsonProperty("product_img")
+//    @JsonProperty("profile_img")
     private String profileImg; // 프로필 이미지 경로
 
-    //    @JsonProperty("profile_introduce")
+//    @JsonProperty("profile_introduce")
     private String profileIntroduce; // 프로필 소개
 
     private String nickname; // 닉네임
@@ -26,7 +26,7 @@ public class UserUpdateRequestDto {
 
     private String major; // 전공
 
-    private String profileImage;
+//    private String profileImage;
 
 
 }

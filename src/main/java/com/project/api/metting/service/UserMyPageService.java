@@ -6,6 +6,7 @@ import com.project.api.metting.entity.*;
 import com.project.api.metting.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.weaver.patterns.HasThisTypePatternTriedToSneakInSomeGenericOrParameterizedTypePatternMatchingStuffAnywhereVisitor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -67,9 +68,9 @@ public class UserMyPageService {
         if (userProfile == null) {
             // UserProfile이 없으면 새로 생성
             userProfile = UserProfile.builder()
-                    .user(findUser)
-                    .profileImg(url)  // 초기 프로필 이미지 설정
-                    .build();
+                                    .user(findUser)
+                                    .profileImg(url)  // 초기 프로필 이미지 설정
+                                    .build();
             log.info("Created new UserProfile: {}", userProfile);
         } else {
             // UserProfile이 존재하면 업데이트
@@ -86,20 +87,23 @@ public class UserMyPageService {
     //================================================
 
     // 유저 정보 가져오기
-    public UserMyPageDto getUserInfo(String userEmail) {
-        User user = userMyPageRepository.findById(userEmail)
+    public UserMyPageDto getUserInfo(String userId) {
+        User user = userMyPageRepository.findById(userId)
                                         .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        log.info("User information retrieved successfully for email: {}", userEmail);
+        log.info("User information retrieved successfully for email: {}", userId);
         return convertToDto(user);
     }
 
     private UserMyPageDto convertToDto(User user) {
         log.info("Converting user entity to DTO for user: {}", user.getNickname());
 
+        System.out.println(user.getUserProfile());
+
          return UserMyPageDto.builder()
                 .profileIntroduce(user.getUserProfile() != null && user.getUserProfile().getProfileIntroduce() != null
                         ? user.getUserProfile().getProfileIntroduce()
                         : "소개가 없습니다.")
+                 .profileImg(user.getUserProfile().getProfileImg())
                 .nickname(user.getNickname())
                 .membership(user.getMembership() != null ? user.getMembership() : Membership.GENERAL)
                 .age(calculateAge(user.getBirthDate()))

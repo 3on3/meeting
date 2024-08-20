@@ -2,19 +2,19 @@ package com.project.api.metting.controller;
 
 import com.project.api.auth.TokenProvider;
 import com.project.api.auth.TokenProvider.TokenUserInfo;
+import com.project.api.exception.LoginFailException;
 import com.project.api.metting.dto.request.*;
 import com.project.api.metting.dto.request.ChangePasswordDto;
 import com.project.api.metting.dto.request.MatchedGroupRequestDto;
 import com.project.api.metting.dto.request.UserUpdateRequestDto;
 import com.project.api.metting.dto.response.ChatRoomResponseDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
+import com.project.api.metting.dto.response.LoginResponseDto;
 import com.project.api.metting.dto.response.UserMyPageDto;
+import com.project.api.metting.entity.User;
 import com.project.api.metting.entity.UserProfile;
 import com.project.api.metting.repository.UserRepository;
-import com.project.api.metting.service.ChatRoomService;
-import com.project.api.metting.service.FileUploadService;
-import com.project.api.metting.service.GroupQueryService;
-import com.project.api.metting.service.UserMyPageService;
+import com.project.api.metting.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -48,14 +48,21 @@ public class MyPageController {
     private final UserMyPageService userMyPageService;
     private final FileUploadService uploadService;
     private final UserRepository userRepository;
+    private final UserProfileService userProfileService;
+    private final UserSignInService userSignInService;
+    private final TokenProvider tokenProvider;
 
-
-// - 프로필 이미지 조회
+    /**
+     * 현재 로그인된 사용자의 프로필 정보를 조회
+     * @param tokenUserInfo - 현재 로그인된 사용자 정보
+     * @return - 사용자 프로필 정보
+     */
     @GetMapping("/profileImage")
     public ResponseEntity<?> getProfile(
             @AuthenticationPrincipal TokenProvider.TokenUserInfo tokenUserInfo) {
+
         try {
-            UserProfile userProfile = userMyPageService.getUserProfile(tokenUserInfo.getUserId());
+            UserProfile userProfile = userProfileService.getUserProfile(tokenUserInfo.getUserId());
             log.info("profile img info - {}", userProfile.getProfileImg());
             return ResponseEntity.ok(userProfile);
         } catch (IllegalStateException e ) {
@@ -65,63 +72,70 @@ public class MyPageController {
         }
     }
 
-    @PostMapping("/profileImage/upload")
-    public ResponseEntity<String> upload(
-            @RequestPart(value = "profileImage") MultipartFile uploadFile,
-            @AuthenticationPrincipal TokenUserInfo tokenInfo
-    ) {
+
+
+// - 프로필 이미지 조회
+// 8:54
+//    @GetMapping("/profileImage")
+//    public ResponseEntity<?> getProfile(
+//            @AuthenticationPrincipal TokenProvider.TokenUserInfo tokenUserInfo) {
+//        try {
+//            UserProfile userProfile = userMyPageService.getUserProfile(tokenUserInfo.getUserId());
+//            log.info("profile img info - {}", userProfile.getProfileImg());
+//            return ResponseEntity.ok(userProfile);
+//        } catch (IllegalStateException e ) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("프로필 정보 조회에 실패하였습니다.");
+//        }
+//    }
+
+
+
+    // 파일 업로드 처리 (변경)
+    @PostMapping("/profileImage/update")
+    public ResponseEntity<?> upload(@RequestPart(value = "profileImage") MultipartFile uploadFile,
+                                    @AuthenticationPrincipal TokenUserInfo tokenInfo) {
+
         log.info("profileImage: {}", uploadFile.getOriginalFilename());
 
+        // 파일을 업로드
         String fileUrl = "";
         try {
-            // 파일 업로드 후 URL 생성
             fileUrl = uploadService.uploadProfileImage(uploadFile, tokenInfo.getUserId());
-
-            // 서버의 도메인 정보를 포함하여 절대 경로를 생성 (이미 절대 경로인 경우 변환하지 않음)
-            String absoluteUrl = fileUrl.startsWith("http") ? fileUrl :
-                    ServletUriComponentsBuilder.fromCurrentContextPath()
-                            .path("/uploads/")
-                            .path(fileUrl)
-                            .toUriString();
-
-            log.info("Absolute file URL: {}", absoluteUrl);
-
-            return ResponseEntity.ok(absoluteUrl); // 절대 경로로 반환
         } catch (IOException e) {
-            log.warn("파일 업로드에 실패했습니다.", e);
+            log.warn("파일 업로드에 실패했습니다.");
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+
+        return ResponseEntity.ok().body(fileUrl);
     }
 
 
 
-
-
-
-
-
-
-
-//    // 파일 업로드 처리 (변경)
 //    @PostMapping("/profileImage/upload")
-//    public ResponseEntity<?> upload(
+//    public ResponseEntity<Map<String, Object>> upload(
 //            @RequestPart(value = "profileImage") MultipartFile uploadFile,
 //            @AuthenticationPrincipal TokenUserInfo tokenInfo
 //    ) {
-//
 //        log.info("profileImage: {}", uploadFile.getOriginalFilename());
 //
-//        // 파일을 업로드
-//        String fileUrl = "";
+//        Map<String, Object> response = new HashMap<>();
 //        try {
-//            fileUrl = uploadService.uploadProfileImage(uploadFile, tokenInfo.getUserId());
+//            String fileUrl = uploadService.uploadProfileImage(uploadFile, tokenInfo.getUserId());
+//            response.put("fileUrl", fileUrl);
+//            response.put("message", "Profile image uploaded successfully");
+//            return ResponseEntity.ok().body(response);
 //        } catch (IOException e) {
 //            log.warn("파일 업로드에 실패했습니다.");
-//            return ResponseEntity.badRequest().body(e.getMessage());
+//            response.put("message", "File upload failed");
+//            return ResponseEntity.badRequest().body(response);
 //        }
-//
-//        return ResponseEntity.ok().body(fileUrl);
 //    }
+
+
+
+
 
 
 // - 기본 정보 조회 (프로필 이미지 제외)
