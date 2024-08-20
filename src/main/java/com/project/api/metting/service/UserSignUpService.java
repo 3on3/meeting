@@ -2,6 +2,7 @@ package com.project.api.metting.service;
 
 import com.project.api.metting.dto.request.UserRegisterDto;
 import com.project.api.metting.entity.User;
+import com.project.api.metting.entity.UserProfile;
 import com.project.api.metting.entity.UserVerification;
 import com.project.api.metting.repository.UserRepository;
 import com.project.api.metting.repository.UserVerificationRepository;
@@ -238,11 +239,33 @@ public class UserSignUpService {
             newUser.setEmail(dto.getEmail());
             return newUser;
         });
+
         log.info("Confirm sign up : {}", dto);
+
         String password = dto.getPassword();
-        findUser.confirm(password, dto.getName(), dto.getBirthDate(), dto.getPhoneNumber(), dto.getUnivName(), dto.getMajor(), dto.getGender(), dto.getNickname());
         String encodedPassword = encoder.encode(password);
-        findUser.changePass(encodedPassword);
+
+        findUser.confirm(
+                encodedPassword,
+                dto.getName(),
+                dto.getBirthDate(),
+                dto.getPhoneNumber(),
+                dto.getUnivName(),
+                dto.getMajor(),
+                dto.getGender(),
+                dto.getNickname()
+        );
+
+
+        // UserProfile 생성 및 설정
+        UserProfile userProfile = UserProfile.builder()
+                .profileImg("https://spring-file-bucket-yocong.s3.ap-northeast-2.amazonaws.com/2024/default_profile.png") // 프로필 이미지 설정
+                .profileIntroduce(null) // 프로필 소개 설정
+                .user(findUser) // 유저 설정
+                .build();
+
+        findUser.setUserProfile(userProfile); // User와 UserProfile 연관 설정
+
         userRepository.save(findUser);
     }
 

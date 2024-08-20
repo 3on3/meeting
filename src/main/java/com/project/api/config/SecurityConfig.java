@@ -44,7 +44,7 @@ public class SecurityConfig {
                 .and()
                 .authorizeRequests() //요청 별로 인가 설정
                 //아래의 요청은 모두 허용
-                .antMatchers("/signup/**","/login", "/intro", "/socket/**").permitAll()
+                .antMatchers("/signup/**","/login", "/intro", "/socket/**", "/password/**").permitAll()
                 //나머지 인증은 전부 인증(로그인) 후 진행해라.
                 .anyRequest().authenticated() //인가 설정 on
         ;

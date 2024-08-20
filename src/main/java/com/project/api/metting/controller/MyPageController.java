@@ -177,17 +177,46 @@ public class MyPageController {
 //        return ResponseEntity.ok().body(isDuplicate);
 //    }
 
+//    @PostMapping("/check-email")
+//    public ResponseEntity<?> checkEmail(@RequestBody EmailCheckDto emailCheckDto) {
+//        try {
+//            boolean isDuplicate = userMyPageService.checkEmailDuplicate(emailCheckDto.getEmail());
+//            System.out.println(isDuplicate);
+//            userMyPageService.sendVerificationEmail(emailCheckDto.getEmail());
+//
+//            Map<String, Boolean> response = new HashMap<>();
+//            response.put("isDuplicate", isDuplicate);
+//
+//            return ResponseEntity.ok(response);
+//        } catch (Exception e) {
+//            // 로그를 남기거나 사용자에게 오류를 반환
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(Collections.singletonMap("error", true));
+//        }
+//    }
+
+
     @PostMapping("/check-email")
-    public ResponseEntity<?> checkEmail(@RequestBody EmailCheckDto emailCheckDto) {
+    public ResponseEntity<?> sendEmail(@RequestBody EmailCheckDto emailCheckDto) {
+        log.info("email check info - {}", emailCheckDto.getEmail());
         try {
-            boolean isDuplicate = userMyPageService.checkEmailDuplicate(emailCheckDto.getEmail());
-            System.out.println(isDuplicate);
             userMyPageService.sendVerificationEmail(emailCheckDto.getEmail());
 
-            Map<String, Boolean> response = new HashMap<>();
-            response.put("isDuplicate", isDuplicate);
+            return ResponseEntity.ok(true);
+        } catch (Exception e) {
+            // 로그를 남기거나 사용자에게 오류를 반환
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", true));
+        }
+    }
 
-            return ResponseEntity.ok(response);
+    @PostMapping("/withdraw")
+    public ResponseEntity<?> endWithDraw(@RequestBody EmailCheckDto emailCheckDto, @AuthenticationPrincipal TokenUserInfo tokenInfo ) {
+        log.info("email 0 info - {}", emailCheckDto.getEmail());
+        try {
+            userMyPageService.withDrawnUser(emailCheckDto.getEmail(), tokenInfo);
+
+            return ResponseEntity.ok(true);
         } catch (Exception e) {
             // 로그를 남기거나 사용자에게 오류를 반환
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -199,13 +228,14 @@ public class MyPageController {
     @PostMapping("/check/code")
     public ResponseEntity<?> verifySendingCode(@AuthenticationPrincipal TokenUserInfo tokenInfo,
                                                @RequestBody TemporaryVerficationDto verificationDto) {
-        boolean valid = userMyPageService.verifySendingCode(verificationDto);
-        if (valid) {
-            // 인증 성공 시 200 상태 코드와 성공 메시지 반환
-            return ResponseEntity.status(200).body("Verification successful");
+        try {
+            boolean valid = userMyPageService.verifySendingCode(verificationDto);
+            return ResponseEntity.ok("완료.");
+        }  catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("인증 실패.");
         }
-        // 인증 실패 시 400 상태 코드와 실패 메시지 반환
-        return ResponseEntity.status(400).body("Verification code is incorrect");
     }
 
 
@@ -224,6 +254,7 @@ public class MyPageController {
     @PostMapping("/check/password")
     public ResponseEntity<?> verifyPassword(@AuthenticationPrincipal TokenUserInfo tokenInfo,
                                             @RequestBody PasswordVerificationDto verificationDto) {
+        log.info("asdadsd - {}", verificationDto.getPassword());
         boolean valid = userMyPageService.verifyPassword(verificationDto);
         if(valid) {
             return ResponseEntity.status(302).body(valid);
