@@ -214,7 +214,7 @@ public class ChatRoomService {
 
             MyChatListRequestDto myChatListRequestDto = MyChatListRequestDto.builder()
                     .chatRoomId(matchingHistories.get(i).getChatRoom().getId())
-                    .groupName(matchingGroups.get(i).getGroupName())
+                    .chatRoomName(matchingHistories.get(i).getChatRoom().getChatRoomName())
                     .groupPlace(matchingGroups.get(i).getGroupPlace())
                     .groupMemberCount(groupMember)
                     .gender(matchingGroups.get(i).getGroupGender())
