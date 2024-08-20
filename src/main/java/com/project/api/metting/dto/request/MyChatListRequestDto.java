@@ -15,7 +15,7 @@ import java.util.Date;
 public class MyChatListRequestDto {
 
     private String chatRoomId;
-    private String groupName;
+    private String chatRoomName;
     private String major;
     private Gender gender;
     private Integer groupMemberCount;
