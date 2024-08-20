@@ -73,26 +73,7 @@ public class MyPageController {
     }
 
 
-
-// - 프로필 이미지 조회
-// 8:54
-//    @GetMapping("/profileImage")
-//    public ResponseEntity<?> getProfile(
-//            @AuthenticationPrincipal TokenProvider.TokenUserInfo tokenUserInfo) {
-//        try {
-//            UserProfile userProfile = userMyPageService.getUserProfile(tokenUserInfo.getUserId());
-//            log.info("profile img info - {}", userProfile.getProfileImg());
-//            return ResponseEntity.ok(userProfile);
-//        } catch (IllegalStateException e ) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("프로필 정보 조회에 실패하였습니다.");
-//        }
-//    }
-
-
-
-    // 파일 업로드 처리 (변경)
+    // 파일 업로드 처리
     @PostMapping("/profileImage/update")
     public ResponseEntity<?> upload(@RequestPart(value = "profileImage") MultipartFile uploadFile,
                                     @AuthenticationPrincipal TokenUserInfo tokenInfo) {
@@ -110,31 +91,6 @@ public class MyPageController {
 
         return ResponseEntity.ok().body(fileUrl);
     }
-
-
-
-//    @PostMapping("/profileImage/upload")
-//    public ResponseEntity<Map<String, Object>> upload(
-//            @RequestPart(value = "profileImage") MultipartFile uploadFile,
-//            @AuthenticationPrincipal TokenUserInfo tokenInfo
-//    ) {
-//        log.info("profileImage: {}", uploadFile.getOriginalFilename());
-//
-//        Map<String, Object> response = new HashMap<>();
-//        try {
-//            String fileUrl = uploadService.uploadProfileImage(uploadFile, tokenInfo.getUserId());
-//            response.put("fileUrl", fileUrl);
-//            response.put("message", "Profile image uploaded successfully");
-//            return ResponseEntity.ok().body(response);
-//        } catch (IOException e) {
-//            log.warn("파일 업로드에 실패했습니다.");
-//            response.put("message", "File upload failed");
-//            return ResponseEntity.badRequest().body(response);
-//        }
-//    }
-
-
-
 
 
 
