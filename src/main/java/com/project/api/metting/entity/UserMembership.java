@@ -26,7 +26,7 @@ public class UserMembership {
     @Id
     @GenericGenerator(strategy = "uuid2", name = "uuid-generator")
     @GeneratedValue(generator = "uuid-generator")
-    @Column(name = "mt_profile_id")
+    @Column(name = "mt_user_membership_id")
     private String id; // 멤버쉽 고유 아이디
 
 
