@@ -41,7 +41,7 @@ public class UserSignInService {
                 );
 
         // 탈퇴 여부 확인
-        if (userInfo.isWithdrawn()) {
+        if (userInfo.getIsWithdrawn()) {
             throw new LoginFailException("Account has been withdrawn");
         }
 
@@ -75,7 +75,7 @@ public class UserSignInService {
                 .major(userInfo.getMajor())
                 .gender(userInfo.getGender())
                 .nickname(userInfo.getNickname())
-                .isWithdrawn(userInfo.isWithdrawn())
+                .isWithdrawn(userInfo.getIsWithdrawn())
                 .password(userInfo.getPassword())
                 .membershipAuth(userInfo.getMembership())
                 .profileImg(String.valueOf(userInfo.getUserProfile()))
