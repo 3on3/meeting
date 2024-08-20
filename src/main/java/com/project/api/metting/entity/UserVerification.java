@@ -24,6 +24,8 @@ import java.time.LocalDateTime;
 public class UserVerification implements Serializable {
 
     @Id
+    @GenericGenerator(strategy = "uuid2", name = "uuid-generator")
+    @GeneratedValue(generator = "uuid-generator")
     @Column(name = "mt_user_verification_id")
     private String id;
 
@@ -36,6 +38,11 @@ public class UserVerification implements Serializable {
 
     @Column(name = "mt_user_verification_expiry_date", nullable = false)
     private LocalDateTime expiryDate; // 인증 만료시간
+
+
+    @Column(name = "mt_user_verification_send_date")
+    @Builder.Default // 가입시간 기본으로 생성
+    private LocalDateTime sendAt = LocalDateTime.now();
 
     @ManyToOne
     @JoinColumn(name = "verification_user_id", referencedColumnName = "mt_user_id", nullable = false)

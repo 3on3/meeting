@@ -72,9 +72,10 @@ public class User {
     private String nickname; // 닉네임
 
 
+    @Setter
     @Column(name = "mt_user_is_withdrawn")
     @Builder.Default
-    private boolean isWithdrawn = false; // 탈퇴여부
+    private Boolean isWithdrawn = false; // 탈퇴여부
 
 
     @Enumerated(EnumType.STRING)
@@ -144,6 +145,4 @@ public class User {
         this.refreshTokenExpiryDate = expiryDate;
     }
 
-    public void setIsWithdrawn(boolean b) {
-    }
 }
