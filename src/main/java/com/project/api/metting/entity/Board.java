@@ -48,4 +48,6 @@ public class Board {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mt_user_id", nullable = false)
     private User author; // 작성자
+
+
 }
