@@ -15,6 +15,7 @@ public class ChatMessageRequestDto {
     private String userNickname;
     private String messageId;
     private String messageContent;
+    private String profileImg;
 
 
      public ChatMessageRequestDto(ChatMessage chatMessage) {
@@ -23,5 +24,6 @@ public class ChatMessageRequestDto {
          this.userNickname = chatMessage.getUser().getNickname();
          this.messageId = chatMessage.getId();
          this.messageContent = chatMessage.getMessageContent();
+         this.profileImg = chatMessage.getUser().getUserProfile().getProfileImg();
      }
 }
