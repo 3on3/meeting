@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "mt_board_repies")
+@Table(name = "mt_board_replies")
 public class BoardReply {
 
     @Id
