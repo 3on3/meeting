@@ -1,6 +1,7 @@
 package com.project.api.metting.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -40,11 +41,15 @@ public class ChatMessage {
     @Column(name = "mt_chat_message_content")
     private String messageContent;
 
+
+    @ToString.Exclude
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "mt_chat_room_id",  nullable = false)
     private ChatRoom chatRoom;
 
-
+//    @ToString.Exclude
+//    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "mt_user_id",  nullable = false)
     private User user;

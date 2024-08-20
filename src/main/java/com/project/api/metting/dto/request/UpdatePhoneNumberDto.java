@@ -1,15 +1,13 @@
 package com.project.api.metting.dto.request;
 
-
 import lombok.*;
 
 @Getter
-@ToString
+@Setter
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class example {
-    private String email;
-    private String password;
+public class UpdatePhoneNumberDto {
+    private String phoneNumber; // 전화번호
 }

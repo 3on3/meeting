@@ -1,6 +1,7 @@
 package com.project.api.metting.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -48,12 +49,18 @@ public class ChatRoom {
 
     @Column(name = "mt_chat_room_is_deleted")
     @Builder.Default
+    @Setter
     private Boolean isDeleted = false;
 
     @OneToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @JsonIgnore
     @JoinColumn(name = "mt_group_matching_history_id",  nullable = false)
     private GroupMatchingHistory groupMatchingHistory;
 
+
+    @JsonIgnore
+    @ToString.Exclude
     @OneToMany(mappedBy = "chatRoom", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ChatMessage> chatMessages;
 }

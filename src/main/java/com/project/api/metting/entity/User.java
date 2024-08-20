@@ -1,10 +1,12 @@
 package com.project.api.metting.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -18,12 +20,14 @@ import java.util.List;
  * : 해당 유저의 그룹 정보, 메세지 정보 (1 : M - GroupUser, ChatMessages)
  */
 @Getter
+@Setter
 @ToString()
 @EqualsAndHashCode(of ="id")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Entity
+
 @Table(name = "mt_users")
 public class User {
     @Id
@@ -52,8 +56,8 @@ public class User {
     private String phoneNumber; // 폰 번호
 
 
-    @Column(name = "mt_user_univ")
-    private String univ; // 대학교
+    @Column(name = "mt_user_univ_name")
+    private String univName; // 대학교
 
 
     @Column(name = "mt_user_major")
@@ -88,16 +92,58 @@ public class User {
 
     @Column(name = "mt_user_email_is_verificationed")
     @Builder.Default
+    @Setter
     private Boolean isVerification = false;
 
+    @Setter
+    @Column(name = "mt_user_refresh_token", nullable = true, unique = true)
+    private String refreshToken; // 리프레쉬 토큰
 
+    @Setter
+    @Column(name = "mt_user_refresh_token_expiry_date", nullable = true)
+    private Instant refreshTokenExpiryDate; // 리프레쉬 토큰 유통기한
 
+    @JsonIgnore
+    @ToString.Exclude
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<GroupUser> groupUsers;
 
-
+    @JsonIgnore
+    @ToString.Exclude
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ChatMessage> chatMessages;
 
+    @JsonIgnore
+    @ToString.Exclude
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private UserProfile userProfile; //유저프로필
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "mt_user_membership")
+    private Membership membership; // 멤버십
+
+    public void confirm(String password, String name, Date Birth, String phone, String univName, String major, Gender gender, String nickname) {
+        this.password = password;
+        this.name = name;
+        this.birthDate = Birth;
+        this.phoneNumber = phone;
+        this.univName = univName;
+        this.major = major;
+        this.gender = gender;
+        this.nickname = nickname;
+        this.registeredAt = LocalDateTime.now();
+    }
+
+    public void changePass(String password) {
+        this.password = password;
+    }
+
+    // 리프레시 토큰과 만료 시간을 업데이트하는 메서드
+    public void updateRefreshToken(String refreshToken, Instant expiryDate) {
+        this.refreshToken = refreshToken;
+        this.refreshTokenExpiryDate = expiryDate;
+    }
+
+    public void setIsWithdrawn(boolean b) {
+    }
 }

@@ -1,5 +1,6 @@
 package com.project.api.metting.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -31,7 +32,9 @@ public class GroupMatchingHistory {
 
 
     @Column(name = "mt_group_matching_history_process")
+    @Enumerated(EnumType.STRING)
     @Builder.Default
+    @Setter
     private GroupProcess process = GroupProcess.INVITING;
 
 
@@ -40,17 +43,22 @@ public class GroupMatchingHistory {
     private LocalDateTime requestedAt = LocalDateTime.now();
 
 
+
+    @JsonIgnore
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mt_group_matching_history_request_group",  nullable = false, referencedColumnName = "mt_group_id")
     private Group requestGroup;
 
 
-
+    @JsonIgnore
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mt_group_matching_history_response_group",  nullable = false, referencedColumnName = "mt_group_id")
     private Group responseGroup;
 
-
+    @JsonIgnore
+    @ToString.Exclude
     @OneToOne(mappedBy = "groupMatchingHistory", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private ChatRoom chatRoom;
 
