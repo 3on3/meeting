@@ -41,6 +41,7 @@ public class FileUploadService {
 
         // UserProfile 찾기
         UserProfile userProfile = userProfileRepository.findByUserId(findUser.getId());
+        System.out.println("===================" + userProfile);
 
         if (userProfile == null) {
             // UserProfile이 없으면 새로 생성
