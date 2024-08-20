@@ -1,6 +1,7 @@
 package com.project.api.metting.controller;
 
 import com.project.api.auth.TokenProvider;
+import com.project.api.auth.TokenProvider.TokenUserInfo;
 import com.project.api.metting.dto.request.*;
 import com.project.api.metting.dto.response.ChatRoomResponseDto;
 import com.project.api.metting.dto.response.ChatUserResponseDto;
@@ -47,7 +48,7 @@ public class ChatRoomController {
      * @return - 메세지
      */
     @PostMapping("/create")
-    public ResponseEntity<?> create(@RequestBody ChatRoomRequestDto chatRoomRequestDto) {
+    public ResponseEntity<?> create(@AuthenticationPrincipal TokenUserInfo tokenUserInfo, @RequestBody ChatRoomRequestDto chatRoomRequestDto) {
 
         ChatRoomResponseDto chatRoom = chatRoomService.createChatRoom(chatRoomRequestDto);
 
@@ -68,7 +69,7 @@ public class ChatRoomController {
     }
 
     @PostMapping("/myChatList")
-    public ResponseEntity<?> myChatList(@AuthenticationPrincipal TokenProvider.TokenUserInfo tokenUserInfo){
+    public ResponseEntity<?> myChatList(@AuthenticationPrincipal TokenUserInfo tokenUserInfo){
 
         String userId = tokenUserInfo.getUserId();
 
@@ -78,7 +79,7 @@ public class ChatRoomController {
     }
 
     @PostMapping("/deleteChat")
-    public ResponseEntity<?> deleteChat(@RequestBody ChatUserResponseDto chatUserResponseDto, @AuthenticationPrincipal TokenProvider.TokenUserInfo tokenUserInfo){
+    public ResponseEntity<?> deleteChat(@RequestBody ChatUserResponseDto chatUserResponseDto, @AuthenticationPrincipal TokenUserInfo tokenUserInfo){
 
         String userId = tokenUserInfo.getUserId();
 

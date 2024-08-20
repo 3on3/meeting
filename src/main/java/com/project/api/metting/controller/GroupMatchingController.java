@@ -1,5 +1,7 @@
 package com.project.api.metting.controller;
 
+import com.project.api.auth.TokenProvider;
+import com.project.api.auth.TokenProvider.TokenUserInfo;
 import com.project.api.metting.dto.request.AlarmRequestDto;
 import com.project.api.metting.dto.request.GroupMatchingRequestDto;
 import com.project.api.metting.dto.request.GroupRequestDto;
@@ -13,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +36,7 @@ public class GroupMatchingController {
      * @return - 요청 처리 body
      */
     @PostMapping("/createRequest")
-    public ResponseEntity<?> createRequest(@RequestBody GroupMatchingRequestDto groupMatchingRequestDto) {
+    public ResponseEntity<?> createRequest(@AuthenticationPrincipal TokenUserInfo tokenUserInfo,@RequestBody GroupMatchingRequestDto groupMatchingRequestDto) {
         // 1. 히스토리 생성 요청
         groupMatchingService.createHistory(groupMatchingRequestDto);
 
@@ -48,7 +51,7 @@ public class GroupMatchingController {
      */
     @GetMapping("/response")
     @Transactional(readOnly = true)
-    public ResponseEntity<List<GroupRequestDto>> matchingResponse(@RequestParam String groupId) {
+    public ResponseEntity<List<GroupRequestDto>> matchingResponse(@AuthenticationPrincipal TokenUserInfo tokenUserInfo, @RequestParam String groupId) {
         List<GroupRequestDto> groupResponseDtoList = groupMatchingService.viewRequestList(groupId);
 
         return ResponseEntity.ok().body(groupResponseDtoList);
@@ -60,7 +63,7 @@ public class GroupMatchingController {
      * @return - 성공 메세지
      */
     @PostMapping("/response-accept")
-    public ResponseEntity<?> responseAccept(@RequestBody GroupMatchingResponseDto groupMatchingResponseDto) {
+    public ResponseEntity<?> responseAccept(@AuthenticationPrincipal TokenUserInfo tokenUserInfo,@RequestBody GroupMatchingResponseDto groupMatchingResponseDto) {
         GroupProcess groupProcess = groupMatchingService.acceptRequest(groupMatchingResponseDto);
 
         return ResponseEntity.ok().body(groupProcess);
@@ -72,7 +75,7 @@ public class GroupMatchingController {
      * @return - 실패 메세지
      */
     @PostMapping("/response-deny")
-    public ResponseEntity<?> responseDeny(@RequestBody GroupMatchingResponseDto groupMatchingResponseDto) {
+    public ResponseEntity<?> responseDeny(@AuthenticationPrincipal TokenUserInfo tokenUserInfo,@RequestBody GroupMatchingResponseDto groupMatchingResponseDto) {
         GroupProcess groupProcess = groupMatchingService.denyRequest(groupMatchingResponseDto);
 
         return ResponseEntity.ok().body(groupProcess);

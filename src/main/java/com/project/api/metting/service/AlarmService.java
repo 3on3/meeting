@@ -1,6 +1,7 @@
 package com.project.api.metting.service;
 
 import com.project.api.metting.dto.request.AlarmListRequestDto;
+import com.project.api.metting.dto.response.AlarmResponseDto;
 import com.project.api.metting.entity.*;
 import com.project.api.metting.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -77,6 +79,20 @@ public class AlarmService {
         }
 
         return alarmListRequestDtos;
+
+    }
+
+    public void checkAlarm(AlarmResponseDto alarmResponseDto) {
+
+        String alarmId = alarmResponseDto.getAlarmId();
+
+       Alarm alarm  = alarmRepository.findById(alarmId).orElse(null);
+
+       if(alarm == null) {return;}
+
+       alarm.setStatus(AlarmStatus.CHECKED);
+
+       alarmRepository.save(alarm);
 
     }
 }

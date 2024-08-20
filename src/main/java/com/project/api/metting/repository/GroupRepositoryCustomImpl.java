@@ -41,18 +41,21 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
 
     //    main meetingList DTO
     @Override
-    public Page<MainMeetingListResponseDto> findGroupUsersByAllGroup(Pageable pageable,String gender,String region,Integer personnel) {
+    public Page<MainMeetingListResponseDto> findGroupUsersByAllGroup(Pageable pageable,String gender,String region,Integer personnel,String email) {
 
         QGroup group = QGroup.group;
         QGroupUser groupUser = QGroupUser.groupUser;
 
         // 공통 필터 조건
-
         BooleanExpression conditions = groupUser.auth.eq(GroupAuth.HOST)
                 .and(containGender(gender))
                 .and(containPlace(region))
                 .and(containmaxNum(personnel))
-                .and(group.isMatched.eq(false));
+                .and(group.isMatched.eq(false))
+                .and(group.id.notIn(JPAExpressions
+                        .select(groupUser.group.id)
+                        .from(groupUser)
+                        .where(groupUser.user.email.eq(email))));
 
         BooleanExpression registeredUserCountCondition = JPAExpressions
                 .select(groupUser.count().intValue())

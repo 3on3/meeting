@@ -31,4 +31,12 @@ public class TemporaryVerification {
     private String code; // 인증 코드 (필수)
 
 
+
+
+
+
+
+
+
+
 }
