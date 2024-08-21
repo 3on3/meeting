@@ -2,6 +2,7 @@ package com.project.api.metting.service;
 
 import com.project.api.auth.TokenProvider;
 import com.project.api.auth.TokenProvider.TokenUserInfo;
+import com.project.api.exception.DuplicateNicknameException;
 import com.project.api.metting.dto.request.*;
 import com.project.api.metting.dto.response.UserMyPageDto;
 import com.project.api.metting.entity.*;
@@ -105,7 +106,7 @@ public class UserMyPageService {
                 .profileIntroduce(user.getUserProfile() != null && user.getUserProfile().getProfileIntroduce() != null
                         ? user.getUserProfile().getProfileIntroduce()
                         : "소개가 없습니다.")
-                 .profileImg(user.getUserProfile().getProfileImg())
+                .profileImg(user.getUserProfile().getProfileImg())
                 .nickname(user.getNickname())
                 .membership(user.getMembership() != null ? user.getMembership() : Membership.GENERAL)
                 .age(calculateAge(user.getBirthDate()))
@@ -130,16 +131,21 @@ public class UserMyPageService {
 
     // 유저 정보 업데이트
     public UserMyPageDto updateUserFields(String userId, UserUpdateRequestDto updateDto) {
+
         log.info("Updating user fields for user ID: {}", userId);
         // 사용자 조회
         User user = userMyPageRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 사용자 ID입니다: " + userId));
 
-        // 전달된 DTO의 값들을 사용자 엔티티에 반영
-        if (updateDto.getNickname() != null) {
-            log.info("Updating nickname to: {}", updateDto.getNickname());
+        // 닉네임 중복시 에러 메시지 반환
+        if (updateDto.getNickname() != null && !updateDto.getNickname().equals(user.getNickname())) {
+            if (userMyPageRepository.findByNickname(updateDto.getNickname()).isPresent()) {
+                throw new DuplicateNicknameException("이미 사용 중인 닉네임입니다");
+            }
             user.setNickname(updateDto.getNickname());
         }
+
+
         if (updateDto.getMembership() != null) {
             Membership membership = Membership.valueOf(updateDto.getMembership().toUpperCase());
             user.setMembership(membership);
@@ -285,7 +291,6 @@ public class UserMyPageService {
     }
 
 
-    // 이메일 인증 코드 보내기
     // 이메일 인증 코드 보내기
     @Transactional
     public String sendVerificationEmail(String email) {

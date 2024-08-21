@@ -38,31 +38,24 @@ public class User {
 
     @Column(name = "mt_user_email", nullable = false, unique = true)
     private String email; // 이메일
-
-
+    
     @Column(name = "mt_user_password", length = 500)
     private String password; // 패스워드
-
 
     @Column(name = "mt_user_name", length = 30)
     private String name; // 이름
 
-
     @Column(name = "mt_user_birth_date")
     private Date birthDate; // 생년월일
-
 
     @Column(name = "mt_user_phone_number", unique = true)
     private String phoneNumber; // 폰 번호
 
-
     @Column(name = "mt_user_univ_name")
     private String univName; // 대학교
 
-
     @Column(name = "mt_user_major")
     private String major; // 전공
-
 
     @Enumerated(EnumType.STRING)
     @Column(name = "mt_user_gender")
