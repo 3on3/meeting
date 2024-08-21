@@ -16,6 +16,11 @@ public class GroupMatchingHistoriesCustomImpl implements GroupMatchingHistoriesC
 
     private final JPAQueryFactory factory;
 
+    /**
+     * 주최자 그룹으로 히스토리 조회
+     * @param groupId - 주최자 그룹 아이디
+     * @return 히스토리 리스트
+     */
     @Override
     public List<GroupMatchingHistory> findByResponseGroupId(String groupId) {
 

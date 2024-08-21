@@ -26,7 +26,6 @@ public class MainService {
     private final GroupMatchingService groupMatchingService;
     private final GroupMatchingHistoriesRepository groupMatchingHistoriesRepository;
 
-
     /**
      * @param email 사용자의 이메일
      * @param pageNo 요청한 페이지 번호
@@ -36,9 +35,7 @@ public class MainService {
      * @return 필터링된 미팅 리스트의 페이지
      */
     public Page<MainMeetingListResponseDto> getMeetingList(String email, int pageNo,String gender,String region,Integer personnel) {
-        //pageable 처리
         PageRequest pageable = PageRequest.of(pageNo - 1, 4);
-
         Page<MainMeetingListResponseDto> mainMeetingListResponseDtos = groupRepository.findGroupUsersByAllGroup(pageable,gender,region,personnel,email);
 
 
@@ -54,6 +51,12 @@ public class MainService {
         return mainMeetingListResponseDtos;
     }
 
+
+    /**
+     * 매칭 상태를 Requesting으로 수정
+     * @param groupsByUserEmail - 이메일로 그룹 조회
+     * @param mainMeetingListResponseDtos - 메인에 로딩되는 그룹들 dto
+     */
     private void setMatchingStatusRequesting( List<Group> groupsByUserEmail, Page<MainMeetingListResponseDto>  mainMeetingListResponseDtos) {
         // 3. 로그인한 유저의 모든 히스토리를 담을 리스트
         List<GroupMatchingHistory> allRequestHistories = new ArrayList<>();
@@ -77,6 +80,11 @@ public class MainService {
             }
         });
     }
+    /**
+     * 매칭 상태를 Response으로 수정
+     * @param groupsByUserEmail - 이메일로 그룹 조회
+     * @param mainMeetingListResponseDtos - 메인에 로딩되는 그룹들 dto
+     */
     private void setMatchingStatusResponse( List<Group> groupsByUserEmail, Page<MainMeetingListResponseDto>  mainMeetingListResponseDtos) {
 
         // 3. 로그인한 유저의 모든 히스토리를 담을 리스트
