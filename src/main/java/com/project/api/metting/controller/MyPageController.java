@@ -84,12 +84,11 @@ public class MyPageController {
         String fileUrl = "";
         try {
             fileUrl = uploadService.uploadProfileImage(uploadFile, tokenInfo.getUserId());
+            return ResponseEntity.ok().body(fileUrl);
         } catch (IOException e) {
             log.warn("파일 업로드에 실패했습니다.");
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        return ResponseEntity.ok().body(fileUrl);
     }
 
 
