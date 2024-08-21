@@ -1,8 +1,9 @@
 
 
 .idea/
-application-deploy.yaml
+application.yaml
 application-dev.yaml
+application-deploy.yaml
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
