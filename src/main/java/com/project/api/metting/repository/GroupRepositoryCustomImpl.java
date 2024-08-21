@@ -41,6 +41,8 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         QGroupUser groupUser = QGroupUser.groupUser;
 
         // 공통 필터 조건
+        //그룹유저가 호스트이고, 내가 속한 그룹이 아닌 리스트만 반환
+        // 성별, 지역, 인원수는 선택사항
         BooleanExpression conditions = groupUser.auth.eq(GroupAuth.HOST)
                 .and(containGender(gender))
                 .and(containPlace(region))
@@ -51,6 +53,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                         .from(groupUser)
                         .where(groupUser.user.email.eq(email))));
 
+        // 그룹의 인원 수가 최대 인원과 일치하는지 확인하는 조건.
         BooleanExpression registeredUserCountCondition = JPAExpressions
                 .select(groupUser.count().intValue())
                 .from(groupUser)
@@ -59,11 +62,11 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .eq(group.maxNum);
 
 
-        // 조건 결합
+        // 필터 조건과 인원 수 조건을 결합
         BooleanExpression combinedCondition = conditions.and(registeredUserCountCondition);
 
 
-        // 그룹 필터링 및 페이징
+        // 필터링된 그룹들을 페이징 처리
         List<Group> groups = factory.selectFrom(group)
                 .join(group.groupUsers, groupUser)
                 .where(combinedCondition)
@@ -72,7 +75,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        // 카운트 계산
+        //  페이징 처리를 위한 총 개수를 계산
         Long count = factory.select(group.count())
                 .from(group)
                 .join(group.groupUsers, groupUser)
@@ -80,24 +83,25 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .groupBy(group.id)
                 .stream().count();
 
+        // Group 엔티티를 DTO로 변환
         List<MainMeetingListResponseDto> meetingList = groups.stream()
                 .map(this::convertToMeetingListDto)
                 .collect(Collectors.toList());
 
-
+        // 페이징 처리된 결과를 반환
         return new PageImpl<>(meetingList, pageable, count);
 
     }
 
 
-    // main meetingList DTO
+    // Group 엔티티를 MainMeetingListResponseDto로 변환하는 메서드
     public MainMeetingListResponseDto convertToMeetingListDto(Group group) {
         return new MainMeetingListResponseDto(group, calculateAverageAge(group), hostMajor(group));
     }
 
 
     //    main filter :
-//    성별 필터링 : 없으면 null로 반환
+    //    성별 필터링 : 없으면 null로 반환
     private BooleanExpression containGender(String gender) {
         return StringUtils.hasText(gender) ? group.groupGender.eq(Gender.valueOf(gender)) : null;
     }
@@ -169,7 +173,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     }
 
 
-    // 여기야
+
     @Override
     public Integer myChatListRequestDto(Group group) {
         return calculateAverageAge(group);
