@@ -43,14 +43,18 @@ public class UserMyPageService {
     // 이메일 전송 객체
     private final JavaMailSender mailSender;
 
+    private final AwsS3Service awsS3Service;
 
-    /**
-     * 주어진 사용자 ID에 해당하는 유저 정보
-     *
-     * @param userId - 조회할 사용자의 ID
-     * @return UserMyPageDto - 사용자 정보가 담긴 DTO
-     * @throws IllegalArgumentException - 사용자를 찾을 수 없는 경우 예외 발생
-     */
+
+
+
+        /**
+         * 주어진 사용자 ID에 해당하는 유저 정보
+         *
+         * @param userId - 조회할 사용자의 ID
+         * @return UserMyPageDto - 사용자 정보가 담긴 DTO
+         * @throws IllegalArgumentException - 사용자를 찾을 수 없는 경우 예외 발생
+         */
     public UserMyPageDto getUserInfo(String userId) {
         User user = userMyPageRepository.findById(userId)
                                         .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
@@ -162,6 +166,7 @@ public class UserMyPageService {
         }
         return dto;
     }
+
 
 
     /**

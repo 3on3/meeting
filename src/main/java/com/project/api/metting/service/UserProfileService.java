@@ -5,6 +5,7 @@ import com.project.api.metting.entity.UserProfile;
 import com.project.api.metting.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,6 +15,7 @@ public class UserProfileService {
 
     private final UserProfileRepository userProfileRepository;
 
+
     public UserProfile getUserProfile(String userId) {
         UserProfile byUserId = userProfileRepository.findByUserId(userId);
         if (byUserId.getProfileImg() == null) {
@@ -22,3 +24,6 @@ public class UserProfileService {
         return byUserId;
     }
 }
+
+
+

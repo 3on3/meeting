@@ -46,5 +46,4 @@ public class UserProfile {
     @JoinColumn(name = "mt_user_id",  nullable = false, unique = true)
     private User user;
 
-
 }
