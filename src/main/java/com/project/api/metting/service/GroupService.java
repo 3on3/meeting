@@ -444,6 +444,11 @@ public class GroupService {
         return null;
     }
 
+    /**
+     * 그룹 탈퇴에 필요한 dto 받고 그룹에서 탈퇴하는 메서드
+     * @param dto - 탈퇴할 그룹의 id
+     * @param tokenInfo - 로그인한 유저의 info
+     */
     @Transactional
     public void groupWithDraw(GroupWithdrawRequestDto dto, TokenUserInfo tokenInfo) {
         // 그룹 조회
@@ -512,12 +517,21 @@ public class GroupService {
         groupRepository.save(findGroup);
     }
 
-    // 그룹 아이디로 그룹 리턴
+    /**
+     * 아이디로 그룹을 찾는 메서드
+     * @param groupId - 찾을 그룹의 id
+     * @return - 찾은 그룹을 리턴
+     */
     public Group findGroupById(String groupId) {
         return groupRepository.findById(groupId).orElseThrow(null);
     }
 
 
+    /**
+     * 유저로 GroupUser 테이블의 REGISTERED 인 유저를 찾음
+     * @param user - 찾을 유저
+     * @return - 그룹유저 리스트
+     */
     public List<GroupUser> findGroupUserList(User user) {
         return groupUsersRepository.findByUserAndStatus(user, GroupStatus.REGISTERED);
     }
