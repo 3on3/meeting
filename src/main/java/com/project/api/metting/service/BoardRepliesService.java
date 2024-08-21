@@ -15,9 +15,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -35,15 +37,16 @@ public class BoardRepliesService {
 //댓글 GET 매핑 / Page 처리 / 삭제 되지 않는 사람 필터링
     public Page<BoardRepliesResponseDto> getBoardReplies(int pageNo, String boardId) {
 
-        PageRequest pageable = PageRequest.of(pageNo - 1, 5);
+        PageRequest pageable = PageRequest.of(pageNo - 1, 5, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         Page<BoardReply> findBoardReply = boardReplyRepository.findByBoardIdAndIsDeletedFalse(pageable,boardId);
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd HH:mm");
 
 
-       return findBoardReply.map(boardReply ->
+        return findBoardReply.map(boardReply ->
                 BoardRepliesResponseDto.builder()
                         .id(boardReply.getId())
-                        .createdDate(boardReply.getCreatedAt().toLocalDate())
+                        .createdDate(boardReply.getCreatedAt().format(dateTimeFormatter))
                         .content(boardReply.getContent())
                         .build());
 
