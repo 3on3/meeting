@@ -131,6 +131,10 @@ public class GroupMatchingService {
         }
     }
 
+    /**
+     * 매칭 수락시 두 그룹의 나머지 히스토리 거절 요청
+     * @param groupMatchingResponseDto - 매칭 정보 dto
+     */
     private void getOtherHistoriesSetDeny(GroupMatchingResponseDto groupMatchingResponseDto) {
         Group responseGroup = groupRepository.findById(groupMatchingResponseDto.getResponseGroupId()).orElseThrow();
         Group requestGroup = groupRepository.findById(groupMatchingResponseDto.getRequestGroupId()).orElseThrow();
@@ -192,13 +196,15 @@ public class GroupMatchingService {
     }
 
 
-    // 요청 그룹, 주최자 그룹으로 히스토리 조회
+    /**
+     * 요청 그룹, 주최자 그룹으로 히스토리 찾기
+     * @param findResponseGroup - 주최자 그룹
+     * @param findRequestGroup - 요청 그룹
+     * @return - 해당 히스토리
+     */
     public GroupMatchingHistory findByResponseGroupAndRequestGroup(Group findResponseGroup, Group findRequestGroup) {
         return groupMatchingHistoriesRepository.findByResponseGroupAndRequestGroup(findResponseGroup, findRequestGroup);
     }
 
-    // 요청 그룹아이디로 히스토리 조회
-    public List<GroupMatchingHistory> findByResponseGroup(Group findRequestGroup) {
-        return groupMatchingHistoriesRepository.findAllByRequestGroup(findRequestGroup);
-    }
+
 }
