@@ -137,6 +137,11 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         return groups.stream().map(this::convertToGroupResponseDto).collect(Collectors.toList());
     }
 
+    /**
+     * 유저가 속해있는 그룹 조회
+     * @param email - 유저의 이메일
+     * @return - 유저가 속한 그룹 리스트
+     */
     @Override
     public List<Group> findGroupsEntityByUserEmail(String email) {
         QGroup group = QGroup.group;
@@ -160,7 +165,11 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         return new GroupResponseDto(group, memberCount, calculateAverageAge(group), hostMajor(group));
     }
 
-    //    GroupResponseDto
+    /**
+     * Group 엔터티 dto로 변환
+     * @param group - 그룹
+     * @return - dto
+     */
     public GroupRequestDto convertToGroupRequestDto(Group group) {
         int memberCount = group.getGroupUsers().size();
 
@@ -202,7 +211,12 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     }
 
 
-    //  group 히스토리 조회
+
+    /**
+     * 주최자 그룹 기준으로 히스토리 조회
+     * @param group - 주최자 그룹
+     * @return - 히스토리 리스트
+     */
     public List<GroupMatchingHistory> groupsMatchingHistoryByResponse(Group group) {
         QGroup qGroup = QGroup.group;
         QGroupMatchingHistory qGroupMatchingHistory = QGroupMatchingHistory.groupMatchingHistory;
