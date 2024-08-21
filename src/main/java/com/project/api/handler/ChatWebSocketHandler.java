@@ -66,7 +66,6 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             String chatroomId = data.getChatroomId();
 
             for (Map.Entry<String, String> entry : users.entrySet()) {
-                // Check if the email matches
                 if (chatroomId.equals(entry.getValue())) {
                     sessions.values().forEach((s) -> {
                         if(s.getId().equals(entry.getKey())) {
