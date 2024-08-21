@@ -95,16 +95,12 @@ public class MyPageController {
 
 
 
-// - 기본 정보 조회 (프로필 이미지 제외)
-
     /**
      * 로그인한 사용자의 프로필 정보 반환
      *
      * @param tokenInfo 현재 인증된 사용자의 정보
      * @return UserMyPageDto 객체를 담은 ResponseEntity
      */
-
-    // 유저 정보 조회
     @GetMapping("/userInfo")
     public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal TokenUserInfo tokenInfo) {
         UserMyPageDto userInfo = userMyPageService.getUserInfo(tokenInfo.getUserId());
@@ -112,7 +108,6 @@ public class MyPageController {
         return ResponseEntity.ok(userInfo);
     }
 
-    // 유저 정보 수정
 // 유저 정보 수정
     @PutMapping("/userInfo/update")
     public ResponseEntity<?> updateUser(@AuthenticationPrincipal TokenUserInfo tokenInfo,
