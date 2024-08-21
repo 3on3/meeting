@@ -1,18 +1,14 @@
 package com.project.api.metting.repository;
 
 import com.project.api.metting.dto.request.GroupRequestDto;
-import com.project.api.metting.dto.request.MainMeetingListFilterDto;
-import com.project.api.metting.dto.request.MyChatListRequestDto;
 import com.project.api.metting.dto.response.GroupResponseDto;
 import com.project.api.metting.dto.response.MainMeetingListResponseDto;
 import com.project.api.metting.entity.*;
-import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -24,7 +20,6 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.project.api.metting.entity.QGroup.group;
@@ -35,8 +30,7 @@ import static com.project.api.metting.entity.QGroup.group;
 @Slf4j
 public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     private final JPAQueryFactory factory;
-//    private final GroupUsersRepository groupUsersRepository;
-//    private final GroupRepository groupRepository;
+
 
 
     //    main meetingList DTO
@@ -95,66 +89,6 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
 
     }
 
-    //    main meetingList DTO 필러링
-    @Override
-    public Page<MainMeetingListResponseDto> filterGroupUsersByAllGroup(MainMeetingListFilterDto dto) {
-
-        QGroup group = QGroup.group;
-        QGroupUser groupUser = QGroupUser.groupUser;
-
-        // 공통 필터 조건
-        BooleanExpression conditions = groupUser.auth.eq(GroupAuth.HOST)
-                .and(containGender(dto.getGender()))
-                .and(containPlace(dto.getGroupPlace()))
-                .and(containmaxNum(dto.getMaxNum()))
-                .and(group.isMatched.eq(false));
-
-        BooleanExpression registeredUserCountCondition = JPAExpressions
-                .select(groupUser.count().intValue())
-                .from(groupUser)
-                .where(groupUser.group.eq(group)
-                        .and(groupUser.status.eq(GroupStatus.REGISTERED)))
-                .eq(group.maxNum);
-
-
-        // 조건 결합
-        BooleanExpression combinedCondition = conditions.and(registeredUserCountCondition);
-
-        // pageable 계산
-        Pageable pageable = PageRequest.of(dto.getPageNo() - 1, dto.getPageSize());
-
-        // 그룹 필터링 및 페이징
-        List<Group> groups = factory.selectFrom(group)
-                .join(group.groupUsers, groupUser)
-                .where(combinedCondition)
-                .orderBy(group.createdAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        // 카운트 계산
-        Long count = factory.select(group.count())
-                .from(group)
-                .join(group.groupUsers, groupUser)
-                .where(combinedCondition)
-                .groupBy(group.id)
-                .stream().count();
-
-        List<MainMeetingListResponseDto> meetingList = groups.stream()
-                .map(this::convertToMeetingListDto)
-                .collect(Collectors.toList());
-
-//        List<Group> groupsByUserEmail = groupRepository.findGroupsEntityByUserEmail(email);
-//
-//        meetingList.forEach(mainMeetingListResponseDto ->
-//                mainMeetingListResponseDto.getId() == groupsByUserEmail.forEach(group1 -> group1.getId()));
-//        groupsByUserEmail.forEach(group1 -> existsGroupMatchingHistoryByResponse(group1));
-
-        return new PageImpl<>(meetingList, pageable, count);
-    }
-
-
-//    private boolean existsHistoriesByGroups(Set<Group> groups) {}
 
     // main meetingList DTO
     public MainMeetingListResponseDto convertToMeetingListDto(Group group) {
