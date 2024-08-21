@@ -35,7 +35,7 @@ public class Board {
 
     @Column(name = "mt_board_created_at")
     @Builder.Default
-    private LocalDateTime created_at = LocalDateTime.now(); // 작성 일자
+    private LocalDateTime createdAt = LocalDateTime.now(); // 작성 일자
 
     @Column(name = "mt_board_is_deleted", nullable = false)
     @Builder.Default
