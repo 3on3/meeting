@@ -8,4 +8,7 @@ import java.util.List;
 
 public interface BoardRepository extends JpaRepository<Board, String> {
     List<Board> findByAuthor(User user);
+    List<Board> findByIsDeletedFalseOrderByCreatedAtDesc();
+    List<Board> findByAuthorAndIsDeletedFalseOrderByCreatedAtDesc(User author);
+
 }
