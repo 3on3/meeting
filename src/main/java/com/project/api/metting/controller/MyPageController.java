@@ -2,6 +2,7 @@ package com.project.api.metting.controller;
 
 import com.project.api.auth.TokenProvider;
 import com.project.api.auth.TokenProvider.TokenUserInfo;
+import com.project.api.exception.DuplicateNicknameException;
 import com.project.api.exception.LoginFailException;
 import com.project.api.metting.dto.request.*;
 import com.project.api.metting.dto.request.ChangePasswordDto;
@@ -13,6 +14,7 @@ import com.project.api.metting.dto.response.LoginResponseDto;
 import com.project.api.metting.dto.response.UserMyPageDto;
 import com.project.api.metting.entity.User;
 import com.project.api.metting.entity.UserProfile;
+import com.project.api.metting.repository.UserMyPageRepository;
 import com.project.api.metting.repository.UserRepository;
 import com.project.api.metting.service.*;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +49,7 @@ public class MyPageController {
     private final ChatRoomService chatRoomService;
     private final UserMyPageService userMyPageService;
     private final FileUploadService uploadService;
-    private final UserRepository userRepository;
+    private final UserMyPageRepository userMyPageRepository;
     private final UserProfileService userProfileService;
     private final UserSignInService userSignInService;
     private final TokenProvider tokenProvider;
@@ -111,13 +113,36 @@ public class MyPageController {
     }
 
     // 유저 정보 수정
+// 유저 정보 수정
     @PutMapping("/userInfo/update")
-    public ResponseEntity<UserMyPageDto> updateUser(@AuthenticationPrincipal TokenUserInfo tokenInfo,
-                                                    @RequestBody UserUpdateRequestDto updateDto) {
-        UserMyPageDto updatedUser = userMyPageService.updateUserFields(tokenInfo.getUserId(), updateDto);
-        log.info("updatedUser - {}", updatedUser);
-        return ResponseEntity.ok(updatedUser);
+    public ResponseEntity<?> updateUser(@AuthenticationPrincipal TokenUserInfo tokenInfo,
+                                        @RequestBody UserUpdateRequestDto updateDto) {
+        try {
+            UserMyPageDto updatedUser = userMyPageService.updateUserFields(tokenInfo.getUserId(), updateDto);
+            log.info("updatedUser - {}", updatedUser);
+            return ResponseEntity.ok(updatedUser);
+        } catch (DuplicateNicknameException ex) {
+            // 닉네임 중복 예외 처리
+            log.error("닉네임 중복 오류 발생: {}", ex.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse); // 409 Conflict
+        } catch (IllegalArgumentException ex) {
+            // 일반적인 예외 처리
+            log.error("잘못된 요청: {}", ex.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse); // 400 Bad Request
+        } catch (Exception ex) {
+            // 그 외의 예외 처리
+            log.error("서버 오류 발생: {}", ex.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse); // 500 Internal Server Error
+        }
     }
+
+
 
     // 유저 비밀번호 변경
     @PatchMapping("/change-password")
