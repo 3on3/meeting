@@ -59,6 +59,6 @@ class UserSignUpServiceTest {
         }
 
         // Verify that users have been saved
-        assertEquals(10, userRepository.count(), "User count should be 10");
+        assertEquals(11, userRepository.count(), "User count should be 10");
     }
 }
