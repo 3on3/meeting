@@ -1,7 +1,6 @@
 package com.project.api.metting.service;
 
 
-import com.project.api.metting.dto.request.MainMeetingListFilterDto;
 import com.project.api.metting.dto.response.MainMeetingListResponseDto;
 import com.project.api.metting.entity.Group;
 import com.project.api.metting.entity.GroupMatchingHistory;
@@ -94,11 +93,7 @@ public class MainService {
             }
         });
     }
-    //    group 필터링
-    public Page<MainMeetingListResponseDto> postMeetingList(MainMeetingListFilterDto dto) {
 
-        return groupRepository.filterGroupUsersByAllGroup(dto);
-    }
 
 
 }
