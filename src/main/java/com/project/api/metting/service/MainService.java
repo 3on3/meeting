@@ -27,16 +27,17 @@ public class MainService {
     private final GroupMatchingHistoriesRepository groupMatchingHistoriesRepository;
 
 
-    //    Group 전체 조회
+    //    MeetingList 전체 조회
     public Page<MainMeetingListResponseDto> getMeetingList(String email, int pageNo,String gender,String region,Integer personnel) {
+        //pageable 처리
         PageRequest pageable = PageRequest.of(pageNo - 1, 4);
+
         Page<MainMeetingListResponseDto> mainMeetingListResponseDtos = groupRepository.findGroupUsersByAllGroup(pageable,gender,region,personnel,email);
 
 
         // 이미 매칭 신청 중인 그룹이예요.
         // 1. 해당 사용자가 속한 그룹들을 가져옴
         List<Group> groupsByUserEmail = groupRepository.findGroupsEntityByUserEmail(email);
-//        log.info("groupsByUserEmail = {}", groupsByUserEmail);
 
 
 
