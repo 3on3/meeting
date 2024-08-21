@@ -26,8 +26,14 @@ public class MainService {
     private final GroupMatchingService groupMatchingService;
     private final GroupMatchingHistoriesRepository groupMatchingHistoriesRepository;
 
-
-    //    Group 전체 조회
+    /**
+     * @param email 사용자의 이메일
+     * @param pageNo 요청한 페이지 번호
+     * @param gender 필터링할 성별 (선택 사항)
+     * @param region 필터링할 지역 (선택 사항)
+     * @param personnel 필터링할 인원수 (선택 사항)
+     * @return 필터링된 미팅 리스트의 페이지
+     */
     public Page<MainMeetingListResponseDto> getMeetingList(String email, int pageNo,String gender,String region,Integer personnel) {
         PageRequest pageable = PageRequest.of(pageNo - 1, 4);
         Page<MainMeetingListResponseDto> mainMeetingListResponseDtos = groupRepository.findGroupUsersByAllGroup(pageable,gender,region,personnel,email);

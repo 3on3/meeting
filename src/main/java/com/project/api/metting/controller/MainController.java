@@ -18,8 +18,16 @@ public class MainController {
 
     private final MainService mainService;
 
-
-    //미팅 리스트 전체 조회
+    /**
+     * 미팅 리스트를 조
+     *
+     * @param tokenUserInfo 인증된 사용자의 정보
+     * @param pageNo 요청한 페이지 번호
+     * @param gender 필터링할 성별 (선택 사항)
+     * @param region 필터링할 지역 (선택 사항)
+     * @param personnel 필터링할 인원수 (선택 사항)
+     * @return 미팅 리스트 페이지
+     */
     @GetMapping("/main")
     public ResponseEntity<?> getMeetingList(@AuthenticationPrincipal TokenUserInfo tokenUserInfo,
                                             @RequestParam int pageNo,
