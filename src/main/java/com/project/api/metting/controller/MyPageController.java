@@ -257,7 +257,13 @@ public class MyPageController {
     }
 
 
-    // 내가 속한 그룹 조회
+
+    /**
+     * 매칭 조건이 일치하는 내가 속한 그룹 조회
+     * @param tokenInfo - 유저 정보
+     * @param matchedGroupRequestDto - 매칭 조건
+     * @return 조건이 일치하는 그룹 리스트
+     */
     @PostMapping("/mygroup-matched")
     public ResponseEntity<?> getMyGroupsMatched(@AuthenticationPrincipal TokenUserInfo tokenInfo,@RequestBody MatchedGroupRequestDto matchedGroupRequestDto) {
         List<GroupResponseDto> groups = groupQueryService.getMatchedMyGroups(tokenInfo,matchedGroupRequestDto.getId());

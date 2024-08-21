@@ -36,9 +36,6 @@ public class MainService {
         // 이미 매칭 신청 중인 그룹이예요.
         // 1. 해당 사용자가 속한 그룹들을 가져옴
         List<Group> groupsByUserEmail = groupRepository.findGroupsEntityByUserEmail(email);
-//        log.info("groupsByUserEmail = {}", groupsByUserEmail);
-
-
 
         setMatchingStatusRequesting(groupsByUserEmail,mainMeetingListResponseDtos);
         setMatchingStatusResponse(groupsByUserEmail,mainMeetingListResponseDtos);
