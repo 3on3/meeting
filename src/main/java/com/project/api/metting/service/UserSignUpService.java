@@ -25,16 +25,16 @@ public class UserSignUpService {
     @Value("${univcert.api.key}")
     private String univCertApiKey;
 
-    private final UserRepository userRepository;
-    private final JavaMailSender mailSender;
-    private final PasswordEncoder encoder;
+    private final UserRepository userRepository; // 사용자 DB
+    private final PasswordEncoder encoder; // 비밀번호 암호화
 
-    // 이메일 중복확인 처리
+    // 이메일 중복 확인 및 사용자 처리
     public boolean checkEmailDuplicate(String email, String univName) {
-        boolean exists = userRepository.existsByEmail(email);
+        boolean exists = userRepository.existsByEmail(email); // 이메일 존재 여부 확인
         log.info("Checking email {} is duplicate: {}", email, exists);
 
         if (exists) {
+            // 사용자가 존재하고 인증이 완료되지 않았을 경우 인증 코드 재발송
             if (notFinish(email)) {
                 User user = userRepository.findByEmail(email).orElseThrow();
                 clearAndResendVerification(email, user.getUnivName());
@@ -42,11 +42,12 @@ public class UserSignUpService {
             }
             return true;
         } else {
-            processSignUp(email, univName);
+            processSignUp(email, univName); // 신규 사용자 등록
             return false;
         }
     }
 
+    // 인증 코드 초기화 및 재발송
     private void clearAndResendVerification(String email, String univName) {
         try {
             Map<String, Object> clearResponse = UnivCert.clear(univCertApiKey, email);
@@ -68,6 +69,7 @@ public class UserSignUpService {
         }
     }
 
+    // 사용자가 인증을 완료했는지 확인
     private boolean notFinish(String email) {
         return userRepository.findByEmail(email)
                 .map(user -> !user.getIsVerification() || user.getPassword() == null)
@@ -88,6 +90,7 @@ public class UserSignUpService {
         }
     }
 
+    // 사용자 등록 처리
     @Transactional
     public void processSignUp(String email, String univName) {
         try {
@@ -136,6 +139,7 @@ public class UserSignUpService {
         return exists;
     }
 
+    // 인증 코드 확인
     public boolean verifyCode(String email, int code) {
         try {
             User user = userRepository.findByEmail(email).orElse(null);
@@ -179,7 +183,7 @@ public class UserSignUpService {
         log.info("Confirm sign up : {}", dto);
 
         String password = dto.getPassword();
-        String encodedPassword = encoder.encode(password);
+        String encodedPassword = encoder.encode(password); // 비밀번호 암호화
 
         findUser.confirm(
                 encodedPassword,
