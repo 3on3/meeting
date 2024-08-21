@@ -37,12 +37,20 @@ public class MainService {
         // 1. 해당 사용자가 속한 그룹들을 가져옴
         List<Group> groupsByUserEmail = groupRepository.findGroupsEntityByUserEmail(email);
 
+
+
         setMatchingStatusRequesting(groupsByUserEmail,mainMeetingListResponseDtos);
         setMatchingStatusResponse(groupsByUserEmail,mainMeetingListResponseDtos);
 
         return mainMeetingListResponseDtos;
     }
 
+
+    /**
+     * 매칭 상태를 Requesting으로 수정
+     * @param groupsByUserEmail - 이메일로 그룹 조회
+     * @param mainMeetingListResponseDtos - 메인에 로딩되는 그룹들 dto
+     */
     private void setMatchingStatusRequesting( List<Group> groupsByUserEmail, Page<MainMeetingListResponseDto>  mainMeetingListResponseDtos) {
         // 3. 로그인한 유저의 모든 히스토리를 담을 리스트
         List<GroupMatchingHistory> allRequestHistories = new ArrayList<>();
@@ -66,6 +74,11 @@ public class MainService {
             }
         });
     }
+    /**
+     * 매칭 상태를 Response으로 수정
+     * @param groupsByUserEmail - 이메일로 그룹 조회
+     * @param mainMeetingListResponseDtos - 메인에 로딩되는 그룹들 dto
+     */
     private void setMatchingStatusResponse( List<Group> groupsByUserEmail, Page<MainMeetingListResponseDto>  mainMeetingListResponseDtos) {
 
         // 3. 로그인한 유저의 모든 히스토리를 담을 리스트

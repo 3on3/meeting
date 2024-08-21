@@ -19,7 +19,7 @@ public class MainController {
     private final MainService mainService;
 
 
-    //    미팅 리스트 전체 조회
+    //미팅 리스트 전체 조회
     @GetMapping("/main")
     public ResponseEntity<?> getMeetingList(@AuthenticationPrincipal TokenUserInfo tokenUserInfo,
                                             @RequestParam int pageNo,
@@ -29,11 +29,6 @@ public class MainController {
                                             ) {
 
         Page<MainMeetingListResponseDto> meetingList = null;
-        log.info("TokenUserInfo: {}", tokenUserInfo);
-        log.info("Gender: {}", gender);
-        log.info("Region: {}", region);
-        log.info("Personnel: {}", personnel);
-
         try {
             meetingList = mainService.getMeetingList(tokenUserInfo.getEmail(), pageNo,gender,region,personnel);
         } catch (Exception e) {
