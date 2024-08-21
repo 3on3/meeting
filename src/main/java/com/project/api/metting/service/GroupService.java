@@ -313,7 +313,16 @@ public class GroupService {
     public void acceptJoinRequest(String groupUserId, TokenUserInfo tokenInfo) {
         GroupUser groupUser = groupUsersRepository.findById(groupUserId)
                 .orElseThrow(() -> new IllegalStateException("가입 신청을 찾을 수 없습니다."));
+        // 현재 로그인한 사용자 정보 가져오기
+        User currentUser = userRepository.findByEmail(tokenInfo.getEmail())
+                .orElseThrow(() -> new IllegalStateException("해당 유저를 찾을 수 없습니다."));
 
+        // 그룹의 호스트인지 확인
+        GroupUser hostUser = groupUsersRepository.findByGroupAndAuth(groupUser.getGroup(), GroupAuth.HOST);
+
+        if (!hostUser.getUser().equals(currentUser)) {
+            throw new IllegalStateException("그룹의 호스트만 가입 신청을 수락할 수 있습니다.");
+        }
 
         long currentUserCount = groupUsersRepository.countByGroupAndStatus(groupUser.getGroup(), GroupStatus.REGISTERED);
         log.info("currrent user count - {}", currentUserCount);
