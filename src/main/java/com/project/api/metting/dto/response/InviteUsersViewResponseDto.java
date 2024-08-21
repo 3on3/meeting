@@ -15,11 +15,13 @@ public class InviteUsersViewResponseDto {
         private String userName;
         private String userUnivName;
         private String userMajor;
+        private String profileImageUrl;
 
         public InviteUsersViewResponseDto(GroupUser groupUser) {
             this.id = groupUser.getId();
             this.userName = groupUser.getUser().getName();
             this.userUnivName = groupUser.getUser().getUnivName();
             this.userMajor = groupUser.getUser().getMajor();
+            this.profileImageUrl = groupUser.getUser().getUserProfile().getProfileImg();
         }
     }
