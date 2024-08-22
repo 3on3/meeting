@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 public class CertifyCodeRequestDto {
 
     @Value("${univcert.api.key}")
-    private String univCertApiKey;
+    private String key;
     private String email;
     private String univName;
     private int code;
