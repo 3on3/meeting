@@ -1,8 +1,7 @@
 package com.project.api.metting.service;
 
-import com.project.api.metting.entity.Gender;
-import com.project.api.metting.entity.User;
-import com.project.api.metting.entity.UserProfile;
+import com.project.api.metting.entity.*;
+import com.project.api.metting.repository.UserMembershipRepository;
 import com.project.api.metting.repository.UserProfileRepository;
 import com.project.api.metting.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -16,7 +15,10 @@ import java.util.Date;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
-class UserSignUpServiceTest {
+public class UserSignUpServiceTest {
+
+    @Autowired
+    private UserMembershipRepository UserMembershipRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -24,9 +26,10 @@ class UserSignUpServiceTest {
     @Autowired
     private UserProfileRepository userProfileRepository;
 
-
     @Autowired
     private PasswordEncoder encoder;
+    @Autowired
+    private UserMembershipRepository userMembershipRepository;
 
     @Test
     public void testRegisterUsers() {
@@ -56,9 +59,16 @@ class UserSignUpServiceTest {
 
 
             userProfileRepository.save(profile);
+
+            UserMembership userMembership = UserMembership.builder()
+                    .user(user)
+                    .auth(Membership.GENERAL)
+                    .build();
+
+            userMembershipRepository.save(userMembership);
         }
 
         // Verify that users have been saved
-        assertEquals(11, userRepository.count(), "User count should be 10");
+        assertEquals(10, userRepository.count(), "User count should be 10");
     }
 }
