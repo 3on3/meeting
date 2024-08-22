@@ -6,6 +6,7 @@ import com.project.api.metting.dto.response.MainMeetingListResponseDto;
 import com.project.api.metting.entity.*;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,14 +48,33 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
 
         QGroup group = QGroup.group;
         QGroupUser groupUser = QGroupUser.groupUser;
+        QGroupMatchingHistory matchingHistory = QGroupMatchingHistory.groupMatchingHistory;
+
+
+
+
+        // 그룹 히스토리가 MATCHED 인 ResponseGroup
+        JPQLQuery<String> matchedResponseGroup = JPAExpressions
+                .select(matchingHistory.responseGroup.id)
+                .from(matchingHistory)
+                .where(matchingHistory.process.eq(GroupProcess.MATCHED));
+
+        // 그룹 히스토리가 MATCHED 인 RequestGroup
+        JPQLQuery<String> matchedRequestGroup = JPAExpressions
+                .select(matchingHistory.requestGroup.id)
+                .from(matchingHistory)
+                .where(matchingHistory.process.eq(GroupProcess.MATCHED));
 
         //그룹유저가 호스트이고, 내가 속한 그룹이 아닌 리스트만 반환
+        //매칭이 된다면 리스트에서 제거
         // 성별, 지역, 인원수는 선택사항
         BooleanExpression conditions = groupUser.auth.eq(GroupAuth.HOST)
                 .and(containGender(gender))
                 .and(containPlace(region))
                 .and(containmaxNum(personnel))
-                .and(group.isMatched.eq(false))
+//                .and(group.isMatched.eq(false))
+                .and(group.id.notIn(matchedResponseGroup))
+                .and(group.id.notIn(matchedRequestGroup))
                 .and(group.id.notIn(JPAExpressions
                         .select(groupUser.group.id)
                         .from(groupUser)
@@ -67,6 +87,8 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .where(groupUser.group.eq(group)
                         .and(groupUser.status.eq(GroupStatus.REGISTERED)))
                 .eq(group.maxNum);
+
+
 
 
         // 필터 조건과 인원 수 조건을 결합
