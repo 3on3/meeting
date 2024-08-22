@@ -27,5 +27,5 @@ public class LoginResponseDto {
     private String profileImg; // 프로필 이미지
     private boolean isWithdrawn; // 탈퇴 여부
     private String password;
-    private Membership membershipAuth; //멤버십 권한(GENERAL, PREMIUM)
+    private Membership membership; //멤버십 권한(GENERAL, PREMIUM)
 }

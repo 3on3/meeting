@@ -4,7 +4,6 @@ import com.project.api.metting.dto.request.OrderCreateFormDto;
 import com.project.api.metting.dto.response.ApproveResponseDto;
 import com.project.api.metting.dto.response.ReadyResponseDto;
 import com.project.api.metting.service.KakaoPayService;
-import com.project.api.metting.util.SessionUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,23 +22,16 @@ public class PaymentController {
     private final KakaoPayService kakaoPayService;
 
     @PostMapping("/ready")
-    public ResponseEntity<?> payReady(@RequestBody OrderCreateFormDto dto) {
+    public ResponseEntity<ReadyResponseDto> payReady(@RequestBody Map<String, Object> params) {
         try {
-            log.info("주문 상품 이름: {}", dto.getName());
-            log.info("주문 금액: {}", dto.getTotalPrice());
-
             // 카카오 결제 준비 작업 수행
-            ReadyResponseDto readyResponse = kakaoPayService.payReady(dto.getName(), dto.getTotalPrice());
+            ReadyResponseDto readyResponse = kakaoPayService.payReady(params);
+            log.info("결제 준비 응답: {}", readyResponse);
 
-            // 세션에 결제 고유번호(tid) 저장
-            SessionUtil.addAttribute("tid", readyResponse.getTid());
-            log.info("결제 고유번호: {}", readyResponse.getTid());
-
-            // 성공 시 ReadyResponseDto와 함께 OK 응답 반환
             return ResponseEntity.ok(readyResponse);
         } catch (Exception e) {
             log.error("결제 준비 중 오류 발생", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("결제 준비 중 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -47,20 +39,32 @@ public class PaymentController {
     public ResponseEntity<?> payCompleted(@RequestBody Map<String, String> requestBody) {
         try {
             String pgToken = requestBody.get("pg_token");
-            String tid = SessionUtil.getStringAttributeValue("tid");
 
-            if (tid == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("유효하지 않은 결제 고유번호입니다.");
+            // Get email from ApproveResponseDto
+            ApproveResponseDto approveResponse = kakaoPayService.payApprove(pgToken);
+            String email = approveResponse.getPartner_user_id();
+
+            if (pgToken == null) {
+                log.error("pgToken 값이 null입니다.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("결제 인증 토큰이 제공되지 않았습니다.");
             }
 
-            log.info("결제승인 요청을 인증하는 토큰: {}", pgToken);
-            log.info("결제 고유번호: {}", tid);
+            if (email == null) {
+                log.error("이메일이 null입니다.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이메일이 제공되지 않았습니다.");
+            }
 
-            // 카카오 결제 승인 작업 수행
-            ApproveResponseDto approveResponse = kakaoPayService.payApprove(tid, pgToken);
+            // 결제 승인 작업 시작
+            log.info("카카오페이 결제 승인 응답: {}", approveResponse);
 
-            // 성공 시 ApproveResponseDto와 함께 OK 응답 반환
-            return ResponseEntity.ok(approveResponse);
+            if (approveResponse != null && approveResponse.getTid() != null) {
+                log.info("결제가 승인되었습니다. 사용자의 멤버십을 업데이트합니다.");
+                kakaoPayService.updateUserMembershipToPremium(email);
+                return ResponseEntity.ok(approveResponse);
+            } else {
+                log.error("결제 승인에 실패했습니다.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("결제 승인에 실패했습니다.");
+            }
         } catch (Exception e) {
             log.error("결제 승인 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("결제 승인 중 오류가 발생했습니다.");

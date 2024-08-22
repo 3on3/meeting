@@ -1,7 +1,9 @@
 package com.project.api.metting.service;
 
 import com.project.api.metting.dto.request.UserRegisterDto;
+import com.project.api.metting.entity.Membership;
 import com.project.api.metting.entity.User;
+import com.project.api.metting.entity.UserMembership;
 import com.project.api.metting.entity.UserProfile;
 import com.project.api.metting.repository.UserRepository;
 import com.univcert.api.UnivCert;
@@ -204,6 +206,15 @@ public class UserSignUpService {
                 .build();
 
         findUser.setUserProfile(userProfile);
+
+        // UserMembership 생성 및 설정
+        UserMembership userMembership = UserMembership.builder()
+                .user(findUser)
+                .auth(Membership.GENERAL) // 기본 멤버십으로 GENERAL 설정
+                .build();
+
+        // User와 UserMembership 연관 설정
+        findUser.setMembership(userMembership);
 
         userRepository.save(findUser);
     }

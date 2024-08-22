@@ -12,4 +12,5 @@ public class OrderCreateFormDto {
 
     private String name;
     private int totalPrice;
+    private String email; // 이메일 필드 추가
 }
