@@ -109,6 +109,21 @@ public class User {
 
     @JsonIgnore
     @ToString.Exclude
+    @OneToMany(mappedBy = "author", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Board> boards; // 게시판
+
+    @JsonIgnore
+    @ToString.Exclude
+    @OneToMany(mappedBy = "author", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<BoardReply> boardReplies; // 게시판 댓글
+
+    @JsonIgnore
+    @ToString.Exclude
+    @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<BoardViewLog> boardViewLogs; // 게시판 조회 기록
+
+    @JsonIgnore
+    @ToString.Exclude
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private UserProfile userProfile; //유저프로필
 
