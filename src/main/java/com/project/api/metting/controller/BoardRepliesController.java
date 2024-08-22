@@ -22,7 +22,7 @@ public class BoardRepliesController {
     private final BoardRepliesService boardRepliesService;
 
 
-//    댓글 GET
+    //    댓글 GET
     @GetMapping("/board/replies")
     public ResponseEntity<?> getAllReplies(@RequestParam int pageNo, @RequestParam String boardId){
 
@@ -44,8 +44,9 @@ public class BoardRepliesController {
     public ResponseEntity<?> postAllReplies(@RequestBody BoardRepliesRequestDto dto, @AuthenticationPrincipal TokenUserInfo tokenUserInfo ){
         log.info("postAllReplies");
 
-        boardRepliesService.postBoardReplies(dto,tokenUserInfo);
-        return ResponseEntity.ok().body("댓글이 성공적으로 저장되었습니다");
+
+        BoardRepliesResponseDto boardRepliesResponseDto = boardRepliesService.postBoardReplies(dto, tokenUserInfo);
+        return ResponseEntity.ok().body(boardRepliesResponseDto);
     }
 
 

@@ -1,7 +1,6 @@
 package com.project.api.metting.service;
 
 
-import com.project.Main;
 import com.project.api.auth.TokenProvider.TokenUserInfo;
 import com.project.api.metting.dto.request.BoardRepliesRequestDto;
 import com.project.api.metting.dto.response.BoardRepliesResponseDto;
@@ -20,9 +19,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -40,13 +37,13 @@ public class BoardRepliesService {
         PageRequest pageable = PageRequest.of(pageNo - 1, 5, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         Page<BoardReply> findBoardReply = boardReplyRepository.findByBoardIdAndIsDeletedFalse(pageable,boardId);
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd HH:mm");
+
 
 
         return findBoardReply.map(boardReply ->
                 BoardRepliesResponseDto.builder()
                         .id(boardReply.getId())
-                        .createdDate(boardReply.getCreatedAt().format(dateTimeFormatter))
+                        .createdDate(boardReply.getCreatedAt().format(dateTimeFormatter()))
                         .content(boardReply.getContent())
                         .build());
 
@@ -54,8 +51,14 @@ public class BoardRepliesService {
 
     }
 
+    //날짜 Formatter
+    public DateTimeFormatter dateTimeFormatter(){
+       DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd HH:mm");
+        return dateTimeFormatter;
+    }
+
     //댓글 POST / DB에 저장하기
-    public void postBoardReplies(BoardRepliesRequestDto dto, TokenUserInfo tokenUserInfo) {
+    public BoardRepliesResponseDto postBoardReplies(BoardRepliesRequestDto dto, TokenUserInfo tokenUserInfo) {
 
         User user = userRepository.findByEmail(tokenUserInfo.getEmail())
                 .orElseThrow(()-> new NoSuchElementException("User not found"));
@@ -68,7 +71,17 @@ public class BoardRepliesService {
                 .board(board)
                 .build();
 
-        boardReplyRepository.save(reply);
+
+        BoardReply saveBoardReply = boardReplyRepository.save(reply);
+
+        BoardRepliesResponseDto repliesDto = BoardRepliesResponseDto.builder()
+                .content(saveBoardReply.getContent())
+                .id(saveBoardReply.getId())
+                .createdDate(saveBoardReply.getCreatedAt().format(dateTimeFormatter()))
+                .build();
+
+
+        return repliesDto;
 
     }
 }
