@@ -44,7 +44,7 @@ public class UserSignUpService {
             }
             return true;
         } else {
-            processSignUp(email, univName); // 신규 사용자 등록
+            clearAndResendVerification(email, univName); // 신규 사용자 등록
             return false;
         }
     }
