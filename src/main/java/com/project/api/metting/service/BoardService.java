@@ -144,6 +144,7 @@ public class BoardService {
         Board board = boardRepository.findById(id).orElseThrow(() -> new RuntimeException("Board not found with id: " + id));
         Board saved = getBoardViewLogAndSetViewCount(tokenUserInfo, board);
 
+//        log.info("getBoardById - {}", saved.toString());
         return BoardResponseDto.builder()
                 .id(saved.getId())
                 .title(saved.getTitle())

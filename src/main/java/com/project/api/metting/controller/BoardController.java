@@ -54,6 +54,7 @@ public class BoardController {
     public ResponseEntity<?> getBoardDetail(@AuthenticationPrincipal TokenUserInfo tokenUserInfo, @PathVariable String id) {
         try {
             BoardResponseDto responseDto = boardService.getBoardById(tokenUserInfo,id);
+            log.info("responseDto - {}",responseDto.toString());
             return ResponseEntity.ok().body(responseDto);
 
         } catch (RuntimeException e){
