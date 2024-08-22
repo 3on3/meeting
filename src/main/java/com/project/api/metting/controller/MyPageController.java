@@ -42,7 +42,6 @@ import java.util.Map;
 @RequestMapping("/mypage")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin
 public class MyPageController {
 
     private final GroupQueryService groupQueryService;

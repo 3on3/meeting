@@ -25,7 +25,6 @@ import java.util.List;
 @RequestMapping("/group/matching")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin
 public class GroupMatchingController {
     private final GroupMatchingService groupMatchingService;
     private final GroupService groupService;

@@ -16,7 +16,6 @@ import java.util.Map;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@CrossOrigin
 @RequestMapping("/payment")
 public class PaymentController {
 
