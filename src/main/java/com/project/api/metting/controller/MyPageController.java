@@ -8,10 +8,7 @@ import com.project.api.metting.dto.request.*;
 import com.project.api.metting.dto.request.ChangePasswordDto;
 import com.project.api.metting.dto.request.MatchedGroupRequestDto;
 import com.project.api.metting.dto.request.UserUpdateRequestDto;
-import com.project.api.metting.dto.response.ChatRoomResponseDto;
-import com.project.api.metting.dto.response.GroupResponseDto;
-import com.project.api.metting.dto.response.LoginResponseDto;
-import com.project.api.metting.dto.response.UserMyPageDto;
+import com.project.api.metting.dto.response.*;
 import com.project.api.metting.entity.User;
 import com.project.api.metting.entity.UserProfile;
 import com.project.api.metting.repository.UserMyPageRepository;
@@ -75,6 +72,7 @@ public class MyPageController {
     }
 
 
+
     /**
      * 사용자의 프로필 이미지를 업로드하고 저장된 파일의 URL을 반환
      *
@@ -117,7 +115,6 @@ public class MyPageController {
     }
 
 
-
     /**
      * 로그인한 사용자의 프로필 정보 반환
      *
@@ -128,6 +125,18 @@ public class MyPageController {
     public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal TokenUserInfo tokenInfo) {
         UserMyPageDto userInfo = userMyPageService.getUserInfo(tokenInfo.getUserId());
         return ResponseEntity.ok(userInfo);
+    }
+
+    /**
+     * 로그인한 사용자의 프로필 정보 반환
+     *
+     * @param tokenInfo 현재 인증된 사용자의 정보
+     * @return UserInfoModifyDto 객체를 담은 ResponseEntity
+     */
+    @GetMapping("/userInfoModify")
+    public ResponseEntity<?> getUserInfoModify(@AuthenticationPrincipal TokenUserInfo tokenInfo) {
+        UserInfoModifyDto userInfoModify = userMyPageService.getUserInfoModify(tokenInfo.getUserId());
+        return ResponseEntity.ok().body(userInfoModify);
     }
 
 
