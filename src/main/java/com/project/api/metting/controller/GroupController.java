@@ -20,7 +20,6 @@ import static com.project.api.auth.TokenProvider.TokenUserInfo;
 @RequestMapping("/group")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin
 public class GroupController {
     private final GroupService groupService;
 

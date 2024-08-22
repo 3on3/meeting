@@ -16,7 +16,6 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/alarm")
-@CrossOrigin
 public class AlarmController {
 
     private final AlarmService alarmService;
