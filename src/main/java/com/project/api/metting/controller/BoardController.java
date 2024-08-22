@@ -52,7 +52,6 @@ public class BoardController {
      */
     @GetMapping("/detail/{id}")
     public ResponseEntity<?> getBoardDetail(@AuthenticationPrincipal TokenUserInfo tokenUserInfo, @PathVariable String id) {
-
         try {
             BoardResponseDto responseDto = boardService.getBoardById(tokenUserInfo,id);
             return ResponseEntity.ok().body(responseDto);
@@ -60,7 +59,7 @@ public class BoardController {
         } catch (RuntimeException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
 
     }
@@ -74,7 +73,6 @@ public class BoardController {
     @PostMapping("/create")
     public ResponseEntity<?> createBoard(@AuthenticationPrincipal TokenUserInfo tokenUserInfo, @RequestBody BoardRequestDto boardRequestDto) {
 
-
         try {
             BoardResponseDto board = boardService.createBoard(tokenUserInfo, boardRequestDto);
             return ResponseEntity.ok(board);
@@ -85,23 +83,43 @@ public class BoardController {
         }
     }
 
+    /**
+     * 게시글 수정 페이지 요청
+     * @param tokenUserInfo - 유저정보
+     * @param id - 게시글 아이디
+     * @return - 수정 전 게시글 dto
+     */
     @GetMapping("/modify/{id}")
     public ResponseEntity<?> modifyBoard(@AuthenticationPrincipal TokenUserInfo tokenUserInfo, @PathVariable String id){
         try {
             BoardResponseDto responseDto = boardService.getBoardById(tokenUserInfo,id);
             return ResponseEntity.ok().body(responseDto);
-
         } catch (RuntimeException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
         }
     }
+
+    /**
+     * 게시글 수정 요청
+     * @param tokenUserInfo - 유저정보
+     * @param id - 게시글 아이디
+     * @return - 수정 후 게시글 dto
+     */
     @PostMapping("/modify/{id}")
     public ResponseEntity<?> modifyBoard(@AuthenticationPrincipal TokenUserInfo tokenUserInfo, @PathVariable String id, @RequestBody BoardRequestDto boardRequestDto){
         BoardResponseDto responseDto = boardService.modifyBoard(tokenUserInfo, id, boardRequestDto);
         return ResponseEntity.ok().body(responseDto);
     }
+
+
+    /**
+     * 게시글 삭제 요청
+     * @param tokenUserInfo - 유저정보
+     * @param id - 게시글 아이디
+     * @return - 성공메세지
+     */
     @PostMapping("/delete/{id}")
     public ResponseEntity<?> deleteBoard(@AuthenticationPrincipal TokenUserInfo tokenUserInfo, @PathVariable String id){
         boardService.deleteBoard(tokenUserInfo,id);

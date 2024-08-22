@@ -6,6 +6,8 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
+
 /**
  * Board
  * : 게시글 정보를 담은 엔터티
@@ -50,15 +52,26 @@ public class Board {
     @Builder.Default
     private Boolean isDeleted = false; // 삭제 여부
 
+    @Setter
     @Column(name = "mt_board_view_count", nullable = false)
     @Builder.Default
     private Integer viewCount = 0; // 조회수
-
-
 
     @JsonIgnore
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mt_user_id", nullable = false)
     private User author; // 작성자
+
+    @JsonIgnore
+    @ToString.Exclude
+    @OneToMany(mappedBy = "board", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<BoardReply> boardReplies;
+
+    @JsonIgnore
+    @ToString.Exclude
+    @OneToMany(mappedBy = "board", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<BoardViewLog> boardViewLogs;
+
+
 }
