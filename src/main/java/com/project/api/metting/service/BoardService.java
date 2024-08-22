@@ -116,4 +116,15 @@ public class BoardService {
 
         return getBoardById(tokenUserInfo, id);
     }
+
+    public void deleteBoard(TokenUserInfo tokenUserInfo, String id) {
+        Board board = boardRepository.findById(id).orElseThrow();
+
+        if(!board.getAuthor().getId().equals(tokenUserInfo.getUserId())){
+            throw new RuntimeException("유저가 작성한 게시글이 아닙니다.");
+        }
+
+        boardRepository.delete(board);
+
+    }
 }

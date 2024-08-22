@@ -102,5 +102,10 @@ public class BoardController {
         BoardResponseDto responseDto = boardService.modifyBoard(tokenUserInfo, id, boardRequestDto);
         return ResponseEntity.ok().body(responseDto);
     }
+    @PostMapping("/delete/{id}")
+    public ResponseEntity<?> deleteBoard(@AuthenticationPrincipal TokenUserInfo tokenUserInfo, @PathVariable String id){
+        boardService.deleteBoard(tokenUserInfo,id);
+        return ResponseEntity.ok().body("게시글 삭제 완료되었습니다.");
+    }
 
 }
