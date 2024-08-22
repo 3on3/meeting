@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.project.api.metting.dto.request.ChatMessageRequestDto;
 import com.project.api.metting.dto.response.ChatWebSocketResponseDto;
+import com.project.api.metting.dto.response.LoginResponseDto;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
@@ -19,6 +20,7 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class ChatWebSocketHandler extends TextWebSocketHandler {
@@ -26,6 +28,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final ObjectMapper objectMapper;
     private final Map<String, WebSocketSession> sessions;
+    private final Map<String, String> users = new ConcurrentHashMap<>();
 
     public ChatWebSocketHandler(Map<String, WebSocketSession> sessions) {
         this.objectMapper = new ObjectMapper();
@@ -57,16 +60,27 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         ChatWebSocketResponseDto data = objectMapper.readValue(message.getPayload(), ChatWebSocketResponseDto.class);
 
         System.out.println("data = " + data);
+        System.out.println("data = " + data);
 
         if(data.getType().equals("message")) {
-            sessions.values().forEach((s) -> {
-                try {
-                    String jsonMessage = objectMapper.writeValueAsString(data.getMessage());
-                    s.sendMessage(new TextMessage(jsonMessage));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+            String chatroomId = data.getChatroomId();
+
+            for (Map.Entry<String, String> entry : users.entrySet()) {
+                if (chatroomId.equals(entry.getValue())) {
+                    sessions.values().forEach((s) -> {
+                        if(s.getId().equals(entry.getKey())) {
+                            try {
+                                String jsonMessage = objectMapper.writeValueAsString(data.getMessage());
+                                s.sendMessage(new TextMessage(jsonMessage));
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    });
                 }
-            });
+            }
+        } else if(data.getType().equals("enter")) {
+            users.put(session.getId(), data.getChatroomId());
         }
     }
 

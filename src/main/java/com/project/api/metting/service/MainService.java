@@ -1,7 +1,6 @@
 package com.project.api.metting.service;
 
 
-import com.project.api.metting.dto.request.MainMeetingListFilterDto;
 import com.project.api.metting.dto.response.MainMeetingListResponseDto;
 import com.project.api.metting.entity.Group;
 import com.project.api.metting.entity.GroupMatchingHistory;
@@ -27,17 +26,22 @@ public class MainService {
     private final GroupMatchingService groupMatchingService;
     private final GroupMatchingHistoriesRepository groupMatchingHistoriesRepository;
 
-
-    //    Group 전체 조회
+    /**
+     * @param email 사용자의 이메일
+     * @param pageNo 요청한 페이지 번호
+     * @param gender 필터링할 성별 (선택 사항)
+     * @param region 필터링할 지역 (선택 사항)
+     * @param personnel 필터링할 인원수 (선택 사항)
+     * @return 필터링된 미팅 리스트의 페이지
+     */
     public Page<MainMeetingListResponseDto> getMeetingList(String email, int pageNo,String gender,String region,Integer personnel) {
         PageRequest pageable = PageRequest.of(pageNo - 1, 4);
-        Page<MainMeetingListResponseDto> mainMeetingListResponseDtos = groupRepository.findGroupUsersByAllGroup(pageable,gender,region,personnel);
+        Page<MainMeetingListResponseDto> mainMeetingListResponseDtos = groupRepository.findGroupUsersByAllGroup(pageable,gender,region,personnel,email);
 
 
         // 이미 매칭 신청 중인 그룹이예요.
         // 1. 해당 사용자가 속한 그룹들을 가져옴
         List<Group> groupsByUserEmail = groupRepository.findGroupsEntityByUserEmail(email);
-//        log.info("groupsByUserEmail = {}", groupsByUserEmail);
 
 
 
@@ -47,6 +51,12 @@ public class MainService {
         return mainMeetingListResponseDtos;
     }
 
+
+    /**
+     * 매칭 상태를 Requesting으로 수정
+     * @param groupsByUserEmail - 이메일로 그룹 조회
+     * @param mainMeetingListResponseDtos - 메인에 로딩되는 그룹들 dto
+     */
     private void setMatchingStatusRequesting( List<Group> groupsByUserEmail, Page<MainMeetingListResponseDto>  mainMeetingListResponseDtos) {
         // 3. 로그인한 유저의 모든 히스토리를 담을 리스트
         List<GroupMatchingHistory> allRequestHistories = new ArrayList<>();
@@ -70,6 +80,11 @@ public class MainService {
             }
         });
     }
+    /**
+     * 매칭 상태를 Response으로 수정
+     * @param groupsByUserEmail - 이메일로 그룹 조회
+     * @param mainMeetingListResponseDtos - 메인에 로딩되는 그룹들 dto
+     */
     private void setMatchingStatusResponse( List<Group> groupsByUserEmail, Page<MainMeetingListResponseDto>  mainMeetingListResponseDtos) {
 
         // 3. 로그인한 유저의 모든 히스토리를 담을 리스트
@@ -94,11 +109,7 @@ public class MainService {
             }
         });
     }
-    //    group 필터링
-    public Page<MainMeetingListResponseDto> postMeetingList(MainMeetingListFilterDto dto) {
 
-        return groupRepository.filterGroupUsersByAllGroup(dto);
-    }
 
 
 }

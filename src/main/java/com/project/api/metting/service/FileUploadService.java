@@ -20,6 +20,8 @@ public class FileUploadService {
     private final AwsS3Service s3Service;
     private final UserProfileRepository userProfileRepository;
     private final UserRepository userRepository;
+    // 기본 이미지 URL
+    private static final String DEFAULT_PROFILE_IMAGE_URL = "https://spring-file-bucket-yocong.s3.ap-northeast-2.amazonaws.com/2024/default_profile.png";
 
     /**
      * 파일 업로드 처리
@@ -41,6 +43,7 @@ public class FileUploadService {
 
         // UserProfile 찾기
         UserProfile userProfile = userProfileRepository.findByUserId(findUser.getId());
+        System.out.println("===================" + userProfile);
 
         if (userProfile == null) {
             // UserProfile이 없으면 새로 생성
@@ -59,6 +62,34 @@ public class FileUploadService {
         userProfileRepository.save(userProfile);
 
         return url;
+    }
+
+
+    public String getDefaultProfileImage(String userId) {
+        // 사용자 찾기
+        User findUser = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // UserProfile 찾기
+        UserProfile userProfile = userProfileRepository.findByUserId(findUser.getId());
+
+        if (userProfile == null) {
+            // UserProfile이 없으면 새로 생성하고 기본 이미지로 설정
+            userProfile = UserProfile.builder()
+                    .user(findUser)
+                    .profileImg(DEFAULT_PROFILE_IMAGE_URL) // 기본 프로필 이미지 설정
+                    .build();
+            log.info("Created new UserProfile with default image: {}", userProfile);
+        } else {
+            // UserProfile이 존재하면 기본 이미지로 업데이트
+            userProfile.setProfileImg(DEFAULT_PROFILE_IMAGE_URL);
+            log.info("Updated UserProfile to default image: {}", userProfile);
+        }
+
+        // UserProfile 저장
+        userProfileRepository.save(userProfile);
+
+        return DEFAULT_PROFILE_IMAGE_URL;
     }
 
 }

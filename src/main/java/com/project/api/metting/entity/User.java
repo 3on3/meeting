@@ -38,31 +38,24 @@ public class User {
 
     @Column(name = "mt_user_email", nullable = false, unique = true)
     private String email; // 이메일
-
-
+    
     @Column(name = "mt_user_password", length = 500)
     private String password; // 패스워드
-
 
     @Column(name = "mt_user_name", length = 30)
     private String name; // 이름
 
-
     @Column(name = "mt_user_birth_date")
     private Date birthDate; // 생년월일
-
 
     @Column(name = "mt_user_phone_number", unique = true)
     private String phoneNumber; // 폰 번호
 
-
     @Column(name = "mt_user_univ_name")
     private String univName; // 대학교
 
-
     @Column(name = "mt_user_major")
     private String major; // 전공
-
 
     @Enumerated(EnumType.STRING)
     @Column(name = "mt_user_gender")
@@ -72,9 +65,10 @@ public class User {
     private String nickname; // 닉네임
 
 
+    @Setter
     @Column(name = "mt_user_is_withdrawn")
     @Builder.Default
-    private boolean isWithdrawn = false; // 탈퇴여부
+    private Boolean isWithdrawn = false; // 탈퇴여부
 
 
     @Enumerated(EnumType.STRING)
@@ -133,9 +127,10 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private UserProfile userProfile; //유저프로필
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "mt_user_membership")
-    private Membership membership; // 멤버십
+    @JsonIgnore
+    @ToString.Exclude
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private UserMembership membership; // 멤버십
 
     public void confirm(String password, String name, Date Birth, String phone, String univName, String major, Gender gender, String nickname) {
         this.password = password;
@@ -159,6 +154,4 @@ public class User {
         this.refreshTokenExpiryDate = expiryDate;
     }
 
-    public void setIsWithdrawn(boolean b) {
-    }
 }

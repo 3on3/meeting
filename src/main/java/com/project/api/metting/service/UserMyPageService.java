@@ -1,11 +1,15 @@
 package com.project.api.metting.service;
 
+import com.project.api.auth.TokenProvider;
+import com.project.api.auth.TokenProvider.TokenUserInfo;
+import com.project.api.exception.DuplicateNicknameException;
 import com.project.api.metting.dto.request.*;
 import com.project.api.metting.dto.response.UserMyPageDto;
 import com.project.api.metting.entity.*;
 import com.project.api.metting.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.weaver.patterns.HasThisTypePatternTriedToSneakInSomeGenericOrParameterizedTypePatternMatchingStuffAnywhereVisitor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -30,114 +34,85 @@ public class UserMyPageService {
 
     @Value("${study.mail.host}")
     private String mailHost;
-    private String profileImageUploadDir; // 프로필 이미지를 저장할 디렉토리 경로
+    private String profileImageUploadDir;
     private final UserMyPageRepository userMyPageRepository;
-    private final UserProfileRepository userProfileRepository; // UserProfile 엔티티를 다루는 JPA 리포지토리
-    private final UserRepository userRepository; // User 엔티티를 다루는 JPA 리포지토리
+    private final UserProfileRepository userProfileRepository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserVerificationRepository userVerificationRepository;
-    private final TemporaryVerificationRepository temporaryVerificationRepository;
     // 이메일 전송 객체
-    private  final JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
 
-    private final AwsS3Service s3Service;
+    private final AwsS3Service awsS3Service;
 
 
-    /**
-     * 파일 업로드 처리
-     * @param profileImage - 클라이언트가 전송한 파일 바이너리 객체
-     * @param userId - 사용자 ID
-     * @return - 업로드된 파일의 URL
-     */
-    public String uploadProfileImage(MultipartFile profileImage, String userId) throws IOException {
 
-        // 파일명을 유니크하게 변경
-        String uniqueFileName = UUID.randomUUID() + "_" + profileImage.getOriginalFilename();
 
-        // 파일을 S3 버킷에 저장
-        String url = s3Service.uploadToS3Bucket(profileImage.getBytes(), uniqueFileName);
-        log.info("Uploaded file URL: {}", url);
-
-        // 사용자 찾기
-        User findUser = userRepository.findById(userId).orElseThrow(() -> new IOException("User not found"));
-
-        // UserProfile 찾기
-        UserProfile userProfile = userProfileRepository.findByUserId(findUser.getId());
-
-        if (userProfile == null) {
-            // UserProfile이 없으면 새로 생성
-            userProfile = UserProfile.builder()
-                    .user(findUser)
-                    .profileImg(url)  // 초기 프로필 이미지 설정
-                    .build();
-            log.info("Created new UserProfile: {}", userProfile);
-        } else {
-            // UserProfile이 존재하면 업데이트
-            userProfile.setProfileImg(url);
-            log.info("Updated UserProfile: {}", userProfile);
-        }
-
-        // UserProfile 저장
-        userProfileRepository.save(userProfile);
-
-        return url;
-    }
-
-    //================================================
-
-    // 유저 정보 가져오기
-    public UserMyPageDto getUserInfo(String userEmail) {
-        User user = userMyPageRepository.findById(userEmail)
+        /**
+         * 주어진 사용자 ID에 해당하는 유저 정보
+         *
+         * @param userId - 조회할 사용자의 ID
+         * @return UserMyPageDto - 사용자 정보가 담긴 DTO
+         * @throws IllegalArgumentException - 사용자를 찾을 수 없는 경우 예외 발생
+         */
+    public UserMyPageDto getUserInfo(String userId) {
+        User user = userMyPageRepository.findById(userId)
                                         .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        log.info("User information retrieved successfully for email: {}", userEmail);
         return convertToDto(user);
     }
 
     private UserMyPageDto convertToDto(User user) {
-        log.info("Converting user entity to DTO for user: {}", user.getNickname());
 
          return UserMyPageDto.builder()
                 .profileIntroduce(user.getUserProfile() != null && user.getUserProfile().getProfileIntroduce() != null
                         ? user.getUserProfile().getProfileIntroduce()
                         : "소개가 없습니다.")
+                .profileImg(user.getUserProfile().getProfileImg())
                 .nickname(user.getNickname())
-                .membership(user.getMembership() != null ? user.getMembership() : Membership.GENERAL)
+//                .membership(user.getMembership() != null ? user.getMembership() : Membership.GENERAL)
                 .age(calculateAge(user.getBirthDate()))
                 .univ(user.getUnivName())
                 .major(user.getMajor())
                 .build();
     }
 
-    // 나이 계산 메서드
+    /**
+     * 사용자의 생년월일을 바탕으로 나이 계산
+     *
+     * @param birthDate - 사용자의 생년월일 (Date 형식)
+     * @return int - 계산된 사용자 나이
+     */
     private int calculateAge(Date birthDate) {
         LocalDate birthLocalDate = birthDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         return Period.between(birthLocalDate, LocalDate.now()).getYears();
     }
 
-    /**
-     * 사용자 Id를 기반으로 유저 정보 조회
-     * 닉네임, 멤버십등급, 대학교, 전공
-     *
-     * @param userId 조회할 사용자의 ID
-     * @return convertToUserMyPageDto 객체를 담은 Optional
-     */
 
-    // 유저 정보 업데이트
+    /**
+     * 사용자 정보를 업데이트
+     *
+     * @param userId    - 업데이트할 사용자의 ID
+     * @param updateDto - 업데이트할 사용자 정보가 포함된 DTO
+     * @return 업데이트된 사용자 정보가 담긴 UserMyPageDto
+     * @throws IllegalArgumentException    - 유효하지 않은 사용자 ID일 경우 예외 발생
+     * @throws DuplicateNicknameException - 닉네임이 중복될 경우 예외 발생
+     */
     public UserMyPageDto updateUserFields(String userId, UserUpdateRequestDto updateDto) {
-        log.info("Updating user fields for user ID: {}", userId);
         // 사용자 조회
         User user = userMyPageRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 사용자 ID입니다: " + userId));
 
-        // 전달된 DTO의 값들을 사용자 엔티티에 반영
-        if (updateDto.getNickname() != null) {
-            log.info("Updating nickname to: {}", updateDto.getNickname());
+        // 닉네임 중복시 에러 메시지 반환
+        if (updateDto.getNickname() != null && !updateDto.getNickname().equals(user.getNickname())) {
+            if (userMyPageRepository.findByNickname(updateDto.getNickname()).isPresent()) {
+                throw new DuplicateNicknameException("이미 사용 중인 닉네임입니다");
+            }
             user.setNickname(updateDto.getNickname());
         }
-        if (updateDto.getMembership() != null) {
-            Membership membership = Membership.valueOf(updateDto.getMembership().toUpperCase());
-            user.setMembership(membership);
-        }
+//        if (updateDto.getMembership() != null) {
+//            Membership membership = Membership.valueOf(updateDto.getMembership().toUpperCase());
+//            user.setMembership(membership);
+//        }
         if (updateDto.getUniv() != null) {
             user.setUnivName(updateDto.getUniv());
         }
@@ -147,76 +122,41 @@ public class UserMyPageService {
         if (updateDto.getProfileIntroduce() != null) {
             UserProfile userProfile = user.getUserProfile();
 
-            if (userProfile == null) {
-                // UserProfile 객체가 없는 경우 새로 생성
-                userProfile = new UserProfile();
-            }
-
-            // profileIntroduce 값을 설정
-            userProfile.setProfileIntroduce(updateDto.getProfileIntroduce());
-
-            // User 객체에 UserProfile 설정
-            user.setUserProfile(userProfile);
+        if (userProfile == null) {
+            userProfile = new UserProfile();
         }
+        // profileIntroduce 값을 설정
+        userProfile.setProfileIntroduce(updateDto.getProfileIntroduce());
 
+        // User 객체에 UserProfile 설정
+        user.setUserProfile(userProfile);
+        }
         userMyPageRepository.save(user);
         return convertToUserMyPageDto(user);
     }
 
-    // - 프로필 이미지 조회
+    /**
+     * 사용자의 프로필 정보를 조회
+     *
+     * @param userId - 조회할 사용자의 ID
+     * @return UserProfile - 사용자의 프로필 정보, 프로필이 없거나 유효하지 않은 경우 null 반환
+     */
     public UserProfile getUserProfile(String userId) {
         // 유저 ID로 User 객체를 조회
         Optional<User> user = userRepository.findById(userId);
-        System.out.println("user================================ : " + user);
-
         // 조회한 User 객체와 연결된 UserProfile을 반환
         return user.map(userProfileRepository::findByUser).orElse(null);
     }
 
-    // - 프로필 이미지를 업데이트
-    public void updateUserProfileImage(String userId, MultipartFile file) throws IOException {
-        // 유저 ID로 User 객체를 조회
-        Optional<User> user = userRepository.findById(userId);
-
-        if (user.isPresent()) { // 유저가 존재하는 경우
-            UserProfile userProfile = userProfileRepository.findByUser(user.get()); // 유저와 연결된 프로필을 조회
-            if (userProfile != null && file != null && !file.isEmpty()) { // 프로필이 존재하고, 파일이 유효한 경우
-                String filePath = saveProfileImage(file);  // 수정: 파일 시스템에 저장 로직 추가
-                userProfile.setProfileImg(filePath); // 프로필 이미지 경로를 설정
-                userProfileRepository.save(userProfile); // 변경된 프로필을 저장
-            }
-        }
-    }
-
-    // 프로필 이미지를 저장하고, 저장된 파일 경로를 반환하는 메서드
-    private String saveProfileImage(MultipartFile file) throws IOException {
-        File dir = new File(profileImageUploadDir);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-
-        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-        Path filePath = Paths.get(profileImageUploadDir, fileName);
-
-        // 예외 처리와 자원 관리를 위한 try-with-resources 사용
-        try (InputStream inputStream = file.getInputStream()) {
-            Files.copy(inputStream, filePath);
-        } catch (IOException e) {
-            log.error("파일 저장 중 오류 발생: " + filePath, e);
-            throw e; // 발생한 예외를 다시 던져 호출자에게 알림
-        }
-
-        return filePath.toString();
-    }
 
 
-    // User 엔티티를 UserMyPageDto로 변환하는 로직
+    // User 엔티티를 UserMyPageDto로 변환
     public UserMyPageDto convertToUserMyPageDto(User user) {
         log.info("Converting updated user entity to DTO for user: {}", user.getNickname());
         UserMyPageDto dto = new UserMyPageDto();
 
         dto.setNickname(user.getNickname());
-        dto.setMembership(user.getMembership());
+//        dto.setMembership(user.getMembership());
         dto.setUniv(user.getUnivName());
         dto.setMajor(user.getMajor());
 
@@ -224,12 +164,18 @@ public class UserMyPageService {
         if (user.getBirthDate() != null) {
             dto.setAge(calculateAge(user.getBirthDate()));
         }
-
         return dto;
     }
 
 
-    // 비밀번호 변경 로직
+
+    /**
+     * 사용자의 비밀번호를 변경
+     *
+     * @param userId             - 비밀번호를 변경할 사용자의 ID
+     * @param changePasswordDto  - 비밀번호 변경에 필요한 정보가 담긴 DTO
+     * @throws IllegalArgumentException - 비밀번호 변경 데이터가 null이거나, 비밀번호가 일치하지 않을 경우 발생
+     */
     public void changePassword(String userId, ChangePasswordDto changePasswordDto) {
 
         if (changePasswordDto == null) {
@@ -250,26 +196,45 @@ public class UserMyPageService {
     }
 
 
-    // - 이메일 중복 확인
-    public boolean checkEmailDuplicate(String email) {
+    /**
+     * 인증 코드를 생성하고, 해당 정보를 데이터베이스에 저장
+     *
+     * @param email - 인증 코드를 전송할 이메일 주소
+     * @param user  - 인증 코드를 생성할 사용자 정보
+     * @param code  - 생성된 인증 코드
+     */
+    @Transactional
+    private void generateAndSaveCode(String email, User user, String code) {
 
-        boolean exists = userRepository.existsByEmail(email);
-        log.info("Checking email {} is duplicate : {}", email, exists);
-        return userRepository.existsByEmail(email);// 이메일이 존재하면 true 리턴
+        // 인증 코드 정보를 데이터베이스에 저장
+        UserVerification temporaryVerification = UserVerification.builder()
+                .user(user)
+                .email(email)
+                .expiryDate(LocalDateTime.now().plusMinutes(5))
+                .verificationCode(code)
+                .build();
+
+        userVerificationRepository.save(temporaryVerification);
     }
 
 
-    // - 이메일 인증 코드 보내기
+    /**
+     * 사용자에게 인증 이메일을 전송하고, 생성된 인증 코드를 반환
+     *
+     * @param email - 인증 이메일을 보낼 사용자 이메일 주소
+     * @return 생성된 인증 코드
+     * @throws IllegalArgumentException - 사용자를 찾을 수 없을 경우 발생
+     * @throws RuntimeException - 이메일 전송 중 오류가 발생할 경우 발생
+     */
     @Transactional
-    public void sendVerificationEmail(String email) {
+    public String sendVerificationEmail(String email) {
+        log.info("email send info - {}", email);
+
+        User findUser = userMyPageRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
         // 검증 코드 생성하기
         String code = generateVerificationCode();
-        TemporaryVerification temporaryVerification = TemporaryVerification.builder()
-                .email(email)
-                .code(code)
-                .build();
-
-        temporaryVerificationRepository.save(temporaryVerification);
 
         // 이메일을 전송할 객체 생성
         MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -280,7 +245,7 @@ public class UserMyPageService {
             // 누구에게 이메일을 보낼 것인지
             messageHelper.setTo(email);
             // 이메일 제목 설정
-            messageHelper.setSubject("[인증메일] 회원탈퇴 인증 메일입니다.");
+            messageHelper.setSubject("[인증메일] 과팅 가입 인증 메일입니다.");
             // 이메일 내용 설정
             messageHelper.setText(
                     "인증 코드: <b style=\"font-weight: 700; letter-spacing: 5px; font-size: 30px;\">" + code + "</b>"
@@ -293,7 +258,10 @@ public class UserMyPageService {
             // 이메일 보내기
             mailSender.send(mimeMessage);
 
-            log.info("{} 님에게 이메일 전송!", email);
+            // 이메일 전송 후 인증 코드를 저장
+            generateAndSaveCode(email, findUser, code);
+
+            return code;
 
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -326,15 +294,47 @@ public class UserMyPageService {
         return false;
     }
 
-    public boolean verifySendingCode(TemporaryVerficationDto verficationDto) {
-        TemporaryVerification verification = temporaryVerificationRepository
-                .findByEmail(verficationDto.getEmail());
-        if(verification.getCode().equals(verficationDto.getCode())) {
-            return true;
+    /**
+     * 사용자가 입력한 인증 코드를 검증
+     *
+     * @param verificationDto - 인증 코드와 이메일이 포함된 DTO
+     * @return 인증이 성공적으로 이루어진 경우 true, 실패한 경우 예외 발생
+     * @throws IllegalArgumentException - 인증 코드가 틀리거나 만료된 경우 발생
+     */
+    @Transactional
+    public boolean verifySendingCode(TemporaryVerficationDto verificationDto) {
+        // 이메일을 통해 회원정보를 탐색
+        User findUser = userRepository.findByEmail(verificationDto.getEmail()).orElse(null);
+        if (findUser != null) {
+            // 인증코드가 있는지 탐색
+            UserVerification ev = userVerificationRepository.findByUser(findUser).orElse(null);
+            // 인증코드가 있고, 만료시간이 지나지 않았고 코드번호가 일치할 경우
+            if (ev != null
+                    && ev.getExpiryDate().isAfter(LocalDateTime.now())
+                    && verificationDto.getCode().equals(ev.getVerificationCode())) {
+                // 인증코드 데이터베이스에서 삭제
+                userVerificationRepository.delete(ev);
+                return true;
+            } else {
+                // 인증코드가 틀렸거나 만료된 경우
+                // 기존 인증코드 삭제
+                if (ev != null) {
+                    userVerificationRepository.delete(ev);
+                }
+                // 인증 실패에 대한 명확한 메시지 제공
+                throw new IllegalArgumentException("인증 코드가 틀리거나 만료되었습니다. 새로운 인증 코드가 이메일로 전송되었습니다.");
+            }
         }
         return false;
     }
 
+    /**
+     * 사용자가 입력한 비밀번호를 검증
+     *
+     * @param verificationDto - 이메일과 비밀번호가 포함된 DTO
+     * @return 입력된 비밀번호가 저장된 비밀번호와 일치하면 true, 그렇지 않으면 false
+     * @throws IllegalArgumentException - 유효하지 않은 이메일 또는 비밀번호일 경우 예외 발생
+     */
     public boolean verifyPassword(PasswordVerificationDto verificationDto) {
         // 이메일로 사용자 조회
         User user = userRepository.findByEmail(verificationDto.getEmail())
@@ -346,7 +346,17 @@ public class UserMyPageService {
         }
         return false;
     }
-    // 비밀번호 확인 메서드
+
+
+    /**
+     * 사용자의 이메일과 입력된 비밀번호를 검증
+     *
+     * @param email       - 검증할 사용자의 이메일
+     * @param rawPassword - 사용자가 입력한 비밀번호 (평문)
+     * @return 입력된 비밀번호가 저장된 암호화된 비밀번호와 일치하면 true, 그렇지 않으면 false
+     * @throws IllegalArgumentException - 해당 이메일로 사용자를 찾을 수 없는 경우 예외
+     */
+
     public boolean checkPassword(String email, String rawPassword) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
@@ -355,6 +365,13 @@ public class UserMyPageService {
         return passwordEncoder.matches(rawPassword, user.getPassword());
     }
 
+    /**
+     * 사용자의 전화번호를 업데이트
+     *
+     * @param email - 전화번호를 업데이트할 사용자의 이메일
+     * @param dto   - 새로운 전화번호가 포함된 DTO
+     * @throws IllegalArgumentException - 전화번호 데이터가 null이거나, 이미 존재하는 번호일 경우 또는 사용자를 찾을 수 없는 경우 발생
+     */
 
     public void updatePhoneNumber(String email, UpdatePhoneNumberDto dto) {
         if (dto == null || dto.getPhoneNumber() == null) {
@@ -372,12 +389,18 @@ public class UserMyPageService {
         userMyPageRepository.save(user);
     }
 
+    /**
+     * 사용자의 계정을 탈퇴 처리
+     *
+     * @param email          - 탈퇴 처리할 사용자의 이메일
+     * @param tokenUserInfo  - 현재 로그인된 사용자 정보
+     * @throws IllegalArgumentException - 사용자를 찾을 수 없는 경우 발생
+     */
+    public void withDrawnUser(String email, TokenUserInfo tokenUserInfo) {
+        User findUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-//    public boolean verifyPassword(PasswordVerificationDto verificationDto) {
-//        User user = userRepository.findByEmail(verificationDto.getEmail()).orElseThrow();
-//        if(user.getPassword().equals(verificationDto.getPassword())) {
-//            return true;
-//        }
-//        return false;
-//    }
+        findUser.setIsWithdrawn(true);
+        userRepository.save(findUser);
+    }
 }

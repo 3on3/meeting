@@ -27,9 +27,7 @@ public class UserMyPageDto {
     private String univ; // 대학
     private String major; // 전공
     private String currentPassword; //현재 비밀번호
-
     private String newPassword; //새로운 비밀번호
-
     private String confirmNewPassword; //새로운 비밀번호 확인
 
 

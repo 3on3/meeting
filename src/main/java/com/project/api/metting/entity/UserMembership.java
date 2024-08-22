@@ -26,17 +26,14 @@ public class UserMembership {
     @Id
     @GenericGenerator(strategy = "uuid2", name = "uuid-generator")
     @GeneratedValue(generator = "uuid-generator")
-    @Column(name = "mt_profile_id")
+    @Column(name = "mt_user_membership_id")
     private String id; // 멤버쉽 고유 아이디
 
 
     @Enumerated(EnumType.STRING)
-    @Builder.Default
+    @Setter
     @Column(name = "mt_user_membership_auth", nullable = false)
     private Membership auth = Membership.GENERAL;
-
-
-
     @Column(name = "mt_user_membership_registered_at")
     @Builder.Default // 가입시간 기본으로 생성
     private LocalDateTime registeredAt = LocalDateTime.now();

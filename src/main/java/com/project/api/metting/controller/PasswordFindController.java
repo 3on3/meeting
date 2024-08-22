@@ -14,7 +14,6 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin
 @RequestMapping("/password")
 public class PasswordFindController {
 

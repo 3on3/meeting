@@ -30,12 +30,16 @@ public class GroupQueryService {
     }
 
 
+    /**
+     * 매칭 조건이 일치하는 내가 속한 그룹 조회
+     * @param tokenInfo - 유저 정보
+     * @param id - 매칭하고자 하는 그룹 아이디
+     * @return - 매칭 조건 일치하며 내가 속한 그룹들 dto
+     */
     public List<GroupResponseDto> getMatchedMyGroups(TokenProvider.TokenUserInfo tokenInfo, String id) {
         List<GroupResponseDto> groupsByUserEmail = groupRepository.findGroupsByUserEmail(tokenInfo.getEmail());
         Group responseGroup = groupRepository.findById(id).orElseThrow();
 
-//        List<GroupUser> groupList = groupUsersRepository.findByGroup(responseGroup);
-//        log.info("group List size - {}", groupList.size());
         return groupsByUserEmail.stream()
                 .filter(
                         groupResponseDto ->
