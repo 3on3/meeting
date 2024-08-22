@@ -54,7 +54,7 @@ public class BoardController {
     public ResponseEntity<?> getBoardDetail(@AuthenticationPrincipal TokenUserInfo tokenUserInfo, @PathVariable String id) {
 
         try {
-            BoardResponseDto responseDto = boardService.getBoardById(id);
+            BoardResponseDto responseDto = boardService.getBoardById(tokenUserInfo,id);
             return ResponseEntity.ok().body(responseDto);
 
         } catch (RuntimeException e){
@@ -83,6 +83,29 @@ public class BoardController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
         }
+    }
+
+    @GetMapping("/modify/{id}")
+    public ResponseEntity<?> modifyBoard(@AuthenticationPrincipal TokenUserInfo tokenUserInfo, @PathVariable String id){
+        try {
+            BoardResponseDto responseDto = boardService.getBoardById(tokenUserInfo,id);
+            return ResponseEntity.ok().body(responseDto);
+
+        } catch (RuntimeException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
+        }
+    }
+    @PostMapping("/modify/{id}")
+    public ResponseEntity<?> modifyBoard(@AuthenticationPrincipal TokenUserInfo tokenUserInfo, @PathVariable String id, @RequestBody BoardRequestDto boardRequestDto){
+        BoardResponseDto responseDto = boardService.modifyBoard(tokenUserInfo, id, boardRequestDto);
+        return ResponseEntity.ok().body(responseDto);
+    }
+    @PostMapping("/delete/{id}")
+    public ResponseEntity<?> deleteBoard(@AuthenticationPrincipal TokenUserInfo tokenUserInfo, @PathVariable String id){
+        boardService.deleteBoard(tokenUserInfo,id);
+        return ResponseEntity.ok().body("게시글 삭제 완료되었습니다.");
     }
 
 }

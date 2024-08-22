@@ -35,8 +35,6 @@ import static com.project.api.metting.entity.QGroup.group;
 @Slf4j
 public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     private final JPAQueryFactory factory;
-//    private final GroupUsersRepository groupUsersRepository;
-//    private final GroupRepository groupRepository;
 
 
     //    main meetingList DTO
