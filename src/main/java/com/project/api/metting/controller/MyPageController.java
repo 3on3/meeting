@@ -54,6 +54,8 @@ public class MyPageController {
     private final UserSignInService userSignInService;
     private final TokenProvider tokenProvider;
 
+
+
     /**
      * 현재 로그인된 사용자의 프로필 정보를 조회
      * @param tokenUserInfo - 현재 로그인된 사용자 정보
@@ -65,7 +67,6 @@ public class MyPageController {
 
         try {
             UserProfile userProfile = userProfileService.getUserProfile(tokenUserInfo.getUserId());
-            log.info("profile img info - {}", userProfile.getProfileImg());
             return ResponseEntity.ok(userProfile);
         } catch (IllegalStateException e ) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -86,8 +87,6 @@ public class MyPageController {
     public ResponseEntity<?> upload(@RequestPart(value = "profileImage") MultipartFile uploadFile,
                                     @AuthenticationPrincipal TokenUserInfo tokenInfo) {
 
-        log.info("profileImage: {}", uploadFile.getOriginalFilename());
-
         // 파일을 업로드
         String fileUrl = "";
         try {
@@ -95,6 +94,25 @@ public class MyPageController {
             return ResponseEntity.ok().body(fileUrl);
         } catch (IOException e) {
             log.warn("파일 업로드에 실패했습니다.");
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * 사용자의 기본 프로필 이미지를 설정하고 해당 이미지의 URL을 반환
+     *
+     * @param tokenInfo - 현재 로그인된 사용자 정보 (인증된 사용자)
+     * @return 기본 프로필 이미지의 URL 또는 오류 메시지를 포함한 응답
+     */
+
+    // 기본 프로필 이미지 설정
+    @PostMapping("/profileImage/default")
+    public ResponseEntity<?> setDefaultProfileImage(@AuthenticationPrincipal TokenUserInfo tokenInfo) {
+        try {
+            String defaultImageUrl = uploadService.getDefaultProfileImage(tokenInfo.getUserId());
+            return ResponseEntity.ok().body(defaultImageUrl);
+        } catch (Exception e) {
+            log.warn("기본 프로필 이미지 설정에 실패했습니다.");
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -110,7 +128,6 @@ public class MyPageController {
     @GetMapping("/userInfo")
     public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal TokenUserInfo tokenInfo) {
         UserMyPageDto userInfo = userMyPageService.getUserInfo(tokenInfo.getUserId());
-        log.info("userInfo = {}", userInfo);
         return ResponseEntity.ok(userInfo);
     }
 
@@ -127,7 +144,6 @@ public class MyPageController {
                                         @RequestBody UserUpdateRequestDto updateDto) {
         try {
             UserMyPageDto updatedUser = userMyPageService.updateUserFields(tokenInfo.getUserId(), updateDto);
-            log.info("updatedUser - {}", updatedUser);
             return ResponseEntity.ok(updatedUser);
         } catch (DuplicateNicknameException ex) {
             // 닉네임 중복 예외 처리
@@ -183,10 +199,8 @@ public class MyPageController {
 
     @PostMapping("/check-email")
     public ResponseEntity<?> sendEmail(@RequestBody EmailCheckDto emailCheckDto) {
-        log.info("email check info - {}", emailCheckDto.getEmail());
         try {
             userMyPageService.sendVerificationEmail(emailCheckDto.getEmail());
-
             return ResponseEntity.ok(true);
         } catch (Exception e) {
             // 로그를 남기거나 사용자에게 오류를 반환
@@ -208,7 +222,6 @@ public class MyPageController {
         log.info("email 0 info - {}", emailCheckDto.getEmail());
         try {
             userMyPageService.withDrawnUser(emailCheckDto.getEmail(), tokenInfo);
-
             return ResponseEntity.ok(true);
         } catch (Exception e) {
             // 로그를 남기거나 사용자에게 오류를 반환
@@ -248,7 +261,6 @@ public class MyPageController {
     @PostMapping("/check/password")
     public ResponseEntity<?> verifyPassword(@AuthenticationPrincipal TokenUserInfo tokenInfo,
                                             @RequestBody PasswordVerificationDto verificationDto) {
-        log.info("asdadsd - {}", verificationDto.getPassword());
         boolean valid = userMyPageService.verifyPassword(verificationDto);
         if(valid) {
             return ResponseEntity.status(302).body(valid);
@@ -303,7 +315,6 @@ public class MyPageController {
     @PostMapping("/check-password")
     public ResponseEntity<?> checkPassword(@RequestBody CheckPasswordRequestDto dto) {
         boolean isPasswordCorrect = userMyPageService.checkPassword(dto.getEmail(), dto.getPassword());
-        System.out.println("isPasswordCorrect = " + isPasswordCorrect);
         if (isPasswordCorrect) {
             return ResponseEntity.ok().body("{\"success\": true}");
         } else {
