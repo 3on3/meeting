@@ -4,6 +4,7 @@ import com.project.api.auth.TokenProvider;
 import com.project.api.auth.TokenProvider.TokenUserInfo;
 import com.project.api.exception.DuplicateNicknameException;
 import com.project.api.metting.dto.request.*;
+import com.project.api.metting.dto.response.UserInfoModifyDto;
 import com.project.api.metting.dto.response.UserMyPageDto;
 import com.project.api.metting.entity.*;
 import com.project.api.metting.repository.*;
@@ -24,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.io.File;
 
@@ -75,6 +77,27 @@ public class UserMyPageService {
                 .major(user.getMajor())
                 .build();
     }
+
+
+    // 마이페이지 회원정보 수정 내 회원 조회
+    public UserInfoModifyDto getUserInfoModify(String userId) {
+
+        User user = userMyPageRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        return userModifyDto(user);
+    }
+
+    private UserInfoModifyDto userModifyDto(User user) {
+
+        return UserInfoModifyDto.builder()
+                            .name(user.getName()) //이름
+                            .email(user.getEmail()) //이메일
+                            .birthDate(user.getBirthDate()) //생년월일
+                            .gender(user.getGender()) //성별
+                            .build();
+    }
+
 
     /**
      * 사용자의 생년월일을 바탕으로 나이 계산
@@ -403,4 +426,6 @@ public class UserMyPageService {
         findUser.setIsWithdrawn(true);
         userRepository.save(findUser);
     }
+
+
 }
