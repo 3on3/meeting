@@ -71,7 +71,7 @@ public class UserSignInService {
                 .nickname(userInfo.getNickname())
                 .isWithdrawn(userInfo.getIsWithdrawn())
                 .password(userInfo.getPassword())
-                .membershipAuth(userInfo.getMembership())
+                .membership(userInfo.getMembership().getAuth())
                 .profileImg(userInfo.getUserProfile().getProfileImg())
                 .build();
 

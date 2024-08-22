@@ -69,7 +69,7 @@ public class UserMyPageService {
                         : "소개가 없습니다.")
                 .profileImg(user.getUserProfile().getProfileImg())
                 .nickname(user.getNickname())
-                .membership(user.getMembership() != null ? user.getMembership() : Membership.GENERAL)
+//                .membership(user.getMembership() != null ? user.getMembership() : Membership.GENERAL)
                 .age(calculateAge(user.getBirthDate()))
                 .univ(user.getUnivName())
                 .major(user.getMajor())
@@ -109,10 +109,10 @@ public class UserMyPageService {
             }
             user.setNickname(updateDto.getNickname());
         }
-        if (updateDto.getMembership() != null) {
-            Membership membership = Membership.valueOf(updateDto.getMembership().toUpperCase());
-            user.setMembership(membership);
-        }
+//        if (updateDto.getMembership() != null) {
+//            Membership membership = Membership.valueOf(updateDto.getMembership().toUpperCase());
+//            user.setMembership(membership);
+//        }
         if (updateDto.getUniv() != null) {
             user.setUnivName(updateDto.getUniv());
         }
@@ -156,7 +156,7 @@ public class UserMyPageService {
         UserMyPageDto dto = new UserMyPageDto();
 
         dto.setNickname(user.getNickname());
-        dto.setMembership(user.getMembership());
+//        dto.setMembership(user.getMembership());
         dto.setUniv(user.getUnivName());
         dto.setMajor(user.getMajor());
 

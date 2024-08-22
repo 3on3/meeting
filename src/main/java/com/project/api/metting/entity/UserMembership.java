@@ -31,12 +31,9 @@ public class UserMembership {
 
 
     @Enumerated(EnumType.STRING)
-    @Builder.Default
+    @Setter
     @Column(name = "mt_user_membership_auth", nullable = false)
     private Membership auth = Membership.GENERAL;
-
-
-
     @Column(name = "mt_user_membership_registered_at")
     @Builder.Default // 가입시간 기본으로 생성
     private LocalDateTime registeredAt = LocalDateTime.now();
