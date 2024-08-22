@@ -24,7 +24,7 @@ class BoardServiceTest {
     @DisplayName("dd")
     void crate() {
         //given
-        User user = userRepository.findById("7383eaa9-1bcb-48ef-be63-9c0b63b6103a").orElseThrow();
+        User user = userRepository.findById("faa46119-537f-4c00-b34a-996afa8190af").orElseThrow();
         System.out.println("user = " + user);
         for (int i = 0; i < 11; i++) {
             boardRepository.save(Board.builder().title("제목"+i).content("내용내욘앤요냉 애뇨앤애뇬 앤욜내앨ㄴ").author(user).build());

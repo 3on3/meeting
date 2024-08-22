@@ -1,10 +1,12 @@
 package com.project.api.metting.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * BoardReply
@@ -39,10 +41,18 @@ public class BoardReply {
     @Builder.Default
     private Boolean isDeleted = false; // 삭제 여부
 
+
+
+    @JsonIgnore
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mt_user_id")
     private User author; // 작성자
 
+
+
+    @JsonIgnore
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mt_board_id" , nullable = false)
     private Board board; // 보드
