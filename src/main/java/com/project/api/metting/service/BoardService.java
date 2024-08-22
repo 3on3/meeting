@@ -12,6 +12,8 @@ import com.project.api.metting.repository.BoardViewLogRepository;
 import com.project.api.metting.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,13 +53,12 @@ public class BoardService {
 
 
     @Transactional
-    public List<BoardResponseDto> getAllBoards() {
-        List<Board> boardList = boardRepository.findByIsDeletedFalseOrderByCreatedAtDesc();
-        List<Board> collect = boardList.stream().filter(board -> !board.getIsDeleted()).collect(Collectors.toList());
+    public List<BoardResponseDto> getAllBoards(Pageable pageable) {
+        Page<Board> boardPage = boardRepository.findByIsDeletedFalseOrderByCreatedAtDesc(pageable);
 
 
-        return collect.stream().map(board ->
-                BoardResponseDto.builder()
+        return boardPage.getContent().stream()
+                .map(board -> BoardResponseDto.builder()
                         .id(board.getId())
                         .createdAt(convertDateToString(board.getCreatedAt()))
                         .title(board.getTitle())
@@ -66,24 +67,24 @@ public class BoardService {
                         .writer(board.getAuthor().getName())
                         .viewCount(board.getViewCount())
                         .build()).collect(Collectors.toList());
-
 
     }
 
-    public List<BoardResponseDto> getMyBoards(TokenUserInfo tokenUserInfo) {
+    public List<BoardResponseDto> getMyBoards(TokenUserInfo tokenUserInfo, Pageable pageable) {
         User user = userRepository.findByEmail(tokenUserInfo.getEmail()).orElseThrow();
-        List<Board> boardList = boardRepository.findByAuthorAndIsDeletedFalseOrderByCreatedAtDesc(user);
-        return boardList.stream().map(board ->
-                BoardResponseDto.builder()
-                        .id(board.getId())
-                        .createdAt(convertDateToString(board.getCreatedAt()))
-                        .title(board.getTitle())
-                        .content(board.getContent())
-                        .viewCount(board.getViewCount())
-                        .writer(board.getAuthor().getName())
-                        .viewCount(board.getViewCount())
-                        .isAuthor(tokenUserInfo.getUserId().equals(board.getAuthor().getId()))
-                        .build()).collect(Collectors.toList());
+        Page<Board> boardList = boardRepository.findByAuthorAndIsDeletedFalseOrderByCreatedAtDesc(pageable, user);
+        return boardList.getContent().stream()
+                .map(board -> BoardResponseDto.builder()
+                .id(board.getId())
+                .createdAt(convertDateToString(board.getCreatedAt()))
+                .title(board.getTitle())
+                .content(board.getContent())
+                .viewCount(board.getViewCount())
+                .writer(board.getAuthor().getName())
+                .viewCount(board.getViewCount())
+                .isAuthor(tokenUserInfo.getUserId().equals(board.getAuthor().getId()))
+                .build()).collect(Collectors.toList());
+
     }
 
     /**

@@ -4,9 +4,13 @@ import com.project.api.auth.TokenProvider;
 import com.project.api.auth.TokenProvider.TokenUserInfo;
 import com.project.api.metting.dto.request.BoardRequestDto;
 import com.project.api.metting.dto.response.BoardResponseDto;
+import com.project.api.metting.entity.Board;
 import com.project.api.metting.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,8 +31,10 @@ public class BoardController {
      * @return 모든 게시글 dto
      */
     @GetMapping
-    public ResponseEntity<?> getAllBoards(@AuthenticationPrincipal TokenUserInfo tokenUserInfo) {
-        List<BoardResponseDto> allBoards = boardService.getAllBoards();
+    public ResponseEntity<?> getAllBoards(@AuthenticationPrincipal TokenUserInfo tokenUserInfo, @RequestParam int page, @RequestParam int size) {
+//        List<BoardResponseDto> allBoards =
+        Pageable pageable = PageRequest.of(page, size);
+        List<BoardResponseDto> allBoards = boardService.getAllBoards(pageable);
 
         return ResponseEntity.ok().body(allBoards);
     }
@@ -39,8 +45,9 @@ public class BoardController {
      * @return 유저가 작성한 게시글 dto
      */
     @GetMapping("/myboards")
-    public ResponseEntity<?> getMyBoards(@AuthenticationPrincipal TokenUserInfo tokenUserInfo) {
-        List<BoardResponseDto> myBoards = boardService.getMyBoards(tokenUserInfo);
+    public ResponseEntity<?> getMyBoards(@AuthenticationPrincipal TokenUserInfo tokenUserInfo,@RequestParam int page, @RequestParam int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<BoardResponseDto> myBoards = boardService.getMyBoards(tokenUserInfo,pageable);
         return ResponseEntity.ok().body(myBoards);
     }
 
