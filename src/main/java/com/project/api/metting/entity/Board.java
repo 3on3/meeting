@@ -48,6 +48,7 @@ public class Board {
     @Column(name = "mt_modified_at")
     private LocalDateTime modifiedAt;
 
+    @Setter
     @Column(name = "mt_board_is_deleted", nullable = false)
     @Builder.Default
     private Boolean isDeleted = false; // 삭제 여부
