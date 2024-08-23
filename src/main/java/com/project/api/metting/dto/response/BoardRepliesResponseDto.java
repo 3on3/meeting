@@ -18,5 +18,8 @@ public class BoardRepliesResponseDto {
     private String content;//내용
     private String createdDate;//작성일자
 
+    @Setter
+    private Boolean isAuthor = false; //작성자 유무
+
 
 }

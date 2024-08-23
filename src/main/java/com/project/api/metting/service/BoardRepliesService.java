@@ -3,6 +3,7 @@ package com.project.api.metting.service;
 
 import com.project.api.auth.TokenProvider.TokenUserInfo;
 import com.project.api.metting.dto.request.BoardRepliesRequestDto;
+import com.project.api.metting.dto.request.ReplyDeletRequestDto;
 import com.project.api.metting.dto.response.BoardRepliesResponseDto;
 import com.project.api.metting.entity.Board;
 import com.project.api.metting.entity.BoardReply;
@@ -31,10 +32,11 @@ public class BoardRepliesService {
     public final UserRepository userRepository;
 
 
-//댓글 GET 매핑 / Page 처리 / 삭제 되지 않는 사람 필터링
-    public Page<BoardRepliesResponseDto> getBoardReplies(int pageNo, String boardId) {
+    //댓글 GET 매핑 / Page 처리 / 삭제 되지 않는 사람 필터링
+    public Page<BoardRepliesResponseDto> getBoardReplies(int pageNo, String boardId, TokenUserInfo tokenUserInfo) {
 
         PageRequest pageable = PageRequest.of(pageNo - 1, 5, Sort.by(Sort.Direction.DESC, "createdAt"));
+
 
         Page<BoardReply> findBoardReply = boardReplyRepository.findByBoardIdAndIsDeletedFalse(pageable,boardId);
 
@@ -45,6 +47,7 @@ public class BoardRepliesService {
                         .id(boardReply.getId())
                         .createdDate(boardReply.getCreatedAt().format(dateTimeFormatter()))
                         .content(boardReply.getContent())
+                        .isAuthor(tokenUserInfo.getUserId().equals(boardReply.getAuthor().getId()))
                         .build());
 
 
@@ -78,10 +81,31 @@ public class BoardRepliesService {
                 .content(saveBoardReply.getContent())
                 .id(saveBoardReply.getId())
                 .createdDate(saveBoardReply.getCreatedAt().format(dateTimeFormatter()))
+                .isAuthor(tokenUserInfo.getUserId().equals(saveBoardReply.getAuthor().getId()))
                 .build();
 
 
         return repliesDto;
 
     }
+
+    public void deleteBoardReply(ReplyDeletRequestDto dto) {
+//        boardReplyRepository.deleteById(boardId);
+
+        //댓글 찾기
+        BoardReply boardReply = boardReplyRepository.findById(dto.getReplyId())
+                .orElseThrow(()-> new NoSuchElementException("reply not found"));
+
+
+
+        // 해당 댓글 삭제
+        boardReply.setIsDeleted(true);
+
+        //디비에 저장
+        boardReplyRepository.save(boardReply);
+
+    }
+
+
+
 }
