@@ -203,8 +203,8 @@ public class BoardService {
         if (!board.getAuthor().getId().equals(tokenUserInfo.getUserId())) {
             throw new RuntimeException("유저가 작성한 게시글이 아닙니다.");
         }
-
-        boardRepository.delete(board);
+        board.setIsDeleted(true);
+        boardRepository.save(board);
 
     }
 }
