@@ -37,6 +37,7 @@ public class BoardReply {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now(); // 작성 일자
 
+    @Setter
     @Column(name = "mt_board_reply_is_deleted" , nullable = false)
     @Builder.Default
     private Boolean isDeleted = false; // 삭제 여부
@@ -56,5 +57,6 @@ public class BoardReply {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mt_board_id" , nullable = false)
     private Board board; // 보드
+
 
 }
