@@ -32,4 +32,6 @@ public class UserMyPageDto {
     private int age; // 나이
 
 
+
+
 }
