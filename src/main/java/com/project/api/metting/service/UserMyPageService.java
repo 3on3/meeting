@@ -79,15 +79,14 @@ public class UserMyPageService {
     }
 
 
-    // 마이페이지 회원정보 수정 내 회원 조회
+
+    // 마이페이지 회원정보 수정 내 회원 정보 조회
     public UserInfoModifyDto getUserInfoModify(String userId) {
 
         User user = userMyPageRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
         return userModifyDto(user);
     }
-
     private UserInfoModifyDto userModifyDto(User user) {
 
         return UserInfoModifyDto.builder()
