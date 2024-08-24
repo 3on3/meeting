@@ -49,8 +49,15 @@ public class UserSignUpService {
         }
     }
 
-    // 인증 코드 초기화 및 재발송
     private void clearAndResendVerification(String email, String univName) {
+        User user = userRepository.findByEmail(email).orElseThrow();
+
+        // Check if the user is already verified
+        if (user.getIsVerification()) {
+            log.info("User with email {} is already verified. No need to resend verification email.", email);
+            return;
+        }
+
         try {
             Map<String, Object> clearResponse = UnivCert.clear(univCertApiKey, email);
             if (clearResponse != null && Boolean.TRUE.equals(clearResponse.get("success"))) {
@@ -183,6 +190,9 @@ public class UserSignUpService {
                 new IllegalArgumentException("User not found with email: " + dto.getEmail()));
 
         log.info("Confirm sign up : {}", dto);
+
+        // 인증 코드 초기화 (회원가입 마무리 처리 시)
+        clearVerificationCode(dto.getEmail());
 
         String password = dto.getPassword();
         String encodedPassword = encoder.encode(password); // 비밀번호 암호화
