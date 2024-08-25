@@ -12,13 +12,20 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode
 @Builder
 public class ChatMessageRequestDto {
-    private String userId;
-    private String userEmail;
-    private String userNickname;
-    private String messageId;
-    private String messageContent;
-    private String profileImg;
-    private LocalDateTime messageAt;
+    @Builder.Default
+    private String userId = null;
+    @Builder.Default
+    private String userEmail = null;
+    @Builder.Default
+    private String userNickname = null;
+    @Builder.Default
+    private String messageId = null;
+    @Builder.Default
+    private String messageContent = null;
+    @Builder.Default
+    private String profileImg = null;
+    @Builder.Default
+    private LocalDateTime messageAt = null;
 
 
      public ChatMessageRequestDto(ChatMessage chatMessage) {
