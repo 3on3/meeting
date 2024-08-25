@@ -221,24 +221,29 @@ public class UserSignUpService {
                 dto.getNickname()
         );
 
+        userRepository.save(findUser);
+        log.info("user info - {}", findUser.getId());
+
         // UserProfile 생성 및 설정
         UserProfile userProfile = UserProfile.builder()
                 .profileImg("https://spring-file-bucket-yocong.s3.ap-northeast-2.amazonaws.com/2024/default_profile.png")
-                .profileIntroduce(null)
+                .profileIntroduce("")
                 .user(findUser)
                 .build();
+
+        userProfileRepository.save(userProfile);
+        log.info("user Profile info - {}", userProfile.getProfileImg());
 
 
 
         // UserMembership 생성 및 설정
         UserMembership userMembership = UserMembership.builder()
                 .user(findUser)
-                .auth(Membership.GENERAL) // 기본 멤버십으로 GENERAL 설정
                 .build();
 
-        findUser.setUserProfile(userProfile);
-        findUser.setMembership(userMembership);
-        userRepository.save(findUser);
+
+        userMembershipRepository.save(userMembership);
+        log.info("user membership  info - {}", userMembership.getAuth());
     }
 
     // 닉네임 업데이트
