@@ -7,6 +7,7 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Random;
 
 /**
  * BoardReply
@@ -42,7 +43,8 @@ public class BoardReply {
     @Builder.Default
     private Boolean isDeleted = false; // 삭제 여부
 
-
+    @Column(name = "mt_board_profile_img_url")
+    private String profileImgFile; // 랜덤 이미지
 
     @JsonIgnore
     @ToString.Exclude
@@ -58,5 +60,27 @@ public class BoardReply {
     @JoinColumn(name = "mt_board_id" , nullable = false)
     private Board board; // 보드
 
+
+    @PrePersist
+    public void prePersist() {
+        if (this.profileImgFile == null) {
+            this.profileImgFile = getRandomImageFile(); // 랜덤 이미지 선택
+        }
+    }
+
+    // 랜덤 이미지 URL 선택 로직
+    private String getRandomImageFile() {
+        String[] images = {
+                "developer-hun2zz.png",
+                "developer-jin.png",
+                "developer-jinu.png",
+                "developer-mimi.png",
+                "developer-silverji.png",
+                "developer-yocong.png"
+        };
+        Random random = new Random();
+        int index = random.nextInt(images.length);
+        return images[index];
+    }
 
 }
