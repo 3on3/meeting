@@ -195,6 +195,27 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     }
 
     /**
+     * 유저가 호스트로 권한으로 속한 그룹
+     * @param email - 유저 이메일
+     * @return - 그룹 dto
+     */
+    @Override
+    public List<GroupResponseDto> findGroupsByUserIdAndUserAuthHost(String email) {
+        QGroup group = QGroup.group;
+        QGroupUser groupUser = QGroupUser.groupUser;
+
+        List<Group> groups = factory.selectFrom(group)
+                .join(group.groupUsers, groupUser)
+                .where(groupUser.user.email.eq(email)
+                        .and(groupUser.status.eq(GroupStatus.REGISTERED))
+                        .and(groupUser.auth.eq(GroupAuth.HOST))) // status 필터링 추가)
+                .fetch();
+
+        return groups.stream().map(this::convertToGroupResponseDto).collect(Collectors.toList());
+    }
+
+
+    /**
      * 유저가 속해있는 그룹 조회
      * @param email - 유저의 이메일
      * @return - 유저가 속한 그룹 리스트
