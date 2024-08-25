@@ -26,6 +26,7 @@ public class RegisterController {
     public ResponseEntity<?> checkEmail(@RequestBody CertifyRequestDto dto) {
         log.info("Email verification request for: {}", dto.getEmail());
         boolean isDuplicate = userSignUpService.checkEmailDuplicate(dto.getEmail(), dto.getUnivName());
+        log.info("테스트 테스트");
         return ResponseEntity.ok().body(isDuplicate);
 
     }
