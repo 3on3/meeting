@@ -1,11 +1,9 @@
 package com.project.api.metting.service;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.project.api.metting.dto.request.CertifyRequestDto;
 import com.project.api.metting.dto.request.UserRegisterDto;
-import com.project.api.metting.entity.Membership;
-import com.project.api.metting.entity.User;
-import com.project.api.metting.entity.UserMembership;
-import com.project.api.metting.entity.UserProfile;
+import com.project.api.metting.entity.*;
 import com.project.api.metting.repository.UserMembershipRepository;
 import com.project.api.metting.repository.UserProfileRepository;
 import com.project.api.metting.repository.UserRepository;
@@ -21,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -202,7 +201,16 @@ public class UserSignUpService {
         User findUser = userRepository.findByEmail(dto.getEmail()).orElseThrow(() ->
                 new IllegalArgumentException("User not found with email: " + dto.getEmail()));
 
-        log.info("Confirm sign up : {}", dto);
+        log.info("dto - info - {}", dto.getEmail());
+        log.info("dto - info - {}", dto.getPassword());
+        log.info("dto - info - {}", dto.getName());
+        log.info("dto - info - {}", dto.getBirthDate());
+        log.info("dto - info - {}", dto.getPhoneNumber());
+        log.info("dto - info - {}", dto.getUnivName());
+        log.info("dto - info - {}", dto.getMajor());
+        log.info("dto - info - {}", dto.getGender());
+        log.info("dto - info - {}", dto.getNickname());
+
 
         // 인증 코드 초기화 (회원가입 마무리 처리 시)
         clearVerificationCode(dto.getEmail());
