@@ -21,35 +21,14 @@ public class RegisterController {
     private final UserSignInService userSignInService;
 
 
+    //이메일 중복확인 및 인증 메일 발송 API
     @PostMapping("/check-email")
     public ResponseEntity<?> checkEmail(@RequestBody CertifyRequestDto dto) {
         log.info("Email verification request for: {}", dto.getEmail());
+        boolean isDuplicate = userSignUpService.checkEmailDuplicate(dto.getEmail(), dto.getUnivName());
+        return ResponseEntity.ok().body(isDuplicate);
 
-        try {
-            // 주어진 이메일과 대학교 이름으로 이메일 중복 여부를 확인
-            boolean isDuplicate = userSignUpService.checkEmailDuplicate(dto.getEmail(), dto.getUnivName());
-
-            // 이메일이 중복되었는지 확인
-            if (isDuplicate) {
-                // 탈퇴한 회원인지 확인
-                User user = userSignUpService.findUserByEmail(dto.getEmail());
-                if (user != null && user.getIsWithdrawn()) {
-                    log.warn("The email {} belongs to a withdrawn user.", dto.getEmail());
-                    // 400 Bad Request와 함께 탈퇴한 이메일 메시지 반환
-                    return ResponseEntity.status(400).body("Account has been withdrawn");
-                }
-            }
-
-            // 중복 여부를 클라이언트에 응답으로 반환
-            // true: 중복된 이메일, false: 사용 가능한 이메일
-            return ResponseEntity.ok().body(isDuplicate);
-
-        } catch (Exception e) {
-            log.error("Error during email verification", e);
-            return ResponseEntity.status(500).body("Internal Server Error");
-        }
     }
-
 
     // 인증 코드 검증 API
     @PostMapping("/code")

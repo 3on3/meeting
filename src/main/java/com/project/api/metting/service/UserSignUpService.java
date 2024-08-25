@@ -1,5 +1,6 @@
 package com.project.api.metting.service;
 
+import com.project.api.metting.dto.request.CertifyRequestDto;
 import com.project.api.metting.dto.request.UserRegisterDto;
 import com.project.api.metting.entity.Membership;
 import com.project.api.metting.entity.User;
@@ -11,6 +12,7 @@ import com.univcert.api.UnivCert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,38 +34,27 @@ public class UserSignUpService {
 
     private final PasswordEncoder encoder; // 비밀번호 암호화
 
+
+
     // 이메일 중복 확인 및 사용자 처리
     public boolean checkEmailDuplicate(String email, String univName) {
-        // 이메일이 이미 존재하는지 확인 (이메일이 데이터베이스에 존재하는지 여부를 확인)
-        boolean exists = userRepository.existsByEmail(email);
+        boolean exists = userRepository.existsByEmail(email); // 이메일 존재 여부 확인
         log.info("Checking email {} is duplicate: {}", email, exists);
 
         if (exists) {
-
-            // 사용자를 데이터베이스에서 조회 (이메일을 통해 사용자 정보 가져오기)
-            User user = userRepository.findByEmail(email).orElseThrow();
-
-            // 탈퇴한 회원인지 확인
-            if (user.getIsWithdrawn()) {
-                log.info("The email {} belongs to a withdrawn user.", email);
-                return true; // 탈퇴한 회원이므로 중복된 이메일로 처리
-            }
-
-            // 이메일이 이미 존재하지만, 사용자가 인증을 완료하지 않은 경우
+            // 사용자가 존재하고 인증이 완료되지 않았을 경우 인증 코드 재발송
             if (notFinish(email)) {
-//                // 사용자를 데이터베이스에서 조회 (이메일을 통해 사용자 정보 가져오기)
-//                User user = userRepository.findByEmail(email).orElseThrow();
-                // 이전 인증 기록을 삭제하고 새로운 인증 코드를 재발송
+                User user = userRepository.findByEmail(email).orElseThrow();
                 clearAndResendVerification(email, user.getUnivName());
-                return false; // 인증 코드 재발송 후 false를 반환하여 중복된 이메일이 아님을 알림
+                return false;
             }
-            return true; // 사용자가 존재하고, 인증이 완료된 경우 true를 반환하여 중복된 이메일임을 알림
+            return true;
         } else {
-            // 이메일이 존재하지 않으면 신규 사용자 등록 처리
-            processSignUp(email, univName);
-            return false; // 신규 등록이므로 false를 반환하여 중복된 이메일이 아님을 알림
+            processSignUp(email, univName); // 신규 사용자 등록
+            return false;
         }
     }
+
 
     private void clearAndResendVerification(String email, String univName) {
         User user = userRepository.findByEmail(email).orElseThrow();
