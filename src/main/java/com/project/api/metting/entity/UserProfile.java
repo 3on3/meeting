@@ -25,6 +25,8 @@ import javax.persistence.*;
 public class UserProfile {
 
 
+
+
     @Id
     @GenericGenerator(strategy = "uuid2", name = "uuid-generator")
     @GeneratedValue(generator = "uuid-generator")
