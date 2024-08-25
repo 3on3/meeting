@@ -140,7 +140,7 @@ public class GroupService {
         log.info("invite code remainingTime - {}", remainingTime);
 
         // 초대 링크 생성
-        String inviteLink = "http://mymeetinh-s3-bucket.s3-website.ap-northeast-2.amazonaws.com/group/join/invite?code=" + inviteCode;
+        String inviteLink = "http://gwating.com.s3-website.ap-northeast-2.amazonaws.com/group/join/invite?code=" + inviteCode;
         findGroup.setCode(inviteLink);
 
         // 초대 링크와 남은 유효 시간 반환
