@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
  * user (FK)
  * : 유저 아이디 (1 : 1)
  */
+
 @Getter
 @ToString()
 @EqualsAndHashCode(of ="id")
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "mt_user_membership")
 public class UserMembership {
+
     @Id
     @GenericGenerator(strategy = "uuid2", name = "uuid-generator")
     @GeneratedValue(generator = "uuid-generator")
@@ -31,9 +33,10 @@ public class UserMembership {
 
 
     @Enumerated(EnumType.STRING)
-    @Setter
     @Column(name = "mt_user_membership_auth", nullable = false)
+    @Builder.Default
     private Membership auth = Membership.GENERAL;
+
     @Column(name = "mt_user_membership_registered_at")
     @Builder.Default // 가입시간 기본으로 생성
     private LocalDateTime registeredAt = LocalDateTime.now();

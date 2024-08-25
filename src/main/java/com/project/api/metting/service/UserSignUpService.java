@@ -238,7 +238,7 @@ public class UserSignUpService {
 
         // UserMembership 생성 및 설정
         UserMembership userMembership = UserMembership.builder()
-                .user(findUser)
+
                 .build();
 
 
