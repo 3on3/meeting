@@ -205,7 +205,7 @@ public class MyPageController {
      * @return 이메일 전송 성공 여부 또는 오류 메시지를 포함한 응답
      */
 
-    // 첫번째
+
     @PostMapping("/check-email")
     public ResponseEntity<?> sendEmail(@RequestBody EmailCheckDto emailCheckDto) {
         try {
@@ -217,53 +217,6 @@ public class MyPageController {
                     .body(Collections.singletonMap("error", true));
         }
     }
-
-    //두번째
-
-//    @PostMapping("/check-email")
-//    public ResponseEntity<?> checkEmail(@RequestBody EmailCheckDto emailCheckDto) {
-//        try {
-//            Map<String, String> status = userMyPageService.checkEmailStatus(emailCheckDto.getEmail());
-//            return ResponseEntity.ok(status);
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                    .body(Collections.singletonMap("error", true));
-//        }
-//    }
-
-//    @PostMapping("/check-email")
-//    public ResponseEntity<?> checkAndSendEmail(@RequestBody EmailCheckDto emailCheckDto) {
-//        try {
-//            // 이메일 상태를 확인합니다.
-//            Map<String, String> status = userMyPageService.checkEmailStatus(emailCheckDto.getEmail());
-//
-//            // 이메일이 사용 가능한 상태인지 확인
-//            if ("available".equals(status.get("status"))) {
-//                // 사용 가능한 이메일이라면 인증번호 발송
-//                userMyPageService.sendVerificationEmail(emailCheckDto.getEmail());
-//                return ResponseEntity.ok(Collections.singletonMap("message", "인증번호가 발송되었습니다."));
-//            }
-//
-//            // 이메일이 탈퇴된 상태라면 해당 상태를 반환
-//            if ("withdrawn".equals(status.get("status"))) {
-//                return ResponseEntity.ok(Collections.singletonMap("message", "탈퇴한 이메일입니다."));
-//            }
-//
-//            // 이메일이 중복된 상태라면 해당 상태를 반환
-//            if ("duplicate".equals(status.get("status"))) {
-//                return ResponseEntity.ok(Collections.singletonMap("message", "이미 사용 중인 이메일입니다."));
-//            }
-//
-//            // 예외적인 경우에 대한 처리
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("message", "잘못된 요청입니다."));
-//
-//        } catch (Exception e) {
-//            // 예외 처리
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                    .body(Collections.singletonMap("error", "서버 오류가 발생했습니다."));
-//        }
-//    }
-
 
 
     /**
