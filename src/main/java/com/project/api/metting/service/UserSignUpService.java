@@ -253,9 +253,4 @@ public class UserSignUpService {
         userRepository.save(user);
     }
 
-    public User findUserByEmail(String email) {
-        // 이메일로 사용자를 검색
-        return userRepository.findByEmail(email).orElse(null);
-    }
-
 }

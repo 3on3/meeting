@@ -27,6 +27,9 @@ public class ChatMessageRequestDto {
     @Builder.Default
     private LocalDateTime messageAt = null;
 
+    @Setter
+    private boolean isDelete;
+
 
      public ChatMessageRequestDto(ChatMessage chatMessage) {
          this.userEmail = chatMessage.getUser().getEmail();
@@ -36,5 +39,6 @@ public class ChatMessageRequestDto {
          this.messageContent = chatMessage.getMessageContent();
          this.profileImg = chatMessage.getUser().getUserProfile().getProfileImg();
          this.messageAt = chatMessage.getCreatedAt();
+         this.isDelete = false;
      }
 }
