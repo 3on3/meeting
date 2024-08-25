@@ -26,10 +26,11 @@ import java.time.LocalDateTime;
 public class UserMembership {
 
     @Id
+    @Builder.Default
     @GenericGenerator(strategy = "uuid2", name = "uuid-generator")
     @GeneratedValue(generator = "uuid-generator")
     @Column(name = "mt_user_membership_id")
-    private String id; // 멤버쉽 고유 아이디
+    private String id = ""; // 멤버쉽 고유 아이디
 
 
     @Enumerated(EnumType.STRING)
