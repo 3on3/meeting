@@ -6,6 +6,8 @@ import com.project.api.metting.entity.Membership;
 import com.project.api.metting.entity.User;
 import com.project.api.metting.entity.UserMembership;
 import com.project.api.metting.entity.UserProfile;
+import com.project.api.metting.repository.UserMembershipRepository;
+import com.project.api.metting.repository.UserProfileRepository;
 import com.project.api.metting.repository.UserRepository;
 
 import com.univcert.api.UnivCert;
@@ -31,6 +33,10 @@ public class UserSignUpService {
     private String univCertApiKey;
 
     private final UserRepository userRepository; // 사용자 DB
+
+    private final UserProfileRepository userProfileRepository;
+
+    private final UserMembershipRepository userMembershipRepository;
 
     private final PasswordEncoder encoder; // 비밀번호 암호화
 
@@ -222,7 +228,8 @@ public class UserSignUpService {
                 .user(findUser)
                 .build();
 
-        findUser.setUserProfile(userProfile);
+        userProfileRepository.save(userProfile);
+
 
         // UserMembership 생성 및 설정
         UserMembership userMembership = UserMembership.builder()
@@ -231,7 +238,7 @@ public class UserSignUpService {
                 .build();
 
         // User와 UserMembership 연관 설정
-        findUser.setMembership(userMembership);
+        userMembershipRepository.save(userMembership);
 
         userRepository.save(findUser);
     }
