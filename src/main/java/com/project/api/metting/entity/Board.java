@@ -47,7 +47,8 @@ public class Board {
 
     @Setter
     @Column(name = "mt_modified_at")
-    private LocalDateTime modifiedAt;
+    @Builder.Default
+    private LocalDateTime modifiedAt = null;
 
     @Setter
     @Column(name = "mt_board_is_deleted", nullable = false)

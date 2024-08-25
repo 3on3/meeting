@@ -34,6 +34,7 @@ public class UserMembership {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "mt_user_membership_auth", nullable = false)
+    @Setter
     @Builder.Default
     private Membership auth = Membership.GENERAL;
 
