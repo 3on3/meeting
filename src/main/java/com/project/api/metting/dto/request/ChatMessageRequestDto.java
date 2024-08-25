@@ -12,13 +12,15 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode
 @Builder
 public class ChatMessageRequestDto {
-    private String userId;
-    private String userEmail;
-    private String userNickname;
-    private String messageId;
-    private String messageContent;
-    private String profileImg;
-    private LocalDateTime messageAt;
+    private String userId = null;
+    private String userEmail = null;
+    private String userNickname =null;
+    private String messageId = null;
+    private String messageContent = null;
+    private String profileImg = null;
+    private LocalDateTime messageAt = null;
+    @Setter
+    private boolean isDelete;
 
 
      public ChatMessageRequestDto(ChatMessage chatMessage) {
@@ -29,5 +31,6 @@ public class ChatMessageRequestDto {
          this.messageContent = chatMessage.getMessageContent();
          this.profileImg = chatMessage.getUser().getUserProfile().getProfileImg();
          this.messageAt = chatMessage.getCreatedAt();
+         this.isDelete = false;
      }
 }

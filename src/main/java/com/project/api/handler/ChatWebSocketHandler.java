@@ -60,10 +60,10 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         ChatWebSocketResponseDto data = objectMapper.readValue(message.getPayload(), ChatWebSocketResponseDto.class);
 
         System.out.println("data = " + data);
-        System.out.println("data = " + data);
+
+        String chatroomId = data.getChatroomId();
 
         if(data.getType().equals("message")) {
-            String chatroomId = data.getChatroomId();
 
             for (Map.Entry<String, String> entry : users.entrySet()) {
                 if (chatroomId.equals(entry.getValue())) {
@@ -81,6 +81,26 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             }
         } else if(data.getType().equals("enter")) {
             users.put(session.getId(), data.getChatroomId());
+        } else if(data.getType().equals("delete")) {
+
+            for (Map.Entry<String, String> entry : users.entrySet()) {
+                if (chatroomId.equals(entry.getValue())) {
+                    sessions.values().forEach((s) -> {
+                        if(s.getId().equals(entry.getKey())) {
+                            try {
+                                String jsonMessage = objectMapper.writeValueAsString(
+                                        ChatMessageRequestDto.builder()
+                                                .isDelete(true)
+                                                .build()
+                                );
+                                s.sendMessage(new TextMessage(jsonMessage));
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    });
+                }
+            }
         }
     }
 
