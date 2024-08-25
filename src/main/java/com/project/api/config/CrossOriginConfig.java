@@ -14,7 +14,7 @@ public class CrossOriginConfig implements WebMvcConfigurer {
             "http://localhost:3000",
             "http://localhost:3001",
             "http://localhost:3002",
-            "http://mymeetinh-s3-bucket.s3-website.ap-northeast-2.amazonaws.com"
+            "http://gwating.com.s3-website.ap-northeast-2.amazonaws.com"
     };
     @Override
     public void addCorsMappings(CorsRegistry registry) {
