@@ -12,13 +12,21 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode
 @Builder
 public class ChatMessageRequestDto {
+    @Builder.Default
     private String userId = null;
+    @Builder.Default
     private String userEmail = null;
-    private String userNickname =null;
+    @Builder.Default
+    private String userNickname = null;
+    @Builder.Default
     private String messageId = null;
+    @Builder.Default
     private String messageContent = null;
+    @Builder.Default
     private String profileImg = null;
+    @Builder.Default
     private LocalDateTime messageAt = null;
+
     @Setter
     private boolean isDelete;
 

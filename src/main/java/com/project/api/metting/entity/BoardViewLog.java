@@ -24,6 +24,7 @@ public class BoardViewLog {
 
     @Setter
     @Column(name = "mt_board_view_log_last_viewed_at", nullable = false)
+    @Builder.Default
     private LocalDateTime lastViewedAt = LocalDateTime.now(); // 조회 시간
 
     @ManyToOne(fetch = FetchType.LAZY)
