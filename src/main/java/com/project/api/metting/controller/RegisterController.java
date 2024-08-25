@@ -27,7 +27,6 @@ public class RegisterController {
         log.info("Email verification request for: {}", dto.getEmail());
         boolean isDuplicate = userSignUpService.checkEmailDuplicate(dto.getEmail(), dto.getUnivName());
         return ResponseEntity.ok().body(isDuplicate);
-
     }
 
     // 인증 코드 검증 API

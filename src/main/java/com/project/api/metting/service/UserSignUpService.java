@@ -35,7 +35,6 @@ public class UserSignUpService {
     private final PasswordEncoder encoder; // 비밀번호 암호화
 
 
-
     // 이메일 중복 확인 및 사용자 처리
     public boolean checkEmailDuplicate(String email, String univName) {
         boolean exists = userRepository.existsByEmail(email); // 이메일 존재 여부 확인
@@ -54,6 +53,36 @@ public class UserSignUpService {
             return false;
         }
     }
+
+
+//    // 이메일 중복 확인 및 사용자 처리
+//    public boolean checkEmailDuplicate(String email, String univName) {
+//        // 이메일이 데이터베이스에 존재하는지 확인
+//        boolean exists = userRepository.existsByEmail(email);
+//        log.info("Checking if email {} is duplicate: {}", email, exists);
+//
+//        // 이메일이 이미 존재하는 경우
+//        if (exists) {
+//            // 특정 상태(예: 이메일 인증 미완료)를 확인
+//            if (notFinish(email)) {
+//                // 이메일에 해당하는 사용자를 데이터베이스에서 조회
+//                User user = userRepository.findByEmail(email).orElseThrow();
+//                // 기존 인증 정보를 초기화하고, 인증 코드를 다시 발송
+//                clearAndResendVerification(email, user.getUnivName());
+//                // 이메일 중복으로 처리하지 않음 (재발송 처리)
+//                return false;
+//            }
+//            // 이메일 중복으로 처리
+//            return true;
+//        } else {
+//            // 이메일이 존재하지 않으면 회원가입 프로세스를 진행
+//            processSignUp(email, univName);
+//            // 이메일 중복이 아님을 반환
+//            return false;
+//        }
+//    }
+
+
 
 
     private void clearAndResendVerification(String email, String univName) {
