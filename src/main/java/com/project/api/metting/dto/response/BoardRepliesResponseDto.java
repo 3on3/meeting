@@ -21,5 +21,7 @@ public class BoardRepliesResponseDto {
     @Setter
     private Boolean isAuthor = false; //작성자 유무
 
+    private String imgFile;
+
 
 }

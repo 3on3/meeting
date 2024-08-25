@@ -60,7 +60,7 @@ public class Board {
     private Integer viewCount = 0; // 조회수
 
     @Column(name = "mt_board_profile_img_url")
-    private String profileImgFile;
+    private String profileImgFile; // 랜덤 이미지
 
     @JsonIgnore
     @ToString.Exclude
@@ -92,7 +92,7 @@ public class Board {
                 "developer-hun2zz.png",
                 "developer-jin.png",
                 "developer-jinu.png",
-                "developer-mimi-.png",
+                "developer-mimi.png",
                 "developer-silverji.png",
                 "developer-yocong.png"
         };

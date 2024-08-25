@@ -48,6 +48,7 @@ public class BoardRepliesService {
                         .createdDate(boardReply.getCreatedAt().format(dateTimeFormatter()))
                         .content(boardReply.getContent())
                         .isAuthor(tokenUserInfo.getUserId().equals(boardReply.getAuthor().getId()))
+                        .imgFile(boardReply.getProfileImgFile())
                         .build());
 
 
@@ -82,6 +83,7 @@ public class BoardRepliesService {
                 .id(saveBoardReply.getId())
                 .createdDate(saveBoardReply.getCreatedAt().format(dateTimeFormatter()))
                 .isAuthor(tokenUserInfo.getUserId().equals(saveBoardReply.getAuthor().getId()))
+                .imgFile(saveBoardReply.getProfileImgFile())
                 .build();
 
 
