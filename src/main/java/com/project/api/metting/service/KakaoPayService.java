@@ -53,9 +53,9 @@ public class KakaoPayService {
         parameters.put("quantity", "1");
         parameters.put("total_amount", String.valueOf(params.get("total_amount")));
         parameters.put("tax_free_amount", "0");
-        parameters.put("approval_url", "http://gwating.com.s3-website.ap-northeast-2.amazonaws.com/payment/approval");
-        parameters.put("cancel_url", "http://gwating.com.s3-website.ap-northeast-2.amazonaws.com");
-        parameters.put("fail_url", "http://gwating.com.s3-website.ap-northeast-2.amazonaws.com");
+        parameters.put("approval_url", "http://gwating.com/payment/approval");
+        parameters.put("cancel_url", "http://gwating.com");
+        parameters.put("fail_url", "http://gwating.com");
 //        parameters.put("approval_url", "http://localhost:8253/payment/approval/");
 //        parameters.put("cancel_url", "http://localhost:8253/");
 //        parameters.put("fail_url", "http://localhost:8253/");
