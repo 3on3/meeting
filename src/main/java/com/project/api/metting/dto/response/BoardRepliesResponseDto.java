@@ -19,6 +19,7 @@ public class BoardRepliesResponseDto {
     private String createdDate;//작성일자
 
     @Setter
+    @Builder.Default
     private Boolean isAuthor = false; //작성자 유무
 
     private String imgFile;

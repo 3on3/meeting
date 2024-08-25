@@ -21,6 +21,7 @@ public class BoardResponseDto {
     private String modifiedAt = null;
     private Integer viewCount;
     @Setter
+    @Builder.Default
     private Boolean isAuthor = false;
     private String imgFile;
 }
