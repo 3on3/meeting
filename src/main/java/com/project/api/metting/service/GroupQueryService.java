@@ -37,15 +37,16 @@ public class GroupQueryService {
      * @return - 매칭 조건 일치하며 내가 속한 그룹들 dto
      */
     public List<GroupResponseDto> getMatchedMyGroups(TokenProvider.TokenUserInfo tokenInfo, String id) {
-        List<GroupResponseDto> groupsByUserEmail = groupRepository.findGroupsByUserEmail(tokenInfo.getEmail());
+        List<GroupResponseDto> groupsByUserEmail = groupRepository.findGroupsByUserIdAndUserAuthHost(tokenInfo.getEmail());
         Group responseGroup = groupRepository.findById(id).orElseThrow();
-
+//        groupsByUserEmail.stream().forEach(groupResponseDto -> groupRepository.findById(groupResponseDto.getId()));
         return groupsByUserEmail.stream()
                 .filter(
                         groupResponseDto ->
                         groupResponseDto.getGroupGender() != responseGroup.getGroupGender()
                                 && groupResponseDto.getGroupPlace() == responseGroup.getGroupPlace()
                                 && groupResponseDto.getMemberCount() == responseGroup.getMaxNum()
+
                         ).collect(Collectors.toList());
     }
 }
