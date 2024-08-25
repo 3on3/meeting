@@ -228,7 +228,6 @@ public class UserSignUpService {
                 .user(findUser)
                 .build();
 
-        userProfileRepository.save(userProfile);
 
 
         // UserMembership 생성 및 설정
@@ -237,9 +236,8 @@ public class UserSignUpService {
                 .auth(Membership.GENERAL) // 기본 멤버십으로 GENERAL 설정
                 .build();
 
-        // User와 UserMembership 연관 설정
-        userMembershipRepository.save(userMembership);
-
+        findUser.setUserProfile(userProfile);
+        findUser.setMembership(userMembership);
         userRepository.save(findUser);
     }
 
