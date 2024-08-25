@@ -45,27 +45,26 @@ public class UserMyPageService {
     // 이메일 전송 객체
     private final JavaMailSender mailSender;
 
+
     private final AwsS3Service awsS3Service;
 
 
-
-
-        /**
-         * 주어진 사용자 ID에 해당하는 유저 정보
-         *
-         * @param userId - 조회할 사용자의 ID
-         * @return UserMyPageDto - 사용자 정보가 담긴 DTO
-         * @throws IllegalArgumentException - 사용자를 찾을 수 없는 경우 예외 발생
-         */
+    /**
+     * 주어진 사용자 ID에 해당하는 유저 정보
+     *
+     * @param userId - 조회할 사용자의 ID
+     * @return UserMyPageDto - 사용자 정보가 담긴 DTO
+     * @throws IllegalArgumentException - 사용자를 찾을 수 없는 경우 예외 발생
+     */
     public UserMyPageDto getUserInfo(String userId) {
         User user = userMyPageRepository.findById(userId)
-                                        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         return convertToDto(user);
     }
 
     private UserMyPageDto convertToDto(User user) {
 
-         return UserMyPageDto.builder()
+        return UserMyPageDto.builder()
                 .profileIntroduce(user.getUserProfile() != null && user.getUserProfile().getProfileIntroduce() != null
                         ? user.getUserProfile().getProfileIntroduce()
                         : "소개가 없습니다.")
@@ -91,11 +90,11 @@ public class UserMyPageService {
     private UserInfoModifyDto userModifyDto(User user) {
 
         return UserInfoModifyDto.builder()
-                            .name(user.getName()) //이름
-                            .email(user.getEmail()) //이메일
-                            .birthDate(user.getBirthDate()) //생년월일
-                            .gender(user.getGender()) //성별
-                            .build();
+                .name(user.getName()) //이름
+                .email(user.getEmail()) //이메일
+                .birthDate(user.getBirthDate()) //생년월일
+                .gender(user.getGender()) //성별
+                .build();
     }
 
 
@@ -117,7 +116,7 @@ public class UserMyPageService {
      * @param userId    - 업데이트할 사용자의 ID
      * @param updateDto - 업데이트할 사용자 정보가 포함된 DTO
      * @return 업데이트된 사용자 정보가 담긴 UserMyPageDto
-     * @throws IllegalArgumentException    - 유효하지 않은 사용자 ID일 경우 예외 발생
+     * @throws IllegalArgumentException   - 유효하지 않은 사용자 ID일 경우 예외 발생
      * @throws DuplicateNicknameException - 닉네임이 중복될 경우 예외 발생
      */
     public UserMyPageDto updateUserFields(String userId, UserUpdateRequestDto updateDto) {
@@ -145,14 +144,14 @@ public class UserMyPageService {
         if (updateDto.getProfileIntroduce() != null) {
             UserProfile userProfile = user.getUserProfile();
 
-        if (userProfile == null) {
-            userProfile = new UserProfile();
-        }
-        // profileIntroduce 값을 설정
-        userProfile.setProfileIntroduce(updateDto.getProfileIntroduce());
+            if (userProfile == null) {
+                userProfile = new UserProfile();
+            }
+            // profileIntroduce 값을 설정
+            userProfile.setProfileIntroduce(updateDto.getProfileIntroduce());
 
-        // User 객체에 UserProfile 설정
-        user.setUserProfile(userProfile);
+            // User 객체에 UserProfile 설정
+            user.setUserProfile(userProfile);
         }
         userMyPageRepository.save(user);
         return convertToUserMyPageDto(user);
@@ -170,7 +169,6 @@ public class UserMyPageService {
         // 조회한 User 객체와 연결된 UserProfile을 반환
         return user.map(userProfileRepository::findByUser).orElse(null);
     }
-
 
 
     // User 엔티티를 UserMyPageDto로 변환
@@ -191,12 +189,11 @@ public class UserMyPageService {
     }
 
 
-
     /**
      * 사용자의 비밀번호를 변경
      *
-     * @param userId             - 비밀번호를 변경할 사용자의 ID
-     * @param changePasswordDto  - 비밀번호 변경에 필요한 정보가 담긴 DTO
+     * @param userId            - 비밀번호를 변경할 사용자의 ID
+     * @param changePasswordDto - 비밀번호 변경에 필요한 정보가 담긴 DTO
      * @throws IllegalArgumentException - 비밀번호 변경 데이터가 null이거나, 비밀번호가 일치하지 않을 경우 발생
      */
     public void changePassword(String userId, ChangePasswordDto changePasswordDto) {
@@ -247,7 +244,7 @@ public class UserMyPageService {
      * @param email - 인증 이메일을 보낼 사용자 이메일 주소
      * @return 생성된 인증 코드
      * @throws IllegalArgumentException - 사용자를 찾을 수 없을 경우 발생
-     * @throws RuntimeException - 이메일 전송 중 오류가 발생할 경우 발생
+     * @throws RuntimeException         - 이메일 전송 중 오류가 발생할 경우 발생
      */
     @Transactional
     public String sendVerificationEmail(String email) {
@@ -415,8 +412,8 @@ public class UserMyPageService {
     /**
      * 사용자의 계정을 탈퇴 처리
      *
-     * @param email          - 탈퇴 처리할 사용자의 이메일
-     * @param tokenUserInfo  - 현재 로그인된 사용자 정보
+     * @param email         - 탈퇴 처리할 사용자의 이메일
+     * @param tokenUserInfo - 현재 로그인된 사용자 정보
      * @throws IllegalArgumentException - 사용자를 찾을 수 없는 경우 발생
      */
     public void withDrawnUser(String email, TokenUserInfo tokenUserInfo) {
@@ -426,6 +423,36 @@ public class UserMyPageService {
         findUser.setIsWithdrawn(true);
         userRepository.save(findUser);
     }
+
+//    @Transactional
+//    public Map<String, String> checkEmailStatus(String email) {
+//        // 이메일 상태를 확인하기 위한 로그 메시지를 기록
+//        log.info("Checking email status - {}", email);
+//
+//        // 이메일을 통해 사용자를 조회, 사용자가 없으면 null 반환
+//        User findUser = userMyPageRepository.findByEmail(email).orElse(null);
+//        System.out.println("=============" + findUser);
+//
+//        // 이메일 상태를 저장할 결과 맵을 생성
+//        Map<String, String> result = new HashMap<>();
+//        System.out.println("=============" + result);
+//
+//        // 사용자가 없으면 이메일이 사용 가능한 상태로 설정
+//        if (findUser == null) {
+//            result.put("status", "available");
+//        }
+//        // 사용자가 있지만 탈퇴한 상태라면 이메일 상태를 'withdrawn'으로 설정
+//        else if (findUser.getIsWithdrawn()) {
+//            result.put("status", "withdrawn");
+//        }
+//        // 사용자가 존재하고 탈퇴하지 않은 상태라면 이메일 상태를 'duplicate'으로 설정
+//        else {
+//            result.put("status", "duplicate");
+//        }
+//
+//        // 이메일 상태를 포함한 결과 맵을 반환
+//        return result;
+//    }
 
 
 }
