@@ -66,6 +66,7 @@ public class BoardService {
                         .viewCount(board.getViewCount())
                         .writer(board.getAuthor().getName())
                         .viewCount(board.getViewCount())
+                        .imgFile(board.getProfileImgFile())
                         .build()).collect(Collectors.toList());
 
     }
@@ -83,6 +84,7 @@ public class BoardService {
                 .writer(board.getAuthor().getName())
                 .viewCount(board.getViewCount())
                 .isAuthor(tokenUserInfo.getUserId().equals(board.getAuthor().getId()))
+                        .imgFile(board.getProfileImgFile())
                 .build()).collect(Collectors.toList());
 
     }
@@ -154,6 +156,8 @@ public class BoardService {
                 .viewCount(saved.getViewCount())
                 .createdAt(convertDateToString(saved.getCreatedAt()))
                 .modifiedAt(convertDateToString(saved.getModifiedAt()))
+                .imgFile(board.getProfileImgFile())
+
                 .isAuthor(tokenUserInfo.getUserId().equals(saved.getAuthor().getId()))
                 .build();
     }
@@ -171,7 +175,8 @@ public class BoardService {
         Board build = Board.builder().title(boardRequestDto.getTitle()).content(boardRequestDto.getContent()).author(user).build();
         boardRepository.save(build);
 
-        return BoardResponseDto.builder().id(build.getId()).title(build.getTitle()).content(build.getContent()).createdAt(convertDateToString(build.getCreatedAt())).writer(build.getAuthor().getName()).build();
+
+        return BoardResponseDto.builder().id(build.getId()).title(build.getTitle()).content(build.getContent()).createdAt(convertDateToString(build.getCreatedAt())).writer(build.getAuthor().getName()).imgFile(build.getProfileImgFile()).build();
 
     }
 

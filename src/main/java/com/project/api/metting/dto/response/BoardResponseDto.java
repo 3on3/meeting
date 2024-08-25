@@ -22,4 +22,5 @@ public class BoardResponseDto {
     private Integer viewCount;
     @Setter
     private Boolean isAuthor = false;
+    private String imgFile;
 }

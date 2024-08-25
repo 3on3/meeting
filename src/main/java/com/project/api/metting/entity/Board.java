@@ -7,6 +7,7 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Board
@@ -58,6 +59,9 @@ public class Board {
     @Builder.Default
     private Integer viewCount = 0; // 조회수
 
+    @Column(name = "mt_board_profile_img_url")
+    private String profileImgFile;
+
     @JsonIgnore
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
@@ -74,5 +78,27 @@ public class Board {
     @OneToMany(mappedBy = "board", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<BoardViewLog> boardViewLogs;
 
+
+    @PrePersist
+    public void prePersist() {
+        if (this.profileImgFile == null) {
+            this.profileImgFile = getRandomImageFile(); // 랜덤 이미지 선택
+        }
+    }
+
+    // 랜덤 이미지 URL 선택 로직
+    private String getRandomImageFile() {
+        String[] images = {
+                "developer-hun2zz.png",
+                "developer-jin.png",
+                "developer-jinu.png",
+                "developer-mimi-.png",
+                "developer-silverji.png",
+                "developer-yocong.png"
+        };
+        Random random = new Random();
+        int index = random.nextInt(images.length);
+        return images[index];
+    }
 
 }
