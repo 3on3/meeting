@@ -31,8 +31,7 @@ public class UserProfile {
     @GenericGenerator(strategy = "uuid2", name = "uuid-generator")
     @GeneratedValue(generator = "uuid-generator")
     @Column(name = "mt_profile_id")
-    @Builder.Default
-    private String id = ""; // 프로필 아이디
+    private String id; // 프로필 아이디
 
     @Setter
     @Column(name = "mt_profile_img", length = 1024)

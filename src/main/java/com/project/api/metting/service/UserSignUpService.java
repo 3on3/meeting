@@ -232,15 +232,15 @@ public class UserSignUpService {
         userRepository.save(findUser);
         log.info("user info - {}", findUser.getId());
 
-//        // UserProfile 생성 및 설정
-//        UserProfile userProfile = UserProfile.builder()
-//                .profileImg("https://spring-file-bucket-yocong.s3.ap-northeast-2.amazonaws.com/2024/default_profile.png")
-//                .user(findUser)
-//                .profileIntroduce("")
-//                .build();
+        // UserProfile 생성 및 설정
+        UserProfile userProfile = UserProfile.builder()
+                .profileImg("https://spring-file-bucket-yocong.s3.ap-northeast-2.amazonaws.com/2024/default_profile.png")
+                .user(findUser)
+                .profileIntroduce("")
+                .build();
 
-//        userProfileRepository.save(userProfile);
-//        log.info("user Profile info - {}", userProfile.getProfileImg());
+        userProfileRepository.save(userProfile);
+        log.info("user Profile info - {}", userProfile.getProfileImg());
 
 
 
