@@ -213,7 +213,7 @@ public class UserSignUpService {
 
 
         // 인증 코드 초기화 (회원가입 마무리 처리 시)
-        clearVerificationCode(dto.getEmail());
+
 
         String password = dto.getPassword();
         String encodedPassword = encoder.encode(password); // 비밀번호 암호화
@@ -235,8 +235,8 @@ public class UserSignUpService {
         // UserProfile 생성 및 설정
         UserProfile userProfile = UserProfile.builder()
                 .profileImg("https://spring-file-bucket-yocong.s3.ap-northeast-2.amazonaws.com/2024/default_profile.png")
-                .profileIntroduce("")
                 .user(findUser)
+                .profileIntroduce("")
                 .build();
 
         userProfileRepository.save(userProfile);
@@ -246,12 +246,14 @@ public class UserSignUpService {
 
         // UserMembership 생성 및 설정
         UserMembership userMembership = UserMembership.builder()
-
+                .user(findUser)
                 .build();
 
 
         userMembershipRepository.save(userMembership);
         log.info("user membership  info - {}", userMembership.getAuth());
+
+        clearVerificationCode(dto.getEmail());
     }
 
     // 닉네임 업데이트
