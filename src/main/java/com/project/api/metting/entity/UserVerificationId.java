@@ -9,7 +9,9 @@ public class UserVerificationId implements Serializable {
     private String email;  // UserVerification 엔티티의 email
 
     // 기본 생성자
-    public UserVerificationId() {}
+    public UserVerificationId() {
+
+    }
 
     // 매개변수 생성자
     public UserVerificationId(String id, String email) {
