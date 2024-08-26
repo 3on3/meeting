@@ -42,7 +42,12 @@ public class SecurityConfig {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/signup/**", "/login", "/intro", "/socket/**", "/password/**", "/board/**").permitAll()
-                .anyRequest().authenticated();
+                .anyRequest().authenticated()
+                .and()
+                // HTTP를 HTTPS로 리디렉션
+                .requiresChannel()
+                .anyRequest().requiresSecure();
+        ;
 
         http.addFilterAfter(jwtAuthFilter, CorsFilter.class);
 
