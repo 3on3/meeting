@@ -36,7 +36,7 @@ public class MainService {
      * @return 필터링된 미팅 리스트의 페이지
      */
     public Page<MainMeetingListResponseDto> getMeetingList(String email, int pageNo,String gender,String region,Integer personnel) {
-        PageRequest pageable = PageRequest.of(pageNo - 1, 4);
+        PageRequest pageable = PageRequest.of(pageNo - 1, 15);
         Page<MainMeetingListResponseDto> mainMeetingListResponseDtos = groupRepository.findGroupUsersByAllGroup(pageable,gender,region,personnel,email);
 
 
