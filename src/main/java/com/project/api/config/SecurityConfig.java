@@ -41,7 +41,7 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/signup/**","/login", "/intro", "/socket/**", "/password/**", "/board/**").permitAll()
+                .antMatchers("/signup/**", "/login", "/intro", "/socket/**", "/password/**", "/board/**").permitAll()
                 .anyRequest().authenticated();
 
         http.addFilterAfter(jwtAuthFilter, CorsFilter.class);
@@ -63,7 +63,7 @@ public class SecurityConfig {
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true); // allowCredentials 설정 추가
+        configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
