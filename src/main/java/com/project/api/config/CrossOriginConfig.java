@@ -14,9 +14,7 @@ public class CrossOriginConfig implements WebMvcConfigurer {
             "http://localhost:3000",
             "http://localhost:3001",
             "http://localhost:3002",
-            "https://gwating.com",
-            "https://www.gwating.com",
-            "https://d1jw85cmg05158.cloudfront.net"
+            "http://gwating.com.s3-website.ap-northeast-2.amazonaws.com"
     };
     @Override
     public void addCorsMappings(CorsRegistry registry) {
