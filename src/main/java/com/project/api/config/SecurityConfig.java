@@ -42,12 +42,7 @@ public class SecurityConfig {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/signup/**", "/login", "/intro", "/socket/**", "/password/**", "/board/**").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                // HTTP를 HTTPS로 리디렉션
-                .requiresChannel()
-                .anyRequest().requiresSecure();
-        ;
+                .anyRequest().authenticated();
 
         http.addFilterAfter(jwtAuthFilter, CorsFilter.class);
 
@@ -57,18 +52,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",
-                "http://localhost:3001",
-                "http://localhost:3002",
-                "https://gwating.com",
-                "https://www.gwating.com",
-                "https://d1jw85cmg05158.cloudfront.net",
-                "https://3.38.26.248"
-        ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true);
+        configuration.setAllowedOrigins(Arrays.asList("*"));  // 모든 출처 허용
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH"));  // 모든 메서드 허용
+        configuration.setAllowedHeaders(Arrays.asList("*"));  // 모든 헤더 허용
+        configuration.setAllowCredentials(true);  // 인증 정보 허용
+        configuration.setMaxAge(3600L);  // Preflight 요청 캐시 시간 설정
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
