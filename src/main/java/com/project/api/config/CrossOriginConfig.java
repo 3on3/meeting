@@ -27,6 +27,7 @@ public class CrossOriginConfig implements WebMvcConfigurer {
                 .allowedMethods("*") //어떤 방식에서
                 .allowedHeaders("*") //어떤 헤더를 허용할지
                 .allowCredentials(true) // 쿠키 전송을 허용할지
+                .exposedHeaders("Authorization") // 예시: 클라이언트에 노출할 헤더 추가
                 .maxAge(3600L); // Pre-flight 요청의 캐싱 시간(초)
         ;
     }
