@@ -7,7 +7,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 //전역 크로스 오리진 설정 : 어떤 클라이언트를 허용할 것인지
 @Configuration
-
 public class CrossOriginConfig implements WebMvcConfigurer {
 
     private String[] url = {
@@ -17,6 +16,7 @@ public class CrossOriginConfig implements WebMvcConfigurer {
             "https://gwating.com",
             "https://www.gwating.com",
             "https://d1jw85cmg05158.cloudfront.net",
+            "https://3.38.26.248"
 
     };
     @Override
