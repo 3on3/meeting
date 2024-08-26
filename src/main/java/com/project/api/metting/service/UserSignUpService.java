@@ -47,14 +47,12 @@ public class UserSignUpService {
         log.info("Checking email {} is duplicate: {}", email, exists);
 
         if (exists) {
-            // 중복된 유저가 존재하면 해당 유저를 삭제
-            User user = userRepository.findByEmail(email).orElseThrow();
-            log.info("Deleting existing user with email: {}", email);
-            userRepository.delete(user);
-
-            // 기존 사용자가 삭제되었으므로 새 사용자 등록
-            processSignUp(email, univName);
-            return false;
+            if (notFinish(email)) {
+                User user = userRepository.findByEmail(email).orElseThrow();
+                clearAndResendVerification(email, user.getUnivName());
+                return false;
+            }
+            return true;
         } else {
             processSignUp(email, univName); // 신규 사용자 등록
             return false;
