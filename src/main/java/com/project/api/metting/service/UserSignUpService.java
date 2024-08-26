@@ -47,13 +47,14 @@ public class UserSignUpService {
         log.info("Checking email {} is duplicate: {}", email, exists);
 
         if (exists) {
-            // 사용자가 존재하고 인증이 완료되지 않았을 경우 인증 코드 재발송
-            if (notFinish(email)) {
-                User user = userRepository.findByEmail(email).orElseThrow();
-                clearAndResendVerification(email, user.getUnivName());
-                return false;
-            }
-            return true;
+            // 중복된 유저가 존재하면 해당 유저를 삭제
+            User user = userRepository.findByEmail(email).orElseThrow();
+            log.info("Deleting existing user with email: {}", email);
+            userRepository.delete(user);
+
+            // 기존 사용자가 삭제되었으므로 새 사용자 등록
+            processSignUp(email, univName);
+            return false;
         } else {
             processSignUp(email, univName); // 신규 사용자 등록
             return false;
@@ -93,9 +94,31 @@ public class UserSignUpService {
     // 사용자가 인증을 완료했는지 확인
     private boolean notFinish(String email) {
         return userRepository.findByEmail(email)
-                .map(user -> !user.getIsVerification() || user.getPassword() == null)
-                .orElse(false);
+        .map(user -> {
+            // 이메일 인증 상태 로그
+            log.info("User with email {} verification status: {}", email, user.getIsVerification());
+
+            // 비밀번호가 null인지 로그
+            if (user.getPassword() == null) {
+                log.info("User with email {} has null password.", email);
+            } else {
+                log.info("User with email {} has a non-null password.", email);
+            }
+
+            // 인증이 완료되지 않았거나 비밀번호가 null인 경우
+            if (!user.getIsVerification() || user.getPassword() == null) {
+
+                // 인증 코드 초기화 및 재발송
+                clearAndResendVerification(email, user.getUnivName());
+                return true;
+            }
+            return false;
+        })
+        .orElse(false);
     }
+
+
+
 
     // 인증코드 초기화 요청
     private void clearVerificationCode(String email) {
