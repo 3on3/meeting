@@ -45,10 +45,10 @@ public class MainService {
         List<Group> groupsByUserEmail = groupRepository.findGroupsEntityByUserEmail(email);
 
 
-        setMatchingStatus(groupsByUserEmail,mainMeetingListResponseDtos,"Request");
-        setMatchingStatus(groupsByUserEmail,mainMeetingListResponseDtos,"Response");
-//        setMatchingStatusRequesting(groupsByUserEmail,mainMeetingListResponseDtos);
-//        setMatchingStatusResponse(groupsByUserEmail,mainMeetingListResponseDtos);
+//        setMatchingStatus(groupsByUserEmail,mainMeetingListResponseDtos,"Request");
+//        setMatchingStatus(groupsByUserEmail,mainMeetingListResponseDtos,"Response");
+        setMatchingStatusRequesting(groupsByUserEmail,mainMeetingListResponseDtos);
+        setMatchingStatusResponse(groupsByUserEmail,mainMeetingListResponseDtos);
 
         return mainMeetingListResponseDtos;
     }
@@ -82,15 +82,22 @@ public class MainService {
 
             // 아이디만 collect 한 리스트
             inviteHistoriesId.addAll(inviteCollect);
+            log.info("inviteHistoriesId: {}", inviteHistoriesId);
             denyHistoriesId.addAll(denyCollect);
+            log.info("denyHistoriesId: {}", denyHistoriesId);
             closedHistoriesId.addAll(closedCollect);
+            log.info("closedHistoriesId: {}", closedHistoriesId);
 
             mainMeetingListResponseDtos.forEach(dto -> {
                 if (inviteHistoriesId.contains(dto.getId())) {
                     if(method.equals("Request")){
                         dto.setMatchingStatus(MatchingStatus.REQUESITNG);
+                        log.info("inviteHistoriesId REQUESITNG: {}", inviteHistoriesId);
+
                     } else if (method.equals("Response")) {
                         dto.setMatchingStatus(MatchingStatus.RESPONSE);
+                        log.info("inviteHistoriesId RESPONSE: {}", inviteHistoriesId);
+
                     }
                 }
                 else if (denyHistoriesId.contains(dto.getId())) {
@@ -118,28 +125,42 @@ public class MainService {
         List<String> closedRequestHistoriesId = new ArrayList<>();
 
         for (Group group : groupsByUserEmail) {
-            // 5-1. 히스토리 중 리퀘스트 아이디가 일치하는 히스토리
-            allRequestHistories.addAll(groupMatchingHistoriesRepository.findAllByRequestGroup(group)) ;
-            // 5-2. 로그인한 유저에게 매칭신청을 받은 그룹들 아이디
-            List<String> invitingCollect = allRequestHistories.stream().filter(groupMatchingHistory -> groupMatchingHistory.getProcess().equals(GroupProcess.INVITING)).map(groupMatchingHistory -> groupMatchingHistory.getResponseGroup().getId() ).collect(Collectors.toList());
-            List<String> deniedCollect = allRequestHistories.stream().filter(groupMatchingHistory -> groupMatchingHistory.getProcess().equals(GroupProcess.DENIED)).map(groupMatchingHistory -> groupMatchingHistory.getResponseGroup().getId() ).collect(Collectors.toList());
-            List<String> closedCollect = allRequestHistories.stream().filter(groupMatchingHistory -> groupMatchingHistory.getProcess().equals(GroupProcess.CLOSED)).map(groupMatchingHistory -> groupMatchingHistory.getResponseGroup().getId() ).collect(Collectors.toList());
+            // 로그인한 유저가 매칭 신청한 모든 히스토리를 담을 리스트
+            List<GroupMatchingHistory> histories = groupMatchingHistoriesRepository.findAllByRequestGroup(group);
 
+            // 각 상태별로 히스토리를 필터링하여 수집
+            List<String> invitingCollect = histories.stream()
+                    .filter(history -> history.getProcess().equals(GroupProcess.INVITING))
+                    .map(history -> history.getResponseGroup().getId())
+                    .collect(Collectors.toList());
+
+            List<String> deniedCollect = histories.stream()
+                    .filter(history -> history.getProcess().equals(GroupProcess.DENIED))
+                    .map(history -> history.getResponseGroup().getId())
+                    .collect(Collectors.toList());
+
+            List<String> closedCollect = histories.stream()
+                    .filter(history -> history.getProcess().equals(GroupProcess.CLOSED))
+                    .map(history -> history.getResponseGroup().getId())
+                    .collect(Collectors.toList());
+
+            // 각각의 리스트에 올바르게 데이터를 추가
             invitingRequestHistoriesId.addAll(invitingCollect);
             deniedRequestHistoriesId.addAll(deniedCollect);
             closedRequestHistoriesId.addAll(closedCollect);
         }
         log.info("invitingRequestHistoriesId = {}", invitingRequestHistoriesId);
-
+    log.info("deniedRequestHistoriesId = {}", deniedRequestHistoriesId);
+    log.info("closedRequestHistoriesId = {}", closedRequestHistoriesId);
         // 6. mainMeetingListResponseDtos 리스트의 각 DTO에 대해 매칭 히스토리 존재 여부를 설정
         mainMeetingListResponseDtos.forEach(dto -> {
             if (invitingRequestHistoriesId.contains(dto.getId())) {
                 dto.setMatchingStatus(MatchingStatus.REQUESITNG);
             }
-            else if (deniedRequestHistoriesId.contains(dto.getId())) {
+            if (deniedRequestHistoriesId.contains(dto.getId())) {
                 dto.setMatchingStatus(MatchingStatus.REQUEST_DENIED);
             }
-            else if (closedRequestHistoriesId.contains(dto.getId())) {
+            if (closedRequestHistoriesId.contains(dto.getId())) {
                 dto.setMatchingStatus(MatchingStatus.CLOSED);
             }
         });
@@ -161,27 +182,43 @@ public class MainService {
 
         for (Group group : groupsByUserEmail) {
             // 5-1. 히스토리 중 리스폰스 아이디가 일치하는 히스토리
-            allResponseHistories.addAll(groupMatchingHistoriesRepository.findAllByResponseGroup(group)) ;
-            // 5-2. 로그인한 유저에게 매칭신청을 한 그룹들 아이디
-            List<String> invitedCollect = allResponseHistories.stream().filter(groupMatchingHistory -> groupMatchingHistory.getProcess().equals(GroupProcess.INVITING)).map(groupMatchingHistory -> groupMatchingHistory.getRequestGroup().getId() ).collect(Collectors.toList());
-            List<String> denyCollect = allResponseHistories.stream().filter(groupMatchingHistory -> groupMatchingHistory.getProcess().equals(GroupProcess.DENIED)).map(groupMatchingHistory -> groupMatchingHistory.getRequestGroup().getId() ).collect(Collectors.toList());
-            List<String> closedCollect = allResponseHistories.stream().filter(groupMatchingHistory -> groupMatchingHistory.getProcess().equals(GroupProcess.CLOSED)).map(groupMatchingHistory -> groupMatchingHistory.getRequestGroup().getId() ).collect(Collectors.toList());
+            List<GroupMatchingHistory> responseHistories = groupMatchingHistoriesRepository.findAllByResponseGroup(group);
 
+            // 5-2. 상태별로 필터링 후 수집
+            List<String> invitedCollect = responseHistories.stream()
+                    .filter(groupMatchingHistory -> groupMatchingHistory.getProcess().equals(GroupProcess.INVITING))
+                    .map(groupMatchingHistory -> groupMatchingHistory.getRequestGroup().getId())
+                    .collect(Collectors.toList());
+
+            List<String> denyCollect = responseHistories.stream()
+                    .filter(groupMatchingHistory -> groupMatchingHistory.getProcess().equals(GroupProcess.DENIED))
+                    .map(groupMatchingHistory -> groupMatchingHistory.getRequestGroup().getId())
+                    .collect(Collectors.toList());
+
+            List<String> closedCollect = responseHistories.stream()
+                    .filter(groupMatchingHistory -> groupMatchingHistory.getProcess().equals(GroupProcess.CLOSED))
+                    .map(groupMatchingHistory -> groupMatchingHistory.getRequestGroup().getId())
+                    .collect(Collectors.toList());
+
+            // 6. 각각의 리스트에 해당하는 상태의 데이터 추가
             invitedResponseHistoriesId.addAll(invitedCollect);
-            invitedResponseHistoriesId.addAll(denyCollect);
-            invitedResponseHistoriesId.addAll(closedCollect);
+            denyResponseHistoriesId.addAll(denyCollect);
+            closedResponseHistoriesId.addAll(closedCollect);
         }
+
         log.info("invitedResponseHistoriesId = {}", invitedResponseHistoriesId);
+        log.info("deniedResponseHistoriesId = {}", denyResponseHistoriesId);
+        log.info("closedResponseHistoriesId = {}", closedResponseHistoriesId);
 
         // 6. mainMeetingListResponseDtos 리스트의 각 DTO에 대해 매칭 히스토리 존재 여부를 설정
         mainMeetingListResponseDtos.forEach(dto -> {
             if (invitedResponseHistoriesId.contains(dto.getId())) {
                 dto.setMatchingStatus(MatchingStatus.RESPONSE);
             }
-            else if (denyResponseHistoriesId.contains(dto.getId())) {
-                dto.setMatchingStatus(MatchingStatus.REQUEST_DENIED);
+            if (denyResponseHistoriesId.contains(dto.getId())) {
+                dto.setMatchingStatus(MatchingStatus.RESPONSE_DENY);
             }
-            else if (closedResponseHistoriesId.contains(dto.getId())) {
+            if (closedResponseHistoriesId.contains(dto.getId())) {
                 dto.setMatchingStatus(MatchingStatus.CLOSED);
             }
         });
