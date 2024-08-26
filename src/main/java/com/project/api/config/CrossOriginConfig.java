@@ -16,8 +16,7 @@ public class CrossOriginConfig implements WebMvcConfigurer {
             "http://localhost:3002",
             "https://gwating.com",
             "https://www.gwating.com",
-            "d1jw85cmg05158.cloudfront.net",
-            "d1jw85cmg05158.cloudfront.net."
+            "https://d1jw85cmg05158.cloudfront.net",
 
     };
     @Override
