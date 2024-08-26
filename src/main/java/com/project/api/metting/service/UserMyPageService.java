@@ -67,7 +67,7 @@ public class UserMyPageService {
         return UserMyPageDto.builder()
                 .profileIntroduce(user.getUserProfile() != null && user.getUserProfile().getProfileIntroduce() != null
                         ? user.getUserProfile().getProfileIntroduce()
-                        : "소개가 없습니다.")
+                        : "나를 어필할 한줄 소개를 작성해주세요.")
                 .profileImg(user.getUserProfile().getProfileImg())
                 .nickname(user.getNickname())
 //                .membership(user.getMembership() != null ? user.getMembership() : Membership.GENERAL)

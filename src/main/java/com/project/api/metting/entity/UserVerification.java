@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @Table(name = "mt_user_verifications")
-//@IdClass(UserVerificationId.class)  // 복합 키 클래스를 설정
+@IdClass(UserVerificationId.class)  // 복합 키 클래스를 설정
 public class UserVerification implements Serializable {
 
     @Id
