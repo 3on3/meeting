@@ -585,7 +585,7 @@
 
 | 그룹 매칭 |
 |----------|
-||
+|![image](https://github.com/user-attachments/assets/1086d914-575c-4db6-be97-2d8b4547c297)|
 
 <br>
 
@@ -600,7 +600,7 @@
 
 | 채팅 |
 |----------|
-|![채팅 설명 이미지]()|
+|![image](https://github.com/user-attachments/assets/1020b3a6-5c83-4129-b883-ffed4ae02373)|
 
 <br>
 
@@ -641,7 +641,7 @@
 
 | 알림 |
 |----------|
-|![알림 설명 이미지]()|
+|![image](https://github.com/user-attachments/assets/8bb32203-3fe4-4061-8a5c-59377587a52e)|
 
 <br>
 
@@ -649,25 +649,28 @@
 
 | 문지은 |
 |----------|
-|![image](https://github.com/user-attachments/assets/3c3cd7aa-9875-4cbb-8f91-9f1bee8ee28c)|
+![image](https://github.com/user-attachments/assets/8323a84c-8b0e-45c0-9ffb-071efc6ee436)
+
 
 | 박진우 |
 |----------|
-|![image](https://github.com/user-attachments/assets/3475fc9a-1309-487b-a145-bf22592ebbf4)|
+![image](https://github.com/user-attachments/assets/e8de6252-174e-4176-861a-c114044fddcf)
 
 | 김요한 |
 |----------|
-![image](https://github.com/user-attachments/assets/ae8ee671-3e86-4aa0-be59-0d3f4350f65f)|
+![image](https://github.com/user-attachments/assets/863b56d5-f686-420f-8d0b-1fad2b2420e2)
 
 | 김은지 |
 |----------|
-|![image](https://github.com/user-attachments/assets/bbf2b416-aa04-4f92-b610-e4ee178354eb)|
+![image](https://github.com/user-attachments/assets/2d4b65b4-ca88-49ec-b721-9381f9536dbe)
 
 | 이예진 | 
 |----------|
+![image](https://github.com/user-attachments/assets/aef9372e-dfeb-46c2-b393-5a40828919f2)
 
 | 진상훈 |
 |----------|
+![image](https://github.com/user-attachments/assets/03288fc8-0af5-4783-9c3b-a668fe65fd0b)
 
 
 
