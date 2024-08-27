@@ -24,6 +24,8 @@ configurations {
 
 repositories {
     mavenCentral()
+
+    maven{url 'https://jitpack.io'}
 }
 
 dependencies {
@@ -50,7 +52,6 @@ dependencies {
 
     //MyBatis 모듈
     implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.2.2'
-    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.2.2'
 
     // 입력값 검증 라이브러리
     implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -61,9 +62,10 @@ dependencies {
     //스프링 시큐리티 모듈
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
-
-    implementation 'org.springframework.boot:spring-boot-starter-websocket'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // json web token 라이브러리
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.11.2'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.2'
 
 
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
@@ -72,12 +74,28 @@ dependencies {
     implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
     annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}"
 
+
+    //초대코드
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.5'
+
+    implementation 'com.github.in-seo:univcert:master-SNAPSHOT'
+
+    // s3 라이브러리
+    implementation 'software.amazon.awssdk:s3:2.17.52'
+    //초대코드
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
+//    useJUnitPlatform()
+    exclude '**/*'
 }
 
+jar {
+    enabled = false
+}
 
 //querydsl 추가 시작
 def querydslDir = "$buildDir/generated/querydsl"

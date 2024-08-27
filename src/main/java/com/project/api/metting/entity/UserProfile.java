@@ -1,6 +1,7 @@
 package com.project.api.metting.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -24,20 +25,27 @@ import javax.persistence.*;
 public class UserProfile {
 
 
+
+
     @Id
     @GenericGenerator(strategy = "uuid2", name = "uuid-generator")
     @GeneratedValue(generator = "uuid-generator")
     @Column(name = "mt_profile_id")
     private String id; // 프로필 아이디
 
-
-    @Column(name = "mt_profile_img")
+    @Setter
+    @Column(name = "mt_profile_img", length = 1024)
     private String profileImg; // 프로필 이미지 경로
 
+    @Setter
     @Column(name = "mt_profile_introduce")
     private String profileIntroduce; // 프로필 소개
 
+    @Setter
+    @JsonIgnore
+    @ToString.Exclude
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mt_user_id",  nullable = false, unique = true)
     private User user;
+
 }

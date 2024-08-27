@@ -1,6 +1,7 @@
 package com.project.api.metting.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -38,21 +39,27 @@ public class GroupUser {
     private LocalDateTime joinedAt;
 
     @Column(name = "mt_group_user_auth")
-    @Builder.Default // 그룹 생성 시간
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
     private GroupAuth auth = GroupAuth.MEMBER;
 
 
     @Column(name = "mt_group_user_status")
-    @Builder.Default // 그룹 생성 시간
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Setter
     private GroupStatus status = GroupStatus.INVITING;
 
-
+    @JsonIgnore
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mt_user_id",  nullable = false)
     private User user;
 
-
+    @JsonIgnore
+    @ToString.Exclude
     @ManyToOne
+    @Setter
     @JoinColumn(name = "mt_group_id",  nullable = false)
     private Group group;
 
