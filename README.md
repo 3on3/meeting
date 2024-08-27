@@ -585,7 +585,7 @@
 
 | 그룹 매칭 |
 |----------|
-||
+|![image](https://github.com/user-attachments/assets/1086d914-575c-4db6-be97-2d8b4547c297)|
 
 <br>
 
@@ -600,7 +600,7 @@
 
 | 채팅 |
 |----------|
-|![채팅 설명 이미지]()|
+|![image](https://github.com/user-attachments/assets/1020b3a6-5c83-4129-b883-ffed4ae02373)|
 
 <br>
 
@@ -641,7 +641,7 @@
 
 | 알림 |
 |----------|
-|![알림 설명 이미지]()|
+|![image](https://github.com/user-attachments/assets/8bb32203-3fe4-4061-8a5c-59377587a52e)|
 
 <br>
 
@@ -668,6 +668,8 @@
 
 | 진상훈 |
 |----------|
+|![image](https://github.com/user-attachments/assets/9011fa02-82d0-40d1-86a0-62d9f41556bd)|
+
 
 
 
