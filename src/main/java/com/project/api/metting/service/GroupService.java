@@ -59,9 +59,11 @@ public class GroupService {
                 .filter(groupUser -> groupUser.getStatus() == GroupStatus.REGISTERED)
                 .count();
 
-        // 그룹 생성 제한 조건 검사
-        if (groupCount >= 2) {
-            throw new IllegalStateException("이미 두 개의 그룹에 참여 중입니다. 더 이상 그룹을 생성할 수 없습니다.");
+        // 멤버십에 따른 그룹 생성 제한 조건 검사
+        int maxGroups = user.getMembership().getAuth() == Membership.PREMIUM ? 5 : 2;
+        if (groupCount >= maxGroups) {
+            String errorMessage = String.format("이미 %d개의 그룹에 참여 중입니다. 더 이상 그룹에 참여신청이 불가능합니다.", maxGroups);
+            throw new IllegalStateException(errorMessage);
         }
 
         // Group 엔터티 생성
